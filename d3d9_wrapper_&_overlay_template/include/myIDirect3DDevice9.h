@@ -12,7 +12,7 @@
 #define _SP_DEFAULT_TEXT_COLOR_ D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f)
 #define _SP_DEFAULT_TEXT_BORDER_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f)
 #define _SP_DEFAULT_TEXT_SHADOW_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f)
-#define _SP_DEFAULT_TEXT_FORMAT_ (DT_NOCLIP)
+#define _SP_DEFAULT_TEXT_FORMAT_ (DT_NOCLIP | DT_BOTTOM | DT_CENTER)
 #define _SP_DEFAULT_TEXT_STYLE_ SP_DX9_BORDERED_TEXT
 #define _SP_DEFAULT_TEXT_FONT_ "Arial"
 
@@ -167,6 +167,7 @@ public:
 	HRESULT __stdcall DeletePatch(UINT Handle);
 	HRESULT __stdcall CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** ppQuery);
 	// END: The original DX9 function definitions
+	void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height);
 
 private:
 	IDirect3DDevice9 *m_pIDirect3DDevice9;

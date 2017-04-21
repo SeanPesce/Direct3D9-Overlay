@@ -31,6 +31,9 @@ extern SHORT key_state[256];
 extern bool mod_loop_enabled;
 extern unsigned int hotkey_next_overlay_text_pos;
 extern unsigned int hotkey_next_overlay_text_style;
+extern int user_pref_overlay_text_size;
+extern DWORD user_pref_overlay_text_pos;
+extern int user_pref_overlay_text_style;
 
 
 void get_ds_window();

@@ -116,17 +116,21 @@ void LoadOriginalDll(void)
 // Parses settings file for intialization settings
 int InitSettings()
 {
-	hotkey_next_overlay_text_pos = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_STR_NEXT_OL_TXT_POS_KEY_);
-	hotkey_next_overlay_text_style = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_STR_NEXT_OL_TXT_STYLE_KEY_);
+	// Get keybinds from settings file
+	hotkey_next_overlay_text_pos = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_);
+	hotkey_next_overlay_text_style = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_STYLE_KEY_);
 
-	char dll_chain_buffer[128];
+	// Get user preferences from settings file
+	get_user_preferences();
+
+	char settings_buffer[128];
 
 	// Check settings file for DLL chain
-	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_SETTINGS_, _SP_DS_DLL_CHAIN_KEY_, NULL, dll_chain_buffer, 128, _SP_DS_SETTINGS_FILE_);
-
-	if (dll_chain_buffer[0] != '\0') // Found DLL_Chain entry in settings file
+	settings_buffer[0] = '\0';
+	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_SETTINGS_, _SP_DS_DLL_CHAIN_KEY_, NULL, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
+	if (settings_buffer[0] != '\0') // Found DLL_Chain entry in settings file
 	{
-		gl_hOriginalDll = LoadLibrary(dll_chain_buffer);
+		gl_hOriginalDll = LoadLibrary(settings_buffer);
 		if (!gl_hOriginalDll)
 		{
 			// Failed to load next wrapper DLL
@@ -171,6 +175,75 @@ void ExitInstance()
 	{
 		::FreeLibrary(gl_hOriginalDll);
 	    gl_hOriginalDll = NULL;  
+	}
+}
+
+void get_user_preferences()
+{
+	char settings_buffer[128];
+	std::string setting_value;
+
+	// Overlay text size
+	user_pref_overlay_text_size = (int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_SIZE_KEY_, _SP_DEFAULT_TEXT_HEIGHT_, _SP_DS_SETTINGS_FILE_);
+
+	// Overlay text horizonal position
+	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_HORIZONTAL_POS_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
+	setting_value = settings_buffer;
+	std::transform(setting_value.begin(), setting_value.end(), setting_value.begin(), ::toupper);
+	if (strcmp(setting_value.c_str(), SP_OL_TXT_POS_VALS[OL_TXT_POS_LEFT]) == 0)
+	{
+		// Overlay text horizontal position will be on the left
+		user_pref_overlay_text_pos = (DT_NOCLIP | DT_LEFT);
+	}
+	else if (strcmp(setting_value.c_str(), SP_OL_TXT_POS_VALS[OL_TXT_POS_RIGHT]) == 0)
+	{
+		// Overlay text horizontal position will be on the right
+		user_pref_overlay_text_pos = (DT_NOCLIP | DT_RIGHT);
+	}
+	else
+	{
+		// Overlay text horizontal position will be in the center
+		user_pref_overlay_text_pos = (DT_NOCLIP | DT_CENTER);
+	}
+
+	// Overlay text vertical position
+	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_VERTICAL_POS_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_VERTICAL_POS_, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
+	setting_value = settings_buffer;
+	std::transform(setting_value.begin(), setting_value.end(), setting_value.begin(), ::toupper);
+	if (strcmp(setting_value.c_str(), SP_OL_TXT_POS_VALS[OL_TXT_POS_TOP]) == 0)
+	{
+		// Overlay text vertical position will be on top
+		user_pref_overlay_text_pos |= (DT_NOCLIP | DT_TOP);
+	}
+	else if (strcmp(setting_value.c_str(), SP_OL_TXT_POS_VALS[OL_TXT_POS_VCENTER]) == 0)
+	{
+		// Overlay text vertical position will be in the middle
+		user_pref_overlay_text_pos |= (DT_NOCLIP | DT_VCENTER);
+	}
+	else
+	{
+		// Overlay text vertical position will be on the bottom
+		user_pref_overlay_text_pos |= (DT_NOCLIP | DT_BOTTOM);
+	}
+
+	// Overlay text style
+	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_STYLE_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_STYLE_, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
+	setting_value = settings_buffer;
+	std::transform(setting_value.begin(), setting_value.end(), setting_value.begin(), ::toupper);
+	if (strcmp(setting_value.c_str(), SP_OL_TXT_STYLE_VALS[SP_DX9_SHADOWED_TEXT]) == 0)
+	{
+		// Overlay text style will be shadowed
+		user_pref_overlay_text_style = SP_DX9_SHADOWED_TEXT;
+	}
+	else if (strcmp(setting_value.c_str(), SP_OL_TXT_STYLE_VALS[SP_DX9_PLAIN_TEXT]) == 0)
+	{
+		// Overlay text style will be plain
+		user_pref_overlay_text_style = SP_DX9_PLAIN_TEXT;
+	}
+	else
+	{
+		// Overlay text style will be outlined
+		user_pref_overlay_text_style = SP_DX9_BORDERED_TEXT;
 	}
 }
 

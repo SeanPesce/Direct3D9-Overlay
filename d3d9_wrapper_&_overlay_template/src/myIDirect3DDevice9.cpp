@@ -723,7 +723,7 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 
 	// Initialize overlay font
 	HRESULT font_hr = D3DXCreateFont(
-		m_pIDirect3DDevice9,	// D3D device (can also use "this")
+		m_pIDirect3DDevice9,	// D3D device
 		text_height,			// Height
 		0,						// Width
 		FW_BOLD,				// Weight
@@ -845,4 +845,34 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 		text_overlay.text_outline_rect[0].top + text_border_thickness + 1,
 		text_overlay.text_outline_rect[0].right,
 		text_overlay.text_outline_rect[0].bottom + text_border_thickness + 1);
+}
+
+void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)
+{
+	D3DXFONT_DESC font_desc;
+	HRESULT font_desc_hr = text_overlay.font->GetDesc(&font_desc);
+	if (FAILED(font_desc_hr))
+	{
+		// Handle error
+	}
+
+	// Re-initialize overlay font
+	HRESULT font_hr = D3DXCreateFont(
+		m_pIDirect3DDevice9,	// D3D device
+		new_text_height,		// Height
+		font_desc.Width,		// Width
+		font_desc.Weight,		// Weight
+		font_desc.MipLevels,	// MipLevels, 0 = autogen mipmaps
+		font_desc.Italic,		// Italic
+		font_desc.CharSet,		// CharSet
+		font_desc.OutputPrecision, // OutputPrecision
+		font_desc.Quality,		// Quality
+		font_desc.PitchAndFamily, // PitchAndFamily
+		font_desc.FaceName,		// pFaceName
+		&text_overlay.font);	// ppFont
+	if (FAILED(font_hr))
+	{
+		// Handle error
+	}
+
 }

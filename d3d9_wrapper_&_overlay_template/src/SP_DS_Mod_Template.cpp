@@ -12,7 +12,9 @@ void mod_loop()
 	{
 		Sleep(500);
 	}
-	gl_pmyIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_BOTTOM_CENTER_;
+	gl_pmyIDirect3DDevice9->text_overlay.text_format = user_pref_overlay_text_pos;
+	gl_pmyIDirect3DDevice9->text_overlay.text_style = user_pref_overlay_text_style;
+	gl_pmyIDirect3DDevice9->SP_DX9_set_text_height(user_pref_overlay_text_size);
 
 	while (mod_loop_enabled)
 	{

@@ -70,7 +70,7 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
 	// Request pointer from Original Dll. 
 	IDirect3D9 *pIDirect3D9_orig = D3DCreate9_fn(SDKVersion);
 	
-	// Create my IDirect3D8 object and store pointer to original object there.
+	// Create my IDirect3D9 object and store pointer to original object there.
 	// Note: the object will delete itself once Ref count is zero (similar to COM objects)
 	gl_pmyIDirect3D9 = new myIDirect3D9(pIDirect3D9_orig);
 	
@@ -96,7 +96,7 @@ void LoadOriginalDll(void)
 {
     char buffer[MAX_PATH];
     
-    // Getting path to system dir and to d3d8.dll
+    // Getting path to system dir and to d3d9.dll
 	::GetSystemDirectory(buffer,MAX_PATH);
 
 	// Append dll name
@@ -116,12 +116,13 @@ void LoadOriginalDll(void)
 // Parses settings file for intialization settings
 int InitSettings()
 {
-	hotkey1 = get_vk_hotkey(SETTINGS_FILE, SETTINGS_FILE_SUBSECTION, HOTKEY1_KEY);
+	hotkey_next_overlay_text_pos = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_STR_NEXT_OL_TXT_POS_KEY_);
+	hotkey_next_overlay_text_style = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_STR_NEXT_OL_TXT_STYLE_KEY_);
 
 	char dll_chain_buffer[128];
 
 	// Check settings file for DLL chain
-	GetPrivateProfileString(SETTINGS_FILE_SUBSECTION, DLL_CHAIN_KEY, NULL, dll_chain_buffer, 128, SETTINGS_FILE);
+	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_SETTINGS_, _SP_DS_DLL_CHAIN_KEY_, NULL, dll_chain_buffer, 128, _SP_DS_SETTINGS_FILE_);
 
 	if (dll_chain_buffer[0] != '\0') // Found DLL_Chain entry in settings file
 	{
@@ -146,7 +147,7 @@ int InitSettings()
 DWORD WINAPI init_mod_thread(LPVOID lpParam)
 {
 
-	if (hotkey1 == 0)
+	if (hotkey_next_overlay_text_pos == 0 && hotkey_next_overlay_text_style == 0) // @TODO: update this in real implementation
 	{
 		// Disable mod
 		mod_loop_enabled = false;

@@ -35,6 +35,9 @@
     <ClInclude Include="include\SP_IO.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SP_DS_Mod_Template.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\myIDirect3D9.cpp">

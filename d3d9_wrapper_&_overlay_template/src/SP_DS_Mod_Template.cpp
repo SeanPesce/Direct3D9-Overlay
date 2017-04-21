@@ -1,35 +1,18 @@
 // Author: Sean Pesce
 
 #include "stdafx.h"
-#include <Windows.h>
-#include <string>
-#include "SP_IO.hpp"
-
-// Checks if a hotkey is currently being pressed, but only if it's a valid virtual key:
-#define hotkey_is_down(hotkey) (hotkey != 0 && (key_state[hotkey] & _SP_KEY_DOWN_))
-
-enum overlay_text_types {
-	SP_TEXT_OUTLINED,
-	SP_TEXT_SHADOWED,
-	SP_TEXT_SOLID_BACKGROUND
-};
-extern const char *DS_WINDOW_CLASS;
-
-extern HWND ds_game_window;
-extern SHORT key_state[256];
-extern int overlay_text_type;
-extern bool mod_loop_enabled;
-extern unsigned int hotkey1;
-
-void get_ds_window();
-BOOL CALLBACK try_ds_window(HWND hwnd, LPARAM lParam);
-
+#include "SP_DS_Mod_Template.h"
 
 
 // Main loop for the mod thread
 void mod_loop()
 {
 	get_ds_window(); // Get the Dark Souls window handle
+	while (gl_pmyIDirect3DDevice9 == NULL)
+	{
+		Sleep(500);
+	}
+	gl_pmyIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_BOTTOM_CENTER_;
 
 	while (mod_loop_enabled)
 	{
@@ -37,20 +20,18 @@ void mod_loop()
 
 			get_async_keyboard_state(key_state); // Capture all current async key states
 
-			if (hotkey_is_down(hotkey1))
+			if (hotkey_is_down(hotkey_next_overlay_text_pos))
 			{
 				// @TODO: Replace this block of code with mod functionality
 				Beep(800, 100);
-				switch (overlay_text_type) {
-					case SP_TEXT_OUTLINED:
-					case SP_TEXT_SHADOWED:
-						overlay_text_type++;
-						break;
-					case SP_TEXT_SOLID_BACKGROUND:
-					default:
-						overlay_text_type = 0;
-						break;
-				}
+				next_overlay_text_position(gl_pmyIDirect3DDevice9->text_overlay.text_format);
+				
+			}
+			else if (hotkey_is_down(hotkey_next_overlay_text_style))
+			{
+				// @TODO: Replace this block of code with mod functionality
+				Beep(600, 100);
+				next_overlay_text_style(gl_pmyIDirect3DDevice9->text_overlay.text_style);
 			}
 
 			// @TODO: Other hotkeys should also be checked and handled here
@@ -101,7 +82,7 @@ BOOL CALLBACK try_ds_window(HWND hwnd, LPARAM lParam)
 		}
 		window_class[127] = '\0';
 
-		if (strcmp(window_class, DS_WINDOW_CLASS) == 0)
+		if (strcmp(window_class, _SP_DS_WINDOW_CLASS_) == 0)
 		{
 			// hwnd is the Dark Souls game window
 			ds_game_window = hwnd;
@@ -109,4 +90,58 @@ BOOL CALLBACK try_ds_window(HWND hwnd, LPARAM lParam)
 		}
 	}
 	return 1;
+}
+
+// Switches the overlay text to the next preset position
+void next_overlay_text_position(DWORD current_position)
+{
+	switch (current_position)
+	{
+	case _SP_TEXT_TOP_LEFT_:
+		gl_pmyIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_TOP_CENTER_;
+		break;
+	case _SP_TEXT_TOP_CENTER_:
+		gl_pmyIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_TOP_RIGHT_;
+		break;
+	case _SP_TEXT_TOP_RIGHT_:
+		gl_pmyIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_CENTER_LEFT_;
+		break;
+	case _SP_TEXT_CENTER_LEFT_:
+		gl_pmyIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_CENTER_CENTER_;
+		break;
+	case _SP_TEXT_CENTER_CENTER_:
+		gl_pmyIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_CENTER_RIGHT_;
+		break;
+	case _SP_TEXT_CENTER_RIGHT_:
+		gl_pmyIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_BOTTOM_LEFT_;
+		break;
+	case _SP_TEXT_BOTTOM_LEFT_:
+		gl_pmyIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_BOTTOM_CENTER_;
+		break;
+	case _SP_TEXT_BOTTOM_CENTER_:
+		gl_pmyIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_BOTTOM_RIGHT_;
+		break;
+	case _SP_TEXT_BOTTOM_RIGHT_:
+	default:
+		gl_pmyIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_TOP_LEFT_;
+		break;
+	}
+}
+
+// Switches to the next text overlay style
+void next_overlay_text_style(int current_style)
+{
+	switch (current_style)
+	{
+	case SP_DX9_BORDERED_TEXT:
+		gl_pmyIDirect3DDevice9->text_overlay.text_style = SP_DX9_SHADOWED_TEXT;
+		break;
+	case SP_DX9_SHADOWED_TEXT:
+		gl_pmyIDirect3DDevice9->text_overlay.text_style = SP_DX9_PLAIN_TEXT;
+		break;
+	case SP_DX9_PLAIN_TEXT:
+	default:
+		gl_pmyIDirect3DDevice9->text_overlay.text_style = SP_DX9_BORDERED_TEXT;
+		break;
+	}
 }

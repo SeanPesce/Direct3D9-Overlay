@@ -104,6 +104,7 @@
     <ClInclude Include="include\myIDirect3D9.h" />
     <ClInclude Include="include\myIDirect3DDevice9.h" />
     <ClInclude Include="include\proxydll.h" />
+    <ClInclude Include="include\SP_DS_Mod_Template.h" />
     <ClInclude Include="include\SP_IO.hpp" />
     <ClInclude Include="include\stdafx.h" />
   </ItemGroup>

@@ -12,6 +12,7 @@ void mod_loop()
 	{
 		Sleep(500);
 	}
+	gl_pmyIDirect3DDevice9->text_overlay.enabled = user_pref_overlay_text_enabled;
 	gl_pmyIDirect3DDevice9->text_overlay.text_format = user_pref_overlay_text_pos;
 	gl_pmyIDirect3DDevice9->text_overlay.text_style = user_pref_overlay_text_style;
 	gl_pmyIDirect3DDevice9->SP_DX9_set_text_height(user_pref_overlay_text_size);
@@ -22,18 +23,25 @@ void mod_loop()
 
 			get_async_keyboard_state(key_state); // Capture all current async key states
 
-			if (hotkey_is_down(hotkey_next_overlay_text_pos))
+			if (hotkey_is_down(hotkey_toggle_overlay_text))
 			{
-				// @TODO: Replace this block of code with mod functionality
-				Beep(800, 100);
-				next_overlay_text_position(gl_pmyIDirect3DDevice9->text_overlay.text_format);
-				
+				// Toggle overlay text
+				gl_pmyIDirect3DDevice9->text_overlay.enabled = !gl_pmyIDirect3DDevice9->text_overlay.enabled;
+				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (hotkey_is_down(hotkey_next_overlay_text_style))
+			else if (gl_pmyIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_next_overlay_text_pos))
 			{
 				// @TODO: Replace this block of code with mod functionality
-				Beep(600, 100);
+				next_overlay_text_position(gl_pmyIDirect3DDevice9->text_overlay.text_format);
+				Beep(800, 100);
+				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+			}
+			else if (gl_pmyIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_next_overlay_text_style))
+			{
+				// @TODO: Replace this block of code with mod functionality
 				next_overlay_text_style(gl_pmyIDirect3DDevice9->text_overlay.text_style);
+				Beep(600, 100);
+				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
 
 			// @TODO: Other hotkeys should also be checked and handled here

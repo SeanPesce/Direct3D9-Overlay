@@ -23,6 +23,7 @@ enum SP_DX9_TEXT_OVERLAY_STYLES {
 };
 
 typedef struct SP_DX9_FULLSCREEN_TEXT_OVERLAY {
+	bool enabled;
 	RECT text_shadow_rect[2];
 	RECT text_outline_rect[9];
 	ID3DXFont* font;

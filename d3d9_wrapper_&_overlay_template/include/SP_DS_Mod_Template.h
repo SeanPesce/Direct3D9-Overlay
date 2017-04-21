@@ -24,13 +24,16 @@
 #define _SP_TEXT_BOTTOM_RIGHT_ (DT_NOCLIP | DT_BOTTOM | DT_RIGHT)
 
 #define _SP_DS_WINDOW_CLASS_ "DARK SOULS"
+#define _SP_DS_KEYPRESS_WAIT_TIME_ 100
 
 extern myIDirect3DDevice9* gl_pmyIDirect3DDevice9;
 extern HWND ds_game_window;
 extern SHORT key_state[256];
 extern bool mod_loop_enabled;
+extern unsigned int hotkey_toggle_overlay_text;
 extern unsigned int hotkey_next_overlay_text_pos;
 extern unsigned int hotkey_next_overlay_text_style;
+extern bool user_pref_overlay_text_enabled;
 extern int user_pref_overlay_text_size;
 extern DWORD user_pref_overlay_text_pos;
 extern int user_pref_overlay_text_style;

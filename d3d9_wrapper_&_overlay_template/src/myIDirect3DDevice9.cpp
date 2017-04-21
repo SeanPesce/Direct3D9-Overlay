@@ -681,28 +681,30 @@ font->DrawText(NULL, text, -1, text_box, DT_NOCLIP, D3DXCOLOR(1.0f, 1.0f, 1.0f, 
 
 void myIDirect3DDevice9::SP_DX9_draw_text_overlay()
 {
-
-	switch (text_overlay.text_style) {
-	case SP_DX9_SHADOWED_TEXT:
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color);
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, text_overlay.text_color);
-		break;
-	case SP_DX9_PLAIN_TEXT:
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &window_rect, text_overlay.text_format, text_overlay.text_color);
-		break;
-	case SP_DX9_BORDERED_TEXT:
-	default:
-		// Draw bordered text
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[1], text_overlay.text_format, text_overlay.text_border_color);
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[2], text_overlay.text_format, text_overlay.text_border_color);
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[3], text_overlay.text_format, text_overlay.text_border_color);
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[4], text_overlay.text_format, text_overlay.text_border_color);
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[5], text_overlay.text_format, text_overlay.text_border_color);
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[6], text_overlay.text_format, text_overlay.text_border_color);
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[7], text_overlay.text_format, text_overlay.text_border_color);
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[8], text_overlay.text_format, text_overlay.text_border_color);
-		text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, text_overlay.text_color);
-		break;
+	if (text_overlay.enabled)
+	{
+		switch (text_overlay.text_style) {
+			case SP_DX9_SHADOWED_TEXT:
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, text_overlay.text_color);
+				break;
+			case SP_DX9_PLAIN_TEXT:
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &window_rect, text_overlay.text_format, text_overlay.text_color);
+				break;
+			case SP_DX9_BORDERED_TEXT:
+			default:
+				// Draw bordered text
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[1], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[2], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[3], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[4], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[5], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[6], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[7], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[8], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, text_overlay.text_color);
+				break;
+		}
 	}
 }
 
@@ -845,6 +847,8 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 		text_overlay.text_outline_rect[0].top + text_border_thickness + 1,
 		text_overlay.text_outline_rect[0].right,
 		text_overlay.text_outline_rect[0].bottom + text_border_thickness + 1);
+
+	text_overlay.enabled = true;
 }
 
 void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)

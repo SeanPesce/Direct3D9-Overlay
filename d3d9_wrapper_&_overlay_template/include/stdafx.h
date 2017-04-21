@@ -19,9 +19,11 @@
 // Setting keys
 #define _SP_DS_DLL_CHAIN_KEY_ "DLL_Chain"
 // Keybind keys
+#define _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_ "ToggleOverlay"
 #define _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_ "ChangeOverlayTextPosition"
 #define _SP_DS_HOTKEY_NEXT_OL_TXT_STYLE_KEY_ "ChangeOverlayTextStyle"
 // User preference keys
+#define _SP_DS_OL_TXT_ENABLED_KEY_ "EnableOverlay"
 #define _SP_DS_OL_TXT_SIZE_KEY_ "OverlayTextSize"
 #define _SP_DS_OL_TXT_HORIZONTAL_POS_KEY_ "OverlayTextHorizontalPosition"
 #define _SP_DS_OL_TXT_VERTICAL_POS_KEY_ "OverlayTextVerticalPosition"

@@ -23,6 +23,10 @@ void LoadOriginalDll(void);
 
 
 //////////////////////// CONSTANTS ////////////////////////
+enum SP_OL_TXT_ENABLED_ENUM {
+	OL_TXT_DISABLED,
+	OL_TXT_ENABLED
+};
 enum SP_OL_TXT_POS_ENUM {
 	OL_TXT_POS_LEFT,
 	OL_TXT_POS_HCENTER,
@@ -35,6 +39,7 @@ const char *SP_OL_TXT_POS_VALS[6] = { "LEFT", "CENTER", "RIGHT", "TOP", "CENTER"
 //
 const char *SP_OL_TXT_STYLE_VALS[3] = { "OUTLINE", "SHADOW", "PLAIN" };
 // Default initialization setting values
+#define _SP_DS_DEFAULT_VAL_OL_TXT_ENABLED_ OL_TXT_ENABLED
 #define _SP_DS_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_HCENTER]
 #define _SP_DS_DEFAULT_VAL_OL_TXT_VERTICAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_BOTTOM]
 #define _SP_DS_DEFAULT_VAL_OL_TXT_STYLE_ SP_OL_TXT_STYLE_VALS[SP_DX9_BORDERED_TEXT]
@@ -47,9 +52,11 @@ HWND ds_game_window;	// Game window handle
 SHORT key_state[256];	// Buffer for async key states
 bool mod_loop_enabled;	// Enables/disables the main loop
 // Keybinds
+unsigned int hotkey_toggle_overlay_text;
 unsigned int hotkey_next_overlay_text_pos;
 unsigned int hotkey_next_overlay_text_style;
 // User preferences
+bool user_pref_overlay_text_enabled;
 int user_pref_overlay_text_size;
 DWORD user_pref_overlay_text_pos;
 int user_pref_overlay_text_style;

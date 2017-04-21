@@ -117,6 +117,7 @@ void LoadOriginalDll(void)
 int InitSettings()
 {
 	// Get keybinds from settings file
+	hotkey_toggle_overlay_text = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_);
 	hotkey_next_overlay_text_pos = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_);
 	hotkey_next_overlay_text_style = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_STYLE_KEY_);
 
@@ -151,7 +152,10 @@ int InitSettings()
 DWORD WINAPI init_mod_thread(LPVOID lpParam)
 {
 
-	if (hotkey_next_overlay_text_pos == 0 && hotkey_next_overlay_text_style == 0) // @TODO: update this in real implementation
+	if (!user_pref_overlay_text_enabled		// @TODO: update this in real implementation
+		&& hotkey_toggle_overlay_text == 0
+		&& hotkey_next_overlay_text_style == 0
+		&& hotkey_next_overlay_text_pos == 0)
 	{
 		// Disable mod
 		mod_loop_enabled = false;
@@ -182,6 +186,9 @@ void get_user_preferences()
 {
 	char settings_buffer[128];
 	std::string setting_value;
+
+	// Overlay enabled/disabled
+	user_pref_overlay_text_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
 	// Overlay text size
 	user_pref_overlay_text_size = (int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_SIZE_KEY_, _SP_DEFAULT_TEXT_HEIGHT_, _SP_DS_SETTINGS_FILE_);

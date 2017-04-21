@@ -848,7 +848,7 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 		text_overlay.text_outline_rect[0].right,
 		text_overlay.text_outline_rect[0].bottom + text_border_thickness + 1);
 
-	text_overlay.enabled = true;
+	text_overlay.enabled = false;
 }
 
 void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)

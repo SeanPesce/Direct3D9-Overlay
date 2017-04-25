@@ -659,21 +659,6 @@ HRESULT myIDirect3DDevice9::CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** ppQ
 	return(m_pIDirect3DDevice9->CreateQuery(Type, ppQuery));
 }
 
-/* void SP_init_text_box(RECT *text_box, D3DRECT *text_background, int x1, int y1, int x2, int y2)
-{
-SetRect(text_box, x1, y1, x2, y2);
-if (text_background != NULL)
-{
-*text_background = { x1, y1, x2, y2 };
-}
-}
-
-void SP_display_text_box(LPDIRECT3DDEVICE9 device, RECT *text_box, D3DRECT *text_background, ID3DXFont *font, const char *text)
-{
-device->Clear(1, text_background, D3DCLEAR_TARGET, D3DCOLOR_ARGB(127, 0, 0, 0), 0, 0);
-font->DrawText(NULL, text, -1, text_box, DT_NOCLIP, D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f));
-}*/
-
 void myIDirect3DDevice9::SP_DX9_draw_text_overlay()
 {
 	if (text_overlay.enabled)
@@ -855,6 +840,17 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 
 void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)
 {
+	bool reenable_overlay;
+	if (text_overlay.enabled)
+	{
+		reenable_overlay = true;
+		text_overlay.enabled = false;
+	}
+	else
+	{
+		reenable_overlay = false;
+	}
+
 	D3DXFONT_DESC font_desc;
 	HRESULT font_desc_hr = text_overlay.font->GetDesc(&font_desc);
 	if (FAILED(font_desc_hr))
@@ -881,6 +877,10 @@ void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)
 		// Handle error
 	}
 
+	if (reenable_overlay)
+	{
+		text_overlay.enabled = true;
+	}
 }
 
 // Adds a message to the text overlay feed; the message expires in a number of
@@ -954,6 +954,7 @@ void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned lon
 	new_message.timestamp[9] = ']';
 	new_message.timestamp[10] = ' ';
 	new_message.timestamp[11] = '\0';
+	// Finished constructing timestamp string
 
 	text_overlay_feed.push_back(new_message);
 

@@ -120,6 +120,12 @@ int InitSettings()
 	hotkey_toggle_overlay_text = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_);
 	hotkey_next_overlay_text_pos = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_);
 	hotkey_next_overlay_text_style = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_STYLE_KEY_);
+	hotkey_toggle_audio_feedback = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_AUDIO_FEEDBACK_KEY_);
+	hotkey_toggle_verbose_output = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_VERBOSE_OUTPUT_KEY_);
+	hotkey_print_overlay_test_message = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_PRINT_OL_TXT_TEST_MSG_KEY_);
+	hotkey_increase_overlay_text_size = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_INCREASE_TXT_SIZE_KEY_);
+	hotkey_decrease_overlay_text_size = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_DECREASE_TXT_SIZE_KEY_);
+	hotkey_reset_overlay_text_size = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_RESET_TXT_SIZE_KEY_);
 
 	// Get user preferences from settings file
 	get_user_preferences();
@@ -155,7 +161,8 @@ DWORD WINAPI init_mod_thread(LPVOID lpParam)
 	if (!user_pref_overlay_text_enabled		// @TODO: update this in real implementation
 		&& hotkey_toggle_overlay_text == 0
 		&& hotkey_next_overlay_text_style == 0
-		&& hotkey_next_overlay_text_pos == 0)
+		&& hotkey_next_overlay_text_pos == 0
+		&& hotkey_print_overlay_test_message == 0)
 	{
 		// Disable mod
 		mod_loop_enabled = false;
@@ -189,6 +196,12 @@ void get_user_preferences()
 
 	// Overlay enabled/disabled
 	user_pref_overlay_text_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
+
+	// Audio feedback enabled/disabled
+	user_pref_audio_feedback_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_AUDIO_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_AUDIO_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
+
+	// Verbose text output enabled/disabled
+	user_pref_verbose_output_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_DEV_PREFS_, _SP_DS_OL_TXT_VERBOSE_OUTPUT_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_VERBOSE_OUTPUT_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
 	// Overlay text size
 	user_pref_overlay_text_size = (int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_SIZE_KEY_, _SP_DEFAULT_TEXT_HEIGHT_, _SP_DS_SETTINGS_FILE_);

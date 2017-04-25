@@ -26,6 +26,13 @@
 #define _SP_DS_WINDOW_CLASS_ "DARK SOULS"
 #define _SP_DS_KEYPRESS_WAIT_TIME_ 100
 
+
+// Output strings
+#define _SP_DS_OL_TXT_INTRO_MESSAGE_ "Dark Souls mod template by Sean Pesce"
+#define _SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_ "Text style changed to outlined"
+#define _SP_DS_OL_TXT_SHADOW_STYLE_MESSAGE_ "Text style changed to shadowed"
+#define _SP_DS_OL_TXT_PLAIN_STYLE_MESSAGE_ "Text style changed to plain"
+
 extern myIDirect3DDevice9* gl_pmyIDirect3DDevice9;
 extern HWND ds_game_window;
 extern SHORT key_state[256];

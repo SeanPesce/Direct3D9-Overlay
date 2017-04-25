@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include <chrono>
+#include <ctime>
+#include <list>
+#include <string>
 #include <d3dx9core.h>
 
 #define _SP_DEFAULT_TEXT_HEIGHT_ 28
@@ -15,12 +19,20 @@
 #define _SP_DEFAULT_TEXT_FORMAT_ (DT_NOCLIP | DT_BOTTOM | DT_CENTER)
 #define _SP_DEFAULT_TEXT_STYLE_ SP_DX9_BORDERED_TEXT
 #define _SP_DEFAULT_TEXT_FONT_ "Arial"
+#define _SP_DEFAULT_OVERLAY_TEXT_MESSAGE_ "Dark Souls mod template by Sean Pesce"
 
 enum SP_DX9_TEXT_OVERLAY_STYLES {
 	SP_DX9_BORDERED_TEXT,
 	SP_DX9_SHADOWED_TEXT,
 	SP_DX9_PLAIN_TEXT
 };
+
+typedef struct SP_DX9_TEXT_OVERLAY_FEED_ENTRY {
+	const char *message;
+	unsigned long long expire_time;
+	bool show_timestamp;
+	char timestamp[12];
+} SP_DX9_TEXT_OVERLAY_FEED_ENTRY;
 
 typedef struct SP_DX9_FULLSCREEN_TEXT_OVERLAY {
 	bool enabled;
@@ -42,7 +54,8 @@ public:
 
 	RECT window_rect;
 	SP_DX9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for fullscreen text overlay
-
+	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY> text_overlay_feed; // List of entries in the overlay text feed
+	std::string text_overlay_feed_text; // Text that will be printed to the text overlay
 
 	myIDirect3DDevice9(IDirect3DDevice9* pOriginal);
 	virtual ~myIDirect3DDevice9(void);
@@ -169,10 +182,14 @@ public:
 	HRESULT __stdcall CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** ppQuery);
 	// END: The original DX9 function definitions
 	void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height);
+	void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp);
 
 private:
 	IDirect3DDevice9 *m_pIDirect3DDevice9;
 
 	void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height, unsigned int text_border_thickness, int text_shadow_x_offset, int text_shadow_y_offset, D3DXCOLOR text_color, D3DXCOLOR text_border_color, D3DXCOLOR text_shadow_color, DWORD text_format, int text_style);
 	void myIDirect3DDevice9::SP_DX9_draw_text_overlay();
+	void myIDirect3DDevice9::clean_text_overlay_feed();
+	void myIDirect3DDevice9::build_text_overlay_feed_string();
+
 };

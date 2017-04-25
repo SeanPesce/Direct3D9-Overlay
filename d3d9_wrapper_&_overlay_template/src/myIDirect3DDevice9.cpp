@@ -4,9 +4,6 @@
 #include "StdAfx.h"
 #include "myIDirect3DDevice9.h"
 
-// Constants & Variables:
-extern const char *example_overlay_text;
-
 myIDirect3DDevice9::myIDirect3DDevice9(IDirect3DDevice9* pOriginal)
 {
 	m_pIDirect3DDevice9 = pOriginal; // Store the pointer to original object
@@ -25,8 +22,6 @@ myIDirect3DDevice9::myIDirect3DDevice9(IDirect3DDevice9* pOriginal)
 		_SP_DEFAULT_TEXT_SHADOW_COLOR_,
 		_SP_DEFAULT_TEXT_FORMAT_,
 		_SP_DEFAULT_TEXT_STYLE_);
-
-	text_overlay.text = example_overlay_text;  // Remove this statement in non-example implementation
 }
 
 myIDirect3DDevice9::~myIDirect3DDevice9(void)
@@ -683,6 +678,10 @@ void myIDirect3DDevice9::SP_DX9_draw_text_overlay()
 {
 	if (text_overlay.enabled)
 	{
+		clean_text_overlay_feed();
+
+		build_text_overlay_feed_string(); // Build text feed string
+
 		switch (text_overlay.text_style) {
 			case SP_DX9_SHADOWED_TEXT:
 				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color);
@@ -848,6 +847,9 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 		text_overlay.text_outline_rect[0].right,
 		text_overlay.text_outline_rect[0].bottom + text_border_thickness + 1);
 
+	text_overlay_feed_text = std::string(_SP_DEFAULT_OVERLAY_TEXT_MESSAGE_);
+	text_overlay.text = text_overlay_feed_text.c_str();
+
 	text_overlay.enabled = false;
 }
 
@@ -879,4 +881,124 @@ void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)
 		// Handle error
 	}
 
+}
+
+// Adds a message to the text overlay feed; the message expires in a number of
+//	milliseconds denoted by the duration parameter.
+void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp)
+{
+	bool reenable_overlay;
+	if (text_overlay.enabled)
+	{
+		reenable_overlay = true;
+		text_overlay.enabled = false;
+	}
+	else
+	{
+		reenable_overlay = false;
+	}
+
+	unsigned long long ms_since_epoch =	std::chrono::system_clock::now().time_since_epoch() /
+										std::chrono::milliseconds(1);
+
+	SP_DX9_TEXT_OVERLAY_FEED_ENTRY new_message;
+	new_message.message = message;
+	if (duration == 0)
+	{
+		// Messages with an expire time of 0 never expire
+		new_message.expire_time = 0;
+	}
+	else
+	{
+		new_message.expire_time = (ms_since_epoch + duration);
+	}
+	new_message.show_timestamp = include_timestamp;
+
+
+	// Build timestamp string
+	time_t current_time_t = time(0);
+	struct tm * current_time = localtime(&current_time_t);
+	new_message.timestamp[0] = '[';
+	if (current_time->tm_hour < 10)
+	{
+		new_message.timestamp[1] = '0';
+		new_message.timestamp[2] = std::to_string(current_time->tm_hour).c_str()[0];
+	}
+	else
+	{
+		new_message.timestamp[1] = std::to_string(current_time->tm_hour).c_str()[0];
+		new_message.timestamp[2] = std::to_string(current_time->tm_hour).c_str()[1];
+	}
+	new_message.timestamp[3] = ':';
+	if (current_time->tm_min < 10)
+	{
+		new_message.timestamp[4] = '0';
+		new_message.timestamp[5] = std::to_string(current_time->tm_min).c_str()[0];
+	}
+	else
+	{
+		new_message.timestamp[4] = std::to_string(current_time->tm_min).c_str()[0];
+		new_message.timestamp[5] = std::to_string(current_time->tm_min).c_str()[1];
+	}
+	new_message.timestamp[6] = ':';
+	if (current_time->tm_sec < 10)
+	{
+		new_message.timestamp[7] = '0';
+		new_message.timestamp[8] = std::to_string(current_time->tm_sec).c_str()[0];
+	}
+	else
+	{
+		new_message.timestamp[7] = std::to_string(current_time->tm_sec).c_str()[0];
+		new_message.timestamp[8] = std::to_string(current_time->tm_sec).c_str()[1];
+	}
+	new_message.timestamp[9] = ']';
+	new_message.timestamp[10] = ' ';
+	new_message.timestamp[11] = '\0';
+
+	text_overlay_feed.push_back(new_message);
+
+	if (reenable_overlay)
+	{
+		text_overlay.enabled = true;
+	}
+}
+
+void myIDirect3DDevice9::clean_text_overlay_feed()
+{
+	unsigned long long ms_since_epoch = std::chrono::system_clock::now().time_since_epoch() /
+										std::chrono::milliseconds(1);
+
+	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator = text_overlay_feed.begin();
+	while (text_overlay.enabled && iterator != text_overlay_feed.end())
+	{
+		if (text_overlay.enabled && (*iterator).expire_time != 0 && ms_since_epoch >= (*iterator).expire_time)
+		{
+			iterator = text_overlay_feed.erase(iterator);
+		}
+		else
+		{
+			iterator++;
+		}
+	}
+}
+
+void myIDirect3DDevice9::build_text_overlay_feed_string()
+{
+	text_overlay_feed_text.clear();
+
+	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator;
+	for (iterator = text_overlay_feed.begin(); iterator != text_overlay_feed.end(); iterator++)
+	{
+		if (iterator != text_overlay_feed.begin())
+		{
+			text_overlay_feed_text.append("\n");
+		}
+		if ((*iterator).show_timestamp)
+		{
+			text_overlay_feed_text.append(iterator->timestamp);
+		}
+		text_overlay_feed_text.append((*iterator).message);
+	}
+
+	text_overlay.text = text_overlay_feed_text.c_str();
 }

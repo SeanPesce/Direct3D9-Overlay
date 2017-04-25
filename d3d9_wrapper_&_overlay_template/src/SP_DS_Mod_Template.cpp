@@ -12,10 +12,11 @@ void mod_loop()
 	{
 		Sleep(500);
 	}
-	gl_pmyIDirect3DDevice9->text_overlay.enabled = user_pref_overlay_text_enabled;
 	gl_pmyIDirect3DDevice9->text_overlay.text_format = user_pref_overlay_text_pos;
 	gl_pmyIDirect3DDevice9->text_overlay.text_style = user_pref_overlay_text_style;
 	gl_pmyIDirect3DDevice9->SP_DX9_set_text_height(user_pref_overlay_text_size);
+	gl_pmyIDirect3DDevice9->text_overlay.enabled = user_pref_overlay_text_enabled;
+	gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_INTRO_MESSAGE_, 0, false);
 
 	while (mod_loop_enabled)
 	{
@@ -145,13 +146,16 @@ void next_overlay_text_style(int current_style)
 	{
 	case SP_DX9_BORDERED_TEXT:
 		gl_pmyIDirect3DDevice9->text_overlay.text_style = SP_DX9_SHADOWED_TEXT;
+		gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_SHADOW_STYLE_MESSAGE_, 1000, true);
 		break;
 	case SP_DX9_SHADOWED_TEXT:
 		gl_pmyIDirect3DDevice9->text_overlay.text_style = SP_DX9_PLAIN_TEXT;
+		gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_PLAIN_STYLE_MESSAGE_, 1000, true);
 		break;
 	case SP_DX9_PLAIN_TEXT:
 	default:
 		gl_pmyIDirect3DDevice9->text_overlay.text_style = SP_DX9_BORDERED_TEXT;
+		gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_, 1000, true);
 		break;
 	}
 }

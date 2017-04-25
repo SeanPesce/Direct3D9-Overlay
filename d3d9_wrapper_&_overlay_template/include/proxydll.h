@@ -8,10 +8,6 @@
 
 #include "SP_IO.hpp"
 
-// Constants & Variables:
-extern const char *example_overlay_text;
-const char *example_overlay_text = "Dark Souls mod template by Sean Pesce";
-
 // Exported function
 IDirect3D9* WINAPI Direct3DCreate9 (UINT SDKVersion);
 

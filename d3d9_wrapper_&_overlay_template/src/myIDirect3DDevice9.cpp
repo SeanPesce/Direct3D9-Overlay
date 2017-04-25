@@ -827,25 +827,25 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 		text_overlay.text_outline_rect[0].right + text_border_thickness,
 		text_overlay.text_outline_rect[0].bottom + text_border_thickness);
 	SetRect(&text_overlay.text_outline_rect[5],
-		text_overlay.text_outline_rect[0].left - text_border_thickness + 1,
+		text_overlay.text_outline_rect[0].left - text_border_thickness,
 		text_overlay.text_outline_rect[0].top,
-		text_overlay.text_outline_rect[0].right - text_border_thickness + 1,
+		text_overlay.text_outline_rect[0].right - text_border_thickness,
 		text_overlay.text_outline_rect[0].bottom);
 	SetRect(&text_overlay.text_outline_rect[6],
 		text_overlay.text_outline_rect[0].left,
-		text_overlay.text_outline_rect[0].top - text_border_thickness + 1,
+		text_overlay.text_outline_rect[0].top - text_border_thickness,
 		text_overlay.text_outline_rect[0].right,
-		text_overlay.text_outline_rect[0].bottom - text_border_thickness + 1);
+		text_overlay.text_outline_rect[0].bottom - text_border_thickness);
 	SetRect(&text_overlay.text_outline_rect[7],
-		text_overlay.text_outline_rect[0].left + text_border_thickness + 1,
+		text_overlay.text_outline_rect[0].left + text_border_thickness,
 		text_overlay.text_outline_rect[0].top,
-		text_overlay.text_outline_rect[0].right + text_border_thickness + 1,
+		text_overlay.text_outline_rect[0].right + text_border_thickness,
 		text_overlay.text_outline_rect[0].bottom);
 	SetRect(&text_overlay.text_outline_rect[8],
 		text_overlay.text_outline_rect[0].left,
-		text_overlay.text_outline_rect[0].top + text_border_thickness + 1,
+		text_overlay.text_outline_rect[0].top + text_border_thickness,
 		text_overlay.text_outline_rect[0].right,
-		text_overlay.text_outline_rect[0].bottom + text_border_thickness + 1);
+		text_overlay.text_outline_rect[0].bottom + text_border_thickness);
 
 	text_overlay_feed_text = std::string(_SP_DEFAULT_OVERLAY_TEXT_MESSAGE_);
 	text_overlay.text = text_overlay_feed_text.c_str();

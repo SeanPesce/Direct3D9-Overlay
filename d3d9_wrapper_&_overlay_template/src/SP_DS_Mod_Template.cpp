@@ -12,13 +12,15 @@ void mod_loop()
 	{
 		Sleep(500);
 	}
+	gl_pmyIDirect3DDevice9->multicolor_overlay_text_feed_enabled = user_pref_multicolor_feed_enabled;
+	test_message_color = 0;
 	gl_pmyIDirect3DDevice9->text_overlay.text_format = user_pref_overlay_text_pos;
 	gl_pmyIDirect3DDevice9->text_overlay.text_style = user_pref_overlay_text_style;
 	gl_pmyIDirect3DDevice9->SP_DX9_set_text_height(user_pref_overlay_text_size);
 	current_overlay_text_size = user_pref_overlay_text_size;
 	gl_pmyIDirect3DDevice9->text_overlay.enabled = user_pref_overlay_text_enabled;
 	gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_INTRO_MESSAGE_, 0, false);
-	gl_pmyIDirect3DDevice9->print_to_overlay_feed("--------------------------------------------------------", 0, false);
+	gl_pmyIDirect3DDevice9->print_to_overlay_feed("--------------------------------------------------------", 0, false, SP_DX9_TEXT_COLOR_CYCLE_ALL);
 
 	while (mod_loop_enabled)
 	{
@@ -79,6 +81,21 @@ void mod_loop()
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
+			else if (gl_pmyIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_toggle_multicolor_feed))
+			{
+				// Toggle multicolor text feed
+				gl_pmyIDirect3DDevice9->multicolor_overlay_text_feed_enabled = !gl_pmyIDirect3DDevice9->multicolor_overlay_text_feed_enabled;
+				if (user_pref_verbose_output_enabled && gl_pmyIDirect3DDevice9->multicolor_overlay_text_feed_enabled)
+				{
+					gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_MULTICOLOR_FEED_ENABLED_MESSAGE_, _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				}
+				else if (user_pref_verbose_output_enabled)
+				{
+					gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_MULTICOLOR_FEED_DISABLED_MESSAGE_, _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				}
+				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
+				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+			}
 			else if (gl_pmyIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_reset_overlay_text_size))
 			{
 				// Restore default overlay text size (defined in user preferences)
@@ -116,7 +133,7 @@ void mod_loop()
 				else if (user_pref_verbose_output_enabled)
 				{
 					// Current font size is already the smallest supported; can't decrease
-					gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_, _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+					gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_, _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_, true, SP_DX9_TEXT_COLOR_YELLOW);
 				}
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
@@ -124,7 +141,15 @@ void mod_loop()
 			else if (gl_pmyIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_print_overlay_test_message))
 			{
 				// Print test message to text overlay feed
-				gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_TEST_MESSAGE_, _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_TEST_MESSAGE_, _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_, true, test_message_color);
+				if (test_message_color >= 0 && test_message_color < _SP_DX9_TEXT_COLOR_COUNT_-1)
+				{
+					test_message_color++;
+				}
+				else
+				{
+					test_message_color = 0;
+				}
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}

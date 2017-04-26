@@ -30,6 +30,7 @@
 #define _SP_DS_HOTKEY_INCREASE_TXT_SIZE_KEY_ "IncreaseTextSize"
 #define _SP_DS_HOTKEY_DECREASE_TXT_SIZE_KEY_ "DecreaseTextSize"
 #define _SP_DS_HOTKEY_RESET_TXT_SIZE_KEY_ "ResetTextSize"
+#define _SP_DS_HOTKEY_TOGGLE_MULTICOLOR_FEED_KEY_ "ToggleMultiColorFeed"
 // User preference keys
 #define _SP_DS_OL_TXT_ENABLED_KEY_ "EnableOverlay"
 #define _SP_DS_OL_TXT_SIZE_KEY_ "OverlayTextSize"
@@ -38,5 +39,6 @@
 #define _SP_DS_OL_TXT_STYLE_KEY_ "OverlayTextStyle"
 #define _SP_DS_OL_TXT_AUDIO_ENABLED_KEY_ "EnableAudioFeedback"
 #define _SP_DS_OL_TXT_VERBOSE_OUTPUT_ENABLED_KEY_ "EnableVerboseOutput"
+#define _SP_DS_OL_TXT_MULTICOLOR_FEED_ENABLED_KEY_ "EnableMultiColorTextFeed"
 //
 

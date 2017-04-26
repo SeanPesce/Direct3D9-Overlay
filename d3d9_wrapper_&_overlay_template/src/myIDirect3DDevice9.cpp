@@ -274,7 +274,14 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 {
 	// Draw anything you want before the scene is shown to the user
 
-	SP_DX9_draw_text_overlay();
+	if (multicolor_overlay_text_feed_enabled)
+	{
+		SP_DX9_draw_text_overlay_multicolor();
+	}
+	else
+	{
+		SP_DX9_draw_text_overlay();
+	}
 
 	return(m_pIDirect3DDevice9->EndScene());
 }
@@ -663,30 +670,74 @@ void myIDirect3DDevice9::SP_DX9_draw_text_overlay()
 {
 	if (text_overlay.enabled)
 	{
-		clean_text_overlay_feed();
+		clean_text_overlay_feed(); // Remove expired messages
 
 		build_text_overlay_feed_string(); // Build text feed string
 
 		switch (text_overlay.text_style) {
 			case SP_DX9_SHADOWED_TEXT:
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, text_overlay.text_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, text_overlay.text_color);
 				break;
 			case SP_DX9_PLAIN_TEXT:
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &window_rect, text_overlay.text_format, text_overlay.text_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &window_rect, text_overlay.text_format, text_overlay.text_color);
 				break;
 			case SP_DX9_BORDERED_TEXT:
 			default:
 				// Draw bordered text
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[1], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[2], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[3], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[4], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[5], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[6], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[7], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[8], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text, -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, text_overlay.text_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[1], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[2], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[3], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[4], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[5], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[6], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[7], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[8], text_overlay.text_format, text_overlay.text_border_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, text_overlay.text_color);
+				break;
+		}
+	}
+}
+
+void myIDirect3DDevice9::SP_DX9_draw_text_overlay_multicolor()
+{
+	if (text_overlay.enabled)
+	{
+		cycle_text_colors();
+
+		clean_text_overlay_feed(); // Remove expired messages
+
+		build_text_overlay_feed_string_multicolor(); // Build text feed string
+
+		switch (text_overlay.text_style) {
+			case SP_DX9_SHADOWED_TEXT:
+				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				{
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color);
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, dx9_text_colors[c]);
+				}
+				break;
+			case SP_DX9_PLAIN_TEXT:
+				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				{
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &window_rect, text_overlay.text_format, dx9_text_colors[c]);
+				}
+				break;
+			case SP_DX9_BORDERED_TEXT:
+			default:
+				// Draw bordered text
+				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				{
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[1], text_overlay.text_format, text_overlay.text_border_color);
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[2], text_overlay.text_format, text_overlay.text_border_color);
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[3], text_overlay.text_format, text_overlay.text_border_color);
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[4], text_overlay.text_format, text_overlay.text_border_color);
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[5], text_overlay.text_format, text_overlay.text_border_color);
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[6], text_overlay.text_format, text_overlay.text_border_color);
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[7], text_overlay.text_format, text_overlay.text_border_color);
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[8], text_overlay.text_format, text_overlay.text_border_color);
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, dx9_text_colors[c]);
+				}
 				break;
 		}
 	}
@@ -735,6 +786,11 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 	text_overlay.text_format = text_format;
 	text_overlay.text_style = text_style;
 
+	cycle_all_colors_current_rgb_vals[0] = 0x00FF0000;
+	cycle_all_colors_current_rgb_vals[1] = 0x00000000;
+	cycle_all_colors_current_rgb_vals[2] = 0x00000000;
+
+	multicolor_overlay_text_feed_enabled = false;
 
 	// Inititialize main shadowed text rect
 	if (text_shadow_x_offset >= 0 && text_shadow_y_offset >= 0)
@@ -833,8 +889,13 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 		text_overlay.text_outline_rect[0].right,
 		text_overlay.text_outline_rect[0].bottom + text_border_thickness);
 
-	text_overlay_feed_text = std::string(_SP_DEFAULT_OVERLAY_TEXT_MESSAGE_);
-	text_overlay.text = text_overlay_feed_text.c_str();
+	for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+	{
+		text_overlay_feed_text[c] = std::string("");
+		text_overlay.text[c] = text_overlay_feed_text[c].c_str();
+	}
+	text_overlay_feed_text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT] = std::string(_SP_DEFAULT_OVERLAY_TEXT_MESSAGE_);
+	text_overlay.text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT] = text_overlay_feed_text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT].c_str();
 
 	text_overlay.enabled = false;
 }
@@ -900,7 +961,7 @@ void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)
 
 // Adds a message to the text overlay feed; the message expires in a number of
 //	milliseconds denoted by the duration parameter.
-void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp)
+void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp, int text_color)
 {
 	bool reenable_overlay;
 	if (text_overlay.enabled)
@@ -926,6 +987,15 @@ void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned lon
 	else
 	{
 		new_message.expire_time = (ms_since_epoch + duration);
+	}
+	if (text_color < _SP_DX9_TEXT_COLOR_COUNT_ && text_color >= 0)
+	{
+		new_message.text_color = text_color;
+	}
+	else
+	{
+		// Invalid color specified, set to default color
+		new_message.text_color = 0;
 	}
 	new_message.show_timestamp = include_timestamp;
 
@@ -979,6 +1049,11 @@ void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned lon
 	}
 }
 
+void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp)
+{
+	print_to_overlay_feed(message, duration, include_timestamp, 0);
+}
+
 void myIDirect3DDevice9::clean_text_overlay_feed()
 {
 	unsigned long long ms_since_epoch = std::chrono::system_clock::now().time_since_epoch() /
@@ -1000,21 +1075,110 @@ void myIDirect3DDevice9::clean_text_overlay_feed()
 
 void myIDirect3DDevice9::build_text_overlay_feed_string()
 {
-	text_overlay_feed_text.clear();
+	text_overlay_feed_text[0].clear();
 
 	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator;
 	for (iterator = text_overlay_feed.begin(); iterator != text_overlay_feed.end(); iterator++)
 	{
 		if (iterator != text_overlay_feed.begin())
 		{
-			text_overlay_feed_text.append("\n");
+			text_overlay_feed_text[0].append("\n");
 		}
 		if ((*iterator).show_timestamp)
 		{
-			text_overlay_feed_text.append(iterator->timestamp);
+			text_overlay_feed_text[0].append(iterator->timestamp);
 		}
-		text_overlay_feed_text.append((*iterator).message);
+		text_overlay_feed_text[0].append((*iterator).message);
 	}
 
-	text_overlay.text = text_overlay_feed_text.c_str();
+	text_overlay.text[0] = text_overlay_feed_text[0].c_str();
+}
+
+void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor()
+{
+	for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+	{
+		text_overlay_feed_text[c].clear();
+	}
+
+	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator;
+	for (iterator = text_overlay_feed.begin(); iterator != text_overlay_feed.end(); iterator++)
+	{
+		if (iterator != text_overlay_feed.begin())
+		{
+			for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+			{
+				text_overlay_feed_text[c].append("\r\n");
+			}
+		}
+		for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+		{
+			if (c == (*iterator).text_color)
+			{
+				if ((*iterator).show_timestamp)
+				{
+					text_overlay_feed_text[c].append(iterator->timestamp);
+				}
+				text_overlay_feed_text[c].append((*iterator).message);
+			}
+			else
+			{
+				text_overlay_feed_text[c].append(" ");
+			}
+		}
+	}
+
+	for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+	{
+		text_overlay.text[c] = text_overlay_feed_text[c].c_str();
+	}
+}
+
+void myIDirect3DDevice9::cycle_text_colors()
+{
+	if (cycle_all_colors_current_rgb_vals[0] == 0x00FF0000 && cycle_all_colors_current_rgb_vals[1] != 0x0000FF00 && cycle_all_colors_current_rgb_vals[2] == 0x00000000)
+	{
+		cycle_all_colors_current_rgb_vals[1] += 0x00000100;
+		if (cycle_all_colors_current_rgb_vals[1] == 0x0000FF00)
+		{
+			cycle_all_colors_current_rgb_vals[0] = 0x00FE0000;
+		}
+	}
+	else if (cycle_all_colors_current_rgb_vals[0] != 0x00FF0000 && cycle_all_colors_current_rgb_vals[1] == 0x0000FF00 && cycle_all_colors_current_rgb_vals[2] == 0x00000000)
+	{
+		cycle_all_colors_current_rgb_vals[0] -= 0x00010000;
+		if (cycle_all_colors_current_rgb_vals[0] == 0x00000000)
+		{
+			cycle_all_colors_current_rgb_vals[2] = 0x00000001;
+		}
+	}
+	else if (cycle_all_colors_current_rgb_vals[0] == 0x00000000 && cycle_all_colors_current_rgb_vals[1] == 0x0000FF00 && cycle_all_colors_current_rgb_vals[2] != 0x000000FF)
+	{
+		cycle_all_colors_current_rgb_vals[2]++;
+		if (cycle_all_colors_current_rgb_vals[2] == 0x000000FF)
+		{
+			cycle_all_colors_current_rgb_vals[1] = 0x0000FE00;
+		}
+	}
+	else if (cycle_all_colors_current_rgb_vals[0] == 0x00000000 && cycle_all_colors_current_rgb_vals[1] != 0x0000FF00 && cycle_all_colors_current_rgb_vals[2] == 0x000000FF)
+	{
+		cycle_all_colors_current_rgb_vals[1] -= 0x00000100;
+		if (cycle_all_colors_current_rgb_vals[1] == 0x00000000)
+		{
+			cycle_all_colors_current_rgb_vals[0] = 0x00010000;
+		}
+	}
+	else if (cycle_all_colors_current_rgb_vals[0] != 0x00000000 && cycle_all_colors_current_rgb_vals[1] == 0x00000000 && cycle_all_colors_current_rgb_vals[2] == 0x000000FF)
+	{
+		cycle_all_colors_current_rgb_vals[0] += 0x00010000;
+		if (cycle_all_colors_current_rgb_vals[0] == 0x00FF0000)
+		{
+			cycle_all_colors_current_rgb_vals[2] = 0x000000FE;
+		}
+	}
+	else if (cycle_all_colors_current_rgb_vals[0] == 0x00FF0000 && cycle_all_colors_current_rgb_vals[1] == 0x00000000 && cycle_all_colors_current_rgb_vals[2] != 0x00000000)
+	{
+		cycle_all_colors_current_rgb_vals[2]--;
+	}
+	dx9_text_colors[SP_DX9_TEXT_COLOR_CYCLE_ALL] = D3DXCOLOR(0xFF000000 + cycle_all_colors_current_rgb_vals[0] + cycle_all_colors_current_rgb_vals[1] + cycle_all_colors_current_rgb_vals[2]);
 }

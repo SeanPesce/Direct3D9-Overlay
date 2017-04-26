@@ -48,6 +48,8 @@
 #define _SP_DS_OL_TXT_VERBOSE_DISABLED_MESSAGE_ "Verbose output disabled"
 #define _SP_DS_OL_TXT_AUDIO_FEEDBACK_ENABLED_MESSAGE_ "Audio feedback enabled"
 #define _SP_DS_OL_TXT_AUDIO_FEEDBACK_DISABLED_MESSAGE_ "Audio feedback disabled"
+#define _SP_DS_OL_TXT_MULTICOLOR_FEED_ENABLED_MESSAGE_ "Multi-color text feed enabled"
+#define _SP_DS_OL_TXT_MULTICOLOR_FEED_DISABLED_MESSAGE_ "Multi-color text feed disabled"
 #define _SP_DS_OL_TXT_SIZE_RESET_MESSAGE_ "Font size reset to "
 #define _SP_DS_OL_TXT_SIZE_INCREASED_MESSAGE_ "Font size increased to "
 #define _SP_DS_OL_TXT_SIZE_DECREASED_MESSAGE_ "Font size decreased to "
@@ -67,15 +69,18 @@ extern unsigned int hotkey_toggle_verbose_output;
 extern unsigned int hotkey_increase_overlay_text_size;
 extern unsigned int hotkey_decrease_overlay_text_size;
 extern unsigned int hotkey_reset_overlay_text_size;
+extern unsigned int hotkey_toggle_multicolor_feed;
 extern bool user_pref_overlay_text_enabled;
 extern bool user_pref_audio_feedback_enabled;
 extern bool user_pref_verbose_output_enabled;
+extern bool user_pref_multicolor_feed_enabled;
 extern int user_pref_overlay_text_size;
 extern DWORD user_pref_overlay_text_pos;
 extern int user_pref_overlay_text_style;
 
 // Mod variables
 int current_overlay_text_size;
+int test_message_color;
 
 void get_ds_window();
 BOOL CALLBACK try_ds_window(HWND hwnd, LPARAM lParam);

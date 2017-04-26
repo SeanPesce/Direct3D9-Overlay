@@ -858,6 +858,8 @@ void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)
 		// Handle error
 	}
 
+	ID3DXFont *old_font = text_overlay.font; // Back up old font
+
 	// Re-initialize overlay font
 	HRESULT font_hr = D3DXCreateFont(
 		m_pIDirect3DDevice9,	// D3D device
@@ -876,6 +878,8 @@ void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)
 	{
 		// Handle error
 	}
+
+	old_font->Release(); // Decrement reference count for ID3DXFont interface
 
 	if (reenable_overlay)
 	{

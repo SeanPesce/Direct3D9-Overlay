@@ -51,6 +51,7 @@
 #define _SP_DS_OL_TXT_SIZE_RESET_MESSAGE_ "Font size reset to "
 #define _SP_DS_OL_TXT_SIZE_INCREASED_MESSAGE_ "Font size increased to "
 #define _SP_DS_OL_TXT_SIZE_DECREASED_MESSAGE_ "Font size decreased to "
+#define _SP_DS_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_ "WARNING: Font is too small; can't decrease font size"
 #define _SP_DS_OL_TXT_TEST_MESSAGE_ "TEST MESSAGE"
 
 extern myIDirect3DDevice9* gl_pmyIDirect3DDevice9;

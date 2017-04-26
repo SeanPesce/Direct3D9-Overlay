@@ -38,7 +38,7 @@ typedef struct SP_DX9_FULLSCREEN_TEXT_OVERLAY {
 	bool enabled;
 	RECT text_shadow_rect[2];
 	RECT text_outline_rect[9];
-	ID3DXFont* font;
+	ID3DXFont *font;
 	TCHAR font_name[32];
 	LPCTSTR text;
 	DWORD text_format;	// Positioning and clipping of text on screen
@@ -56,6 +56,7 @@ public:
 	SP_DX9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for fullscreen text overlay
 	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY> text_overlay_feed; // List of entries in the overlay text feed
 	std::string text_overlay_feed_text; // Text that will be printed to the text overlay
+	ID3DXFont* text_overlay_old_font; // Unused font from last call to SP_DX9_set_text_height(), which will be released when SP_DX9_set_text_height() is called again
 
 	myIDirect3DDevice9(IDirect3DDevice9* pOriginal);
 	virtual ~myIDirect3DDevice9(void);

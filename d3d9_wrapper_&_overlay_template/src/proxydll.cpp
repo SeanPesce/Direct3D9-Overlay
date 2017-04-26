@@ -205,6 +205,11 @@ void get_user_preferences()
 
 	// Overlay text size
 	user_pref_overlay_text_size = (int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_SIZE_KEY_, _SP_DEFAULT_TEXT_HEIGHT_, _SP_DS_SETTINGS_FILE_);
+	if (user_pref_overlay_text_size < 1)
+	{
+		// Invalid font size specified; set to default
+		user_pref_overlay_text_size = _SP_DEFAULT_TEXT_HEIGHT_;
+	}
 
 	// Overlay text horizonal position
 	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_HORIZONTAL_POS_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);

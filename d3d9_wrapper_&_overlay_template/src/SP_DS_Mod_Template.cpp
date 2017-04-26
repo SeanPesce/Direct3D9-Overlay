@@ -104,11 +104,19 @@ void mod_loop()
 			}
 			else if (gl_pmyIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_decrease_overlay_text_size))
 			{
-				// Decrease overlay text size
-				gl_pmyIDirect3DDevice9->SP_DX9_set_text_height(--current_overlay_text_size);
-				if (user_pref_verbose_output_enabled)
+				if (current_overlay_text_size > 1) // Check if current font size is already the smallest supported
 				{
-					gl_pmyIDirect3DDevice9->print_to_overlay_feed(std::string(_SP_DS_OL_TXT_SIZE_DECREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+					// Decrease overlay text size
+					gl_pmyIDirect3DDevice9->SP_DX9_set_text_height(--current_overlay_text_size);
+					if (user_pref_verbose_output_enabled)
+					{
+						gl_pmyIDirect3DDevice9->print_to_overlay_feed(std::string(_SP_DS_OL_TXT_SIZE_DECREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+					}
+				}
+				else if (user_pref_verbose_output_enabled)
+				{
+					// Current font size is already the smallest supported; can't decrease
+					gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_, _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 				}
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);

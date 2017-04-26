@@ -726,6 +726,7 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 		// Handle error
 	}
 
+	text_overlay_old_font = NULL;
 
 	// Set text colors, style, and format
 	text_overlay.text_color = text_color;
@@ -858,28 +859,38 @@ void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)
 		// Handle error
 	}
 
-	ID3DXFont *old_font = text_overlay.font; // Back up old font
-
-	// Re-initialize overlay font
-	HRESULT font_hr = D3DXCreateFont(
-		m_pIDirect3DDevice9,	// D3D device
-		new_text_height,		// Height
-		font_desc.Width,		// Width
-		font_desc.Weight,		// Weight
-		font_desc.MipLevels,	// MipLevels, 0 = autogen mipmaps
-		font_desc.Italic,		// Italic
-		font_desc.CharSet,		// CharSet
-		font_desc.OutputPrecision, // OutputPrecision
-		font_desc.Quality,		// Quality
-		font_desc.PitchAndFamily, // PitchAndFamily
-		font_desc.FaceName,		// pFaceName
-		&text_overlay.font);	// ppFont
-	if (FAILED(font_hr))
+	// Release old unused font
+	if (text_overlay_old_font != NULL)
 	{
-		// Handle error
+		text_overlay_old_font->Release(); // Decrement reference count for ID3DXFont interface
+		text_overlay_old_font = NULL;
 	}
 
-	old_font->Release(); // Decrement reference count for ID3DXFont interface
+	// Check that new font height is valid
+	if (new_text_height > 0 && new_text_height != font_desc.Height)
+	{
+
+		text_overlay_old_font = text_overlay.font; // Back up old font
+
+		// Re-initialize overlay font
+		HRESULT font_hr = D3DXCreateFont(
+			m_pIDirect3DDevice9,	// D3D device
+			new_text_height,		// Height
+			font_desc.Width,		// Width
+			font_desc.Weight,		// Weight
+			font_desc.MipLevels,	// MipLevels, 0 = autogen mipmaps
+			font_desc.Italic,		// Italic
+			font_desc.CharSet,		// CharSet
+			font_desc.OutputPrecision, // OutputPrecision
+			font_desc.Quality,		// Quality
+			font_desc.PitchAndFamily, // PitchAndFamily
+			font_desc.FaceName,		// pFaceName
+			&text_overlay.font);	// ppFont
+		if (FAILED(font_hr))
+		{
+			// Handle error
+		}
+	}
 
 	if (reenable_overlay)
 	{

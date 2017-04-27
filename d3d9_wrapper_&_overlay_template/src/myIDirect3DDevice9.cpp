@@ -163,6 +163,13 @@ HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters
 		text_overlay.font->OnResetDevice();
 	}
 
+	D3DVIEWPORT9 vp;
+	GetViewport(&vp);
+	SetRect(&window_rect, 0, 0, vp.Width, vp.Height);
+	window_width = window_rect.right - window_rect.left;
+	window_height = window_rect.bottom - window_rect.top;
+	init_text_overlay_rects();
+
 	return hres;
 }
 
@@ -297,13 +304,41 @@ HRESULT myIDirect3DDevice9::BeginScene(void)
 
 HRESULT myIDirect3DDevice9::EndScene(void)
 {
-	if (multicolor_overlay_text_feed_enabled)
-	{
-		SP_DX9_draw_text_overlay_multicolor();
+	if (is_windowed) {
+		D3DVIEWPORT9 vp;
+		GetViewport(&vp);
+
+		if (vp.Width == (DWORD)(window_width) && vp.Height == (DWORD)(window_height))
+		{
+			// Draw anything you want before the scene is shown to the user
+			if (multicolor_overlay_text_feed_enabled)
+			{
+				SP_DX9_draw_text_overlay_multicolor();
+			}
+			else
+			{
+				SP_DX9_draw_text_overlay();
+			}
+		}
 	}
 	else
 	{
-		SP_DX9_draw_text_overlay();
+		D3DVIEWPORT9 vp;
+		GetViewport(&vp);
+
+		SetRect(&window_rect, 0, 0, vp.Width, vp.Height);
+		window_width = window_rect.right - window_rect.left;
+		window_height = window_rect.bottom - window_rect.top;
+		init_text_overlay_rects();
+
+		if (multicolor_overlay_text_feed_enabled)
+		{
+			SP_DX9_draw_text_overlay_multicolor();
+		}
+		else
+		{
+			SP_DX9_draw_text_overlay();
+		}
 	}
 
 	return(m_pIDirect3DDevice9->EndScene());
@@ -763,9 +798,9 @@ void myIDirect3DDevice9::SP_DX9_draw_text_overlay_multicolor()
 }
 
 void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
-	unsigned int text_border_thickness,
-	int text_shadow_x_offset,
-	int text_shadow_y_offset,
+	unsigned int outline_thickness,
+	int shadow_x_offset,
+	int shadow_y_offset,
 	D3DXCOLOR text_color,
 	D3DXCOLOR text_border_color,
 	D3DXCOLOR text_shadow_color,
@@ -812,102 +847,10 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 
 	multicolor_overlay_text_feed_enabled = false;
 
-	// Inititialize main shadowed text rect
-	if (text_shadow_x_offset >= 0 && text_shadow_y_offset >= 0)
-	{
-		// x and y offsets are both positive
-		SetRect(&text_overlay.text_shadow_rect[0],
-			window_rect.left,
-			window_rect.top,
-			window_rect.right - text_shadow_x_offset,
-			window_rect.bottom - text_shadow_y_offset);
-	}
-	else if (text_shadow_x_offset <= 0 && text_shadow_y_offset >= 0)
-	{
-		// x offset is negative; y offset is positive
-		SetRect(&text_overlay.text_shadow_rect[0],
-			window_rect.left - text_shadow_x_offset,
-			window_rect.top,
-			window_rect.right,
-			window_rect.bottom - text_shadow_y_offset);
-	}
-	else if (text_shadow_x_offset >= 0 && text_shadow_y_offset <= 0)
-	{
-		// x offset is positive; y offset is negative
-		SetRect(&text_overlay.text_shadow_rect[0],
-			window_rect.left,
-			window_rect.top - text_shadow_y_offset,
-			window_rect.right - text_shadow_x_offset,
-			window_rect.bottom);
-	}
-	else
-	{
-		// x and y offsets are both negative
-		SetRect(&text_overlay.text_shadow_rect[0],
-			window_rect.left - text_shadow_x_offset,
-			window_rect.top - text_shadow_y_offset,
-			window_rect.right,
-			window_rect.bottom);
-	}
-
-
-	// Initialize text shadow rect
-	SetRect(&text_overlay.text_shadow_rect[1],
-		text_overlay.text_shadow_rect[0].left + text_shadow_x_offset,
-		text_overlay.text_shadow_rect[0].top + text_shadow_y_offset,
-		text_overlay.text_shadow_rect[0].right + text_shadow_x_offset,
-		text_overlay.text_shadow_rect[0].bottom + text_shadow_y_offset);
-
-
-	// Inititialize main bordered text rect
-	SetRect(&text_overlay.text_outline_rect[0],
-		window_rect.left + text_border_thickness,
-		window_rect.top + text_border_thickness,
-		window_rect.right - text_border_thickness,
-		window_rect.bottom - text_border_thickness);
-
-
-	// Initialize text border rects
-	SetRect(&text_overlay.text_outline_rect[1],
-		text_overlay.text_outline_rect[0].left - text_border_thickness,
-		text_overlay.text_outline_rect[0].top - text_border_thickness,
-		text_overlay.text_outline_rect[0].right - text_border_thickness,
-		text_overlay.text_outline_rect[0].bottom - text_border_thickness);
-	SetRect(&text_overlay.text_outline_rect[2],
-		text_overlay.text_outline_rect[0].left + text_border_thickness,
-		text_overlay.text_outline_rect[0].top - text_border_thickness,
-		text_overlay.text_outline_rect[0].right + text_border_thickness,
-		text_overlay.text_outline_rect[0].bottom - text_border_thickness);
-	SetRect(&text_overlay.text_outline_rect[3],
-		text_overlay.text_outline_rect[0].left - text_border_thickness,
-		text_overlay.text_outline_rect[0].top + text_border_thickness,
-		text_overlay.text_outline_rect[0].right - text_border_thickness,
-		text_overlay.text_outline_rect[0].bottom + text_border_thickness);
-	SetRect(&text_overlay.text_outline_rect[4],
-		text_overlay.text_outline_rect[0].left + text_border_thickness,
-		text_overlay.text_outline_rect[0].top + text_border_thickness,
-		text_overlay.text_outline_rect[0].right + text_border_thickness,
-		text_overlay.text_outline_rect[0].bottom + text_border_thickness);
-	SetRect(&text_overlay.text_outline_rect[5],
-		text_overlay.text_outline_rect[0].left - text_border_thickness,
-		text_overlay.text_outline_rect[0].top,
-		text_overlay.text_outline_rect[0].right - text_border_thickness,
-		text_overlay.text_outline_rect[0].bottom);
-	SetRect(&text_overlay.text_outline_rect[6],
-		text_overlay.text_outline_rect[0].left,
-		text_overlay.text_outline_rect[0].top - text_border_thickness,
-		text_overlay.text_outline_rect[0].right,
-		text_overlay.text_outline_rect[0].bottom - text_border_thickness);
-	SetRect(&text_overlay.text_outline_rect[7],
-		text_overlay.text_outline_rect[0].left + text_border_thickness,
-		text_overlay.text_outline_rect[0].top,
-		text_overlay.text_outline_rect[0].right + text_border_thickness,
-		text_overlay.text_outline_rect[0].bottom);
-	SetRect(&text_overlay.text_outline_rect[8],
-		text_overlay.text_outline_rect[0].left,
-		text_overlay.text_outline_rect[0].top + text_border_thickness,
-		text_overlay.text_outline_rect[0].right,
-		text_overlay.text_outline_rect[0].bottom + text_border_thickness);
+	text_overlay.text_shadow_x_offset = shadow_x_offset;
+	text_overlay.text_shadow_y_offset = shadow_y_offset;
+	text_overlay.text_outline_thickness = outline_thickness;
+	init_text_overlay_rects();
 
 	for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
 	{
@@ -916,6 +859,106 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 	}
 	text_overlay_feed_text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT] = std::string(_SP_DEFAULT_OVERLAY_TEXT_MESSAGE_);
 	text_overlay.text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT] = text_overlay_feed_text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT].c_str();
+}
+
+void myIDirect3DDevice9::init_text_overlay_rects()
+{
+	// Inititialize main shadowed text rect
+	if (text_overlay.text_shadow_x_offset >= 0 && text_overlay.text_shadow_y_offset >= 0)
+	{
+		// x and y offsets are both positive
+		SetRect(&text_overlay.text_shadow_rect[0],
+			window_rect.left,
+			window_rect.top,
+			window_rect.right - text_overlay.text_shadow_x_offset,
+			window_rect.bottom - text_overlay.text_shadow_y_offset);
+	}
+	else if (text_overlay.text_shadow_x_offset <= 0 && text_overlay.text_shadow_y_offset >= 0)
+	{
+		// x offset is negative; y offset is positive
+		SetRect(&text_overlay.text_shadow_rect[0],
+			window_rect.left - text_overlay.text_shadow_x_offset,
+			window_rect.top,
+			window_rect.right,
+			window_rect.bottom - text_overlay.text_shadow_y_offset);
+	}
+	else if (text_overlay.text_shadow_x_offset >= 0 && text_overlay.text_shadow_y_offset <= 0)
+	{
+		// x offset is positive; y offset is negative
+		SetRect(&text_overlay.text_shadow_rect[0],
+			window_rect.left,
+			window_rect.top - text_overlay.text_shadow_y_offset,
+			window_rect.right - text_overlay.text_shadow_x_offset,
+			window_rect.bottom);
+	}
+	else
+	{
+		// x and y offsets are both negative
+		SetRect(&text_overlay.text_shadow_rect[0],
+			window_rect.left - text_overlay.text_shadow_x_offset,
+			window_rect.top - text_overlay.text_shadow_y_offset,
+			window_rect.right,
+			window_rect.bottom);
+	}
+
+
+	// Initialize text shadow rect
+	SetRect(&text_overlay.text_shadow_rect[1],
+		text_overlay.text_shadow_rect[0].left + text_overlay.text_shadow_x_offset,
+		text_overlay.text_shadow_rect[0].top + text_overlay.text_shadow_y_offset,
+		text_overlay.text_shadow_rect[0].right + text_overlay.text_shadow_x_offset,
+		text_overlay.text_shadow_rect[0].bottom + text_overlay.text_shadow_y_offset);
+
+
+	// Inititialize main bordered text rect
+	SetRect(&text_overlay.text_outline_rect[0],
+		window_rect.left + text_overlay.text_outline_thickness,
+		window_rect.top + text_overlay.text_outline_thickness,
+		window_rect.right - text_overlay.text_outline_thickness,
+		window_rect.bottom - text_overlay.text_outline_thickness);
+
+
+	// Initialize text border rects
+	SetRect(&text_overlay.text_outline_rect[1],
+		text_overlay.text_outline_rect[0].left - text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].top - text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].right - text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].bottom - text_overlay.text_outline_thickness);
+	SetRect(&text_overlay.text_outline_rect[2],
+		text_overlay.text_outline_rect[0].left + text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].top - text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].right + text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].bottom - text_overlay.text_outline_thickness);
+	SetRect(&text_overlay.text_outline_rect[3],
+		text_overlay.text_outline_rect[0].left - text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].top + text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].right - text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].bottom + text_overlay.text_outline_thickness);
+	SetRect(&text_overlay.text_outline_rect[4],
+		text_overlay.text_outline_rect[0].left + text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].top + text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].right + text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].bottom + text_overlay.text_outline_thickness);
+	SetRect(&text_overlay.text_outline_rect[5],
+		text_overlay.text_outline_rect[0].left - text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].top,
+		text_overlay.text_outline_rect[0].right - text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].bottom);
+	SetRect(&text_overlay.text_outline_rect[6],
+		text_overlay.text_outline_rect[0].left,
+		text_overlay.text_outline_rect[0].top - text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].right,
+		text_overlay.text_outline_rect[0].bottom - text_overlay.text_outline_thickness);
+	SetRect(&text_overlay.text_outline_rect[7],
+		text_overlay.text_outline_rect[0].left + text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].top,
+		text_overlay.text_outline_rect[0].right + text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].bottom);
+	SetRect(&text_overlay.text_outline_rect[8],
+		text_overlay.text_outline_rect[0].left,
+		text_overlay.text_outline_rect[0].top + text_overlay.text_outline_thickness,
+		text_overlay.text_outline_rect[0].right,
+		text_overlay.text_outline_rect[0].bottom + text_overlay.text_outline_thickness);
 }
 
 void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)

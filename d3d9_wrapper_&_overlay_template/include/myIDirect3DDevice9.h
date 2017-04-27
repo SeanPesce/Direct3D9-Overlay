@@ -54,6 +54,9 @@ typedef struct SP_DX9_FULLSCREEN_TEXT_OVERLAY {
 	bool enabled;
 	RECT text_shadow_rect[2];
 	RECT text_outline_rect[9];
+	int text_shadow_x_offset;
+	int text_shadow_y_offset;
+	unsigned int text_outline_thickness;
 	ID3DXFont *font;
 	TCHAR font_name[32];
 	LPCTSTR text[_SP_DX9_TEXT_COLOR_COUNT_];
@@ -231,5 +234,5 @@ private:
 	void myIDirect3DDevice9::build_text_overlay_feed_string();
 	void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor();
 	void myIDirect3DDevice9::cycle_text_colors();
-
+	void myIDirect3DDevice9::init_text_overlay_rects();
 };

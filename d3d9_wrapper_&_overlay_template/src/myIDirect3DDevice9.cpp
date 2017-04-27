@@ -304,13 +304,33 @@ HRESULT myIDirect3DDevice9::BeginScene(void)
 
 HRESULT myIDirect3DDevice9::EndScene(void)
 {
-	if (is_windowed) {
+	// Draw anything you want before the scene is shown to the user
+	if (text_overlay.enabled)
+	{
 		D3DVIEWPORT9 vp;
 		GetViewport(&vp);
 
-		if (vp.Width == (DWORD)(window_width) && vp.Height == (DWORD)(window_height))
+		if (is_windowed)
 		{
-			// Draw anything you want before the scene is shown to the user
+			if (vp.Width == (DWORD)(window_width) && vp.Height == (DWORD)(window_height))
+			{
+				if (multicolor_overlay_text_feed_enabled)
+				{
+					SP_DX9_draw_text_overlay_multicolor();
+				}
+				else
+				{
+					SP_DX9_draw_text_overlay();
+				}
+			}
+		}
+		else
+		{
+			SetRect(&window_rect, 0, 0, vp.Width, vp.Height);
+			window_width = window_rect.right - window_rect.left;
+			window_height = window_rect.bottom - window_rect.top;
+			init_text_overlay_rects();
+
 			if (multicolor_overlay_text_feed_enabled)
 			{
 				SP_DX9_draw_text_overlay_multicolor();
@@ -319,25 +339,6 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 			{
 				SP_DX9_draw_text_overlay();
 			}
-		}
-	}
-	else
-	{
-		D3DVIEWPORT9 vp;
-		GetViewport(&vp);
-
-		SetRect(&window_rect, 0, 0, vp.Width, vp.Height);
-		window_width = window_rect.right - window_rect.left;
-		window_height = window_rect.bottom - window_rect.top;
-		init_text_overlay_rects();
-
-		if (multicolor_overlay_text_feed_enabled)
-		{
-			SP_DX9_draw_text_overlay_multicolor();
-		}
-		else
-		{
-			SP_DX9_draw_text_overlay();
 		}
 	}
 
@@ -726,74 +727,64 @@ HRESULT myIDirect3DDevice9::CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** ppQ
 
 void myIDirect3DDevice9::SP_DX9_draw_text_overlay()
 {
-	if (text_overlay.enabled)
-	{
-		clean_text_overlay_feed(); // Remove expired messages
+	clean_text_overlay_feed(); // Remove expired messages
 
-		build_text_overlay_feed_string(); // Build text feed string
+	build_text_overlay_feed_string(); // Build text feed string
 
-		switch (text_overlay.text_style) {
-			case SP_DX9_SHADOWED_TEXT:
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, text_overlay.text_color);
-				break;
-			case SP_DX9_PLAIN_TEXT:
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &window_rect, text_overlay.text_format, text_overlay.text_color);
-				break;
-			case SP_DX9_BORDERED_TEXT:
-			default:
-				// Draw bordered text
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[1], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[2], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[3], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[4], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[5], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[6], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[7], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[8], text_overlay.text_format, text_overlay.text_border_color);
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, text_overlay.text_color);
-				break;
-		}
+	switch (text_overlay.text_style) {
+		case SP_DX9_SHADOWED_TEXT:
+			text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color);
+			text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, text_overlay.text_color);
+			break;
+		case SP_DX9_PLAIN_TEXT:
+			text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &window_rect, text_overlay.text_format, text_overlay.text_color);
+			break;
+		case SP_DX9_BORDERED_TEXT:
+		default:
+			// Draw bordered text
+			for (int r = 1; r <= 8; r++)
+			{
+				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_border_color);
+			}
+			text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, text_overlay.text_color);
+			break;
 	}
 }
 
 void myIDirect3DDevice9::SP_DX9_draw_text_overlay_multicolor()
 {
-	if (text_overlay.enabled)
-	{
-		cycle_text_colors();
+	cycle_text_colors();
 
-		clean_text_overlay_feed(); // Remove expired messages
+	clean_text_overlay_feed(); // Remove expired messages
 
-		build_text_overlay_feed_string_multicolor(); // Build text feed string
+	build_text_overlay_feed_string_multicolor(); // Build text feed string
 
-		switch (text_overlay.text_style) {
-			case SP_DX9_SHADOWED_TEXT:
-				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+	switch (text_overlay.text_style) {
+		case SP_DX9_SHADOWED_TEXT:
+			for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+			{
+				text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color);
+				text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, dx9_text_colors[c]);
+			}
+			break;
+		case SP_DX9_PLAIN_TEXT:
+			for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+			{
+				text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &window_rect, text_overlay.text_format, dx9_text_colors[c]);
+			}
+			break;
+		case SP_DX9_BORDERED_TEXT:
+		default:
+			// Draw bordered text
+			for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+			{
+				for (int r = 1; r <= 8 && text_overlay.font != NULL; r++)
 				{
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color);
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, dx9_text_colors[c]);
+					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_border_color);
 				}
-				break;
-			case SP_DX9_PLAIN_TEXT:
-				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
-				{
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &window_rect, text_overlay.text_format, dx9_text_colors[c]);
-				}
-				break;
-			case SP_DX9_BORDERED_TEXT:
-			default:
-				// Draw bordered text
-				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
-				{
-					for (int r = 1; r <= 8 && text_overlay.font != NULL; r++)
-					{
-						text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_border_color);
-					}
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, dx9_text_colors[c]);
-				}
-				break;
-		}
+				text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, dx9_text_colors[c]);
+			}
+			break;
 	}
 }
 

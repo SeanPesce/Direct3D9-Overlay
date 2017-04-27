@@ -43,7 +43,7 @@ enum SP_DX9_TEXT_OVERLAY_COLORS_ENUM {
 };
 
 typedef struct SP_DX9_TEXT_OVERLAY_FEED_ENTRY {
-	const char *message;
+	std::string message = std::string("");
 	unsigned long long expire_time;
 	bool show_timestamp;
 	char timestamp[12];

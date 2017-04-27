@@ -1030,7 +1030,7 @@ void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned lon
 										std::chrono::milliseconds(1);
 
 	SP_DX9_TEXT_OVERLAY_FEED_ENTRY new_message;
-	new_message.message = message;
+	new_message.message.append(message);
 	if (duration == 0)
 	{
 		// Messages with an expire time of 0 never expire

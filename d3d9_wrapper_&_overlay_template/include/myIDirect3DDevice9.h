@@ -68,7 +68,10 @@ class myIDirect3DDevice9 : public IDirect3DDevice9
 {
 public:
 
+	bool is_windowed;
 	RECT window_rect;
+	long window_width;
+	long window_height;
 	SP_DX9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for fullscreen text overlay
 	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY> text_overlay_feed; // List of entries in the overlay text feed
 	std::string text_overlay_feed_text[_SP_DX9_TEXT_COLOR_COUNT_]; // Text that will be printed to the text overlay

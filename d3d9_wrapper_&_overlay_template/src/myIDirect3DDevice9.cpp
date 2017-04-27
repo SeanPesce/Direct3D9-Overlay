@@ -1,16 +1,19 @@
 // Author: Sean Pesce
 // Original d3d9.dll wrapper by Michael Koch
 
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "myIDirect3DDevice9.h"
 
 myIDirect3DDevice9::myIDirect3DDevice9(IDirect3DDevice9* pOriginal)
 {
-	m_pIDirect3DDevice9 = pOriginal; // Store the pointer to original object
 
+	m_pIDirect3DDevice9 = pOriginal; // Store the pointer to original object
+	
 	D3DDEVICE_CREATION_PARAMETERS creation_params;
 	m_pIDirect3DDevice9->GetCreationParameters(&creation_params);
 	GetClientRect(creation_params.hFocusWindow, &window_rect);
+	window_width = window_rect.right - window_rect.left;
+	window_height = window_rect.bottom - window_rect.top;
 
 	// Initialize fullscreen text overlay
 	SP_DX9_init_text_overlay(_SP_DEFAULT_TEXT_HEIGHT_,
@@ -138,7 +141,29 @@ UINT    myIDirect3DDevice9::GetNumberOfSwapChains(void)
 
 HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
-	return(m_pIDirect3DDevice9->Reset(pPresentationParameters));
+
+	if (pPresentationParameters->Windowed)
+	{
+		is_windowed = true;
+	}
+	else
+	{
+		is_windowed = false;
+	}
+
+	if (text_overlay.font != NULL)
+	{
+		text_overlay.font->OnLostDevice();
+	}
+
+	HRESULT hres = m_pIDirect3DDevice9->Reset(pPresentationParameters);
+
+	if (text_overlay.font != NULL)
+	{
+		text_overlay.font->OnResetDevice();
+	}
+
+	return hres;
 }
 
 HRESULT myIDirect3DDevice9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion)
@@ -272,8 +297,6 @@ HRESULT myIDirect3DDevice9::BeginScene(void)
 
 HRESULT myIDirect3DDevice9::EndScene(void)
 {
-	// Draw anything you want before the scene is shown to the user
-
 	if (multicolor_overlay_text_feed_enabled)
 	{
 		SP_DX9_draw_text_overlay_multicolor();
@@ -728,14 +751,10 @@ void myIDirect3DDevice9::SP_DX9_draw_text_overlay_multicolor()
 				// Draw bordered text
 				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
 				{
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[1], text_overlay.text_format, text_overlay.text_border_color);
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[2], text_overlay.text_format, text_overlay.text_border_color);
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[3], text_overlay.text_format, text_overlay.text_border_color);
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[4], text_overlay.text_format, text_overlay.text_border_color);
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[5], text_overlay.text_format, text_overlay.text_border_color);
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[6], text_overlay.text_format, text_overlay.text_border_color);
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[7], text_overlay.text_format, text_overlay.text_border_color);
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[8], text_overlay.text_format, text_overlay.text_border_color);
+					for (int r = 1; r <= 8 && text_overlay.font != NULL; r++)
+					{
+						text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_border_color);
+					}
 					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, dx9_text_colors[c]);
 				}
 				break;
@@ -753,6 +772,7 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 	DWORD text_format,
 	int text_style)
 {
+	text_overlay.enabled = false;
 	if (strcpy_s(text_overlay.font_name, _SP_DEFAULT_TEXT_FONT_) != 0)
 	{
 		// Handle error
@@ -891,13 +911,11 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 
 	for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
 	{
-		text_overlay_feed_text[c] = std::string("");
+		text_overlay_feed_text[c] = "";
 		text_overlay.text[c] = text_overlay_feed_text[c].c_str();
 	}
 	text_overlay_feed_text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT] = std::string(_SP_DEFAULT_OVERLAY_TEXT_MESSAGE_);
 	text_overlay.text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT] = text_overlay_feed_text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT].c_str();
-
-	text_overlay.enabled = false;
 }
 
 void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)

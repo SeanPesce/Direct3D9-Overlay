@@ -11,6 +11,7 @@
 #include "d3d9.h"
 #include "myIDirect3D9.h"
 #include "myIDirect3DDevice9.h"
+#include "SP_IO.hpp"
 
 #define _SP_DS_SETTINGS_FILE_ ".\\DS_d3d9_Mod.ini"
 #define _SP_DS_SETTINGS_SECTION_KEYBINDS_ "Keybinds"

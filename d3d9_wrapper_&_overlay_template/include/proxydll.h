@@ -76,6 +76,7 @@ int user_pref_overlay_text_style;
 DWORD WINAPI init_mod_thread(LPVOID lpParam);
 void mod_loop();	// Main loop for the mod thread
 void get_user_preferences();
+void load_dinput8();
 
 
 #endif // _SP_DS_D3D9_OVERLAY_TEMPLATE_H_

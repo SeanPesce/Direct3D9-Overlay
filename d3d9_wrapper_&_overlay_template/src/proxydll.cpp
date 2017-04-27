@@ -10,6 +10,7 @@ myIDirect3DDevice9* gl_pmyIDirect3DDevice9;
 myIDirect3D9*       gl_pmyIDirect3D9;
 HINSTANCE           gl_hOriginalDll;
 HINSTANCE           gl_hThisInstance;
+HINSTANCE			dinput8_inst;
 #pragma data_seg ()
 
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -22,6 +23,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	{
 	    case DLL_PROCESS_ATTACH:
 			InitInstance(hModule);
+			load_dinput8();
 			InitSettings();
 			if (!gl_hOriginalDll)
 			{
@@ -69,11 +71,11 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
 	
 	// Request pointer from Original Dll. 
 	IDirect3D9 *pIDirect3D9_orig = D3DCreate9_fn(SDKVersion);
-	
+
 	// Create my IDirect3D9 object and store pointer to original object there.
 	// Note: the object will delete itself once Ref count is zero (similar to COM objects)
 	gl_pmyIDirect3D9 = new myIDirect3D9(pIDirect3D9_orig);
-	
+
 	// Return pointer to hooking Object instead of "real one"
 	return (gl_pmyIDirect3D9);
 }
@@ -87,6 +89,7 @@ void InitInstance(HANDLE hModule)
 	gl_hThisInstance       = NULL;
 	gl_pmyIDirect3D9       = NULL;
 	gl_pmyIDirect3DDevice9 = NULL;	
+	dinput8_inst           = NULL;
 	
 	// Storing Instance handle into global variable
 	gl_hThisInstance = (HINSTANCE)  hModule;
@@ -111,6 +114,23 @@ void LoadOriginalDll(void)
 		OutputDebugString("PROXYDLL: Original d3d9.dll not loaded ERROR ****\r\n");
 		::ExitProcess(0); // Exit the hard way
 	}
+}
+
+// Load dinput8.dll to mitigate conflicts if DSFix is installed
+void load_dinput8()
+{
+	char *dinput8_filename = "dinput8.dll";
+
+	if (!dinput8_inst)
+	{
+		dinput8_inst = LoadLibrary(dinput8_filename);
+		if (!dinput8_inst)
+		{
+			// Failed to load dinput8.dll
+			// Handle error
+		}
+	}
+
 }
 
 // Parses settings file for intialization settings

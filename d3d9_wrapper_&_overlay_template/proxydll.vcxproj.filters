@@ -58,5 +58,8 @@
     <ClCompile Include="src\SP_DS_Mod_Template.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\SP_Text_IO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

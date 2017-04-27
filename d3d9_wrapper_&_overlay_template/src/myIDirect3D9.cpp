@@ -1,7 +1,7 @@
 // Author: Sean Pesce
 // Original d3d9.dll wrapper by Michael Koch
 
-#include "StdAfx.h"
+#include "stdafx.h"
 
 myIDirect3D9::myIDirect3D9(IDirect3D9 *pOriginal)
 {
@@ -128,6 +128,8 @@ HRESULT __stdcall myIDirect3D9::CreateDevice(UINT Adapter,D3DDEVTYPE DeviceType,
 	// Create our own Device object and store it in global pointer
 	// note: the object will delete itself once Ref count is zero (similar to COM objects)
 	gl_pmyIDirect3DDevice9 = new myIDirect3DDevice9(*ppReturnedDeviceInterface);
+
+	gl_pmyIDirect3DDevice9->is_windowed = !(pPresentationParameters->Windowed == 0);
 	
 	// store our pointer (the fake one) for returning it to the calling progam
 	*ppReturnedDeviceInterface = gl_pmyIDirect3DDevice9;

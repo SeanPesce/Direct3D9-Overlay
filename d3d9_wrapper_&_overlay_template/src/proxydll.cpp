@@ -23,7 +23,6 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	{
 	    case DLL_PROCESS_ATTACH:
 			InitInstance(hModule);
-			load_dinput8();
 			InitSettings();
 			if (!gl_hOriginalDll)
 			{
@@ -151,6 +150,12 @@ int InitSettings()
 	// Get user preferences from settings file
 	get_user_preferences();
 
+	if (user_pref_load_dinput8_early)
+	{
+		// Load dinput8.dll early (normally d3d9.dll is loaded first)
+		load_dinput8();
+	}
+
 	char settings_buffer[128];
 
 	// Check settings file for DLL chain
@@ -226,6 +231,9 @@ void get_user_preferences()
 
 	// Multicolor text feed enabled/disabled
 	user_pref_multicolor_feed_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_DEV_PREFS_, _SP_DS_OL_TXT_MULTICOLOR_FEED_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_MULTICOLOR_FEED_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
+
+	// Check if dinput8.dll should be loaded before d3d9.dll
+	user_pref_load_dinput8_early = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_DEV_PREFS_, _SP_DS_OL_LOAD_DINPUT8_EARLY_KEY_, _SP_DS_DEFAULT_VAL_OL_LOAD_DINPUT8_EARLY_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
 	// Overlay text size
 	user_pref_overlay_text_size = (int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_SIZE_KEY_, _SP_DEFAULT_TEXT_HEIGHT_, _SP_DS_SETTINGS_FILE_);

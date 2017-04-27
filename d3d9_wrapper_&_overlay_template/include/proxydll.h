@@ -39,6 +39,7 @@ const char *SP_OL_TXT_STYLE_VALS[3] = { "OUTLINE", "SHADOW", "PLAIN" };
 #define _SP_DS_DEFAULT_VAL_OL_TXT_AUDIO_ENABLED_ OL_TXT_DISABLED
 #define _SP_DS_DEFAULT_VAL_OL_TXT_VERBOSE_OUTPUT_ENABLED_ OL_TXT_DISABLED
 #define _SP_DS_DEFAULT_VAL_OL_TXT_MULTICOLOR_FEED_ENABLED_ OL_TXT_ENABLED
+#define _SP_DS_DEFAULT_VAL_OL_LOAD_DINPUT8_EARLY_ OL_TXT_DISABLED
 #define _SP_DS_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_HCENTER]
 #define _SP_DS_DEFAULT_VAL_OL_TXT_VERTICAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_BOTTOM]
 #define _SP_DS_DEFAULT_VAL_OL_TXT_STYLE_ SP_OL_TXT_STYLE_VALS[SP_DX9_BORDERED_TEXT]
@@ -66,6 +67,7 @@ bool user_pref_overlay_text_enabled;
 bool user_pref_audio_feedback_enabled;
 bool user_pref_verbose_output_enabled;
 bool user_pref_multicolor_feed_enabled;
+bool user_pref_load_dinput8_early;
 int user_pref_overlay_text_size;
 DWORD user_pref_overlay_text_pos;
 int user_pref_overlay_text_style;

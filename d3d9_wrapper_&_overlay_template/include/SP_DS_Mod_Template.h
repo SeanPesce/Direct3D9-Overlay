@@ -31,6 +31,8 @@
 // Output
 #define _SP_DS_DEFAULT_BEEP_DURATION_ 100
 #define _SP_DS_OL_TXT_INTRO_MESSAGE_ "Dark Souls mod template by Sean Pesce"
+#define _SP_DS_OL_TXT_DINPUT8_LOADED_EARLY_MESSAGE_ "DEBUG: dinput8.dll loaded early"
+#define _SP_DS_OL_TXT_DINPUT8_NOT_LOADED_EARLY_MESSAGE_ "DEBUG: dinput8.dll was not preloaded (default option)"
 #define _SP_DS_OL_TXT_OL_ENABLED_MESSAGE_ "Overlay enabled"
 #define _SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_ "Text style changed to outlined"
 #define _SP_DS_OL_TXT_SHADOW_STYLE_MESSAGE_ "Text style changed to shadowed"
@@ -75,6 +77,7 @@ extern bool user_pref_audio_feedback_enabled;
 extern bool user_pref_verbose_output_enabled;
 extern bool user_pref_multicolor_feed_enabled;
 extern int user_pref_overlay_text_size;
+extern bool user_pref_load_dinput8_early;
 extern DWORD user_pref_overlay_text_pos;
 extern int user_pref_overlay_text_style;
 

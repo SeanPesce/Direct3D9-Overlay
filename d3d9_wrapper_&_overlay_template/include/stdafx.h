@@ -41,5 +41,6 @@
 #define _SP_DS_OL_TXT_AUDIO_ENABLED_KEY_ "EnableAudioFeedback"
 #define _SP_DS_OL_TXT_VERBOSE_OUTPUT_ENABLED_KEY_ "EnableVerboseOutput"
 #define _SP_DS_OL_TXT_MULTICOLOR_FEED_ENABLED_KEY_ "EnableMultiColorTextFeed"
+#define _SP_DS_OL_LOAD_DINPUT8_EARLY_KEY_ "PreLoadDinput8DLL"
 //
 

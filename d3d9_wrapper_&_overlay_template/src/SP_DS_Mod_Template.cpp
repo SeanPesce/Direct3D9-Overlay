@@ -21,6 +21,14 @@ void mod_loop()
 	gl_pmyIDirect3DDevice9->text_overlay.enabled = user_pref_overlay_text_enabled;
 	gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_INTRO_MESSAGE_, 0, false);
 	gl_pmyIDirect3DDevice9->print_to_overlay_feed("--------------------------------------------------------", 0, false, SP_DX9_TEXT_COLOR_CYCLE_ALL);
+	if (user_pref_load_dinput8_early)
+	{
+		gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_DINPUT8_LOADED_EARLY_MESSAGE_, _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_*8, true, SP_DX9_TEXT_COLOR_BLUE);
+	}
+	else if (user_pref_verbose_output_enabled)
+	{
+		gl_pmyIDirect3DDevice9->print_to_overlay_feed(_SP_DS_OL_TXT_DINPUT8_NOT_LOADED_EARLY_MESSAGE_, _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_*8, true, SP_DX9_TEXT_COLOR_BLUE);
+	}
 
 	while (mod_loop_enabled)
 	{

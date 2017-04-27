@@ -1054,39 +1054,44 @@ void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned lon
 
 	// Build timestamp string
 	time_t current_time_t = time(0);
-	struct tm * current_time = localtime(&current_time_t);
+	struct tm current_time;
+	errno_t err = 0;
+	if (err = localtime_s(&current_time, &current_time_t))
+	{
+		// Handle error
+	}
 	new_message.timestamp[0] = '[';
-	if (current_time->tm_hour < 10)
+	if (current_time.tm_hour < 10)
 	{
 		new_message.timestamp[1] = '0';
-		new_message.timestamp[2] = std::to_string(current_time->tm_hour).c_str()[0];
+		new_message.timestamp[2] = std::to_string(current_time.tm_hour).c_str()[0];
 	}
 	else
 	{
-		new_message.timestamp[1] = std::to_string(current_time->tm_hour).c_str()[0];
-		new_message.timestamp[2] = std::to_string(current_time->tm_hour).c_str()[1];
+		new_message.timestamp[1] = std::to_string(current_time.tm_hour).c_str()[0];
+		new_message.timestamp[2] = std::to_string(current_time.tm_hour).c_str()[1];
 	}
 	new_message.timestamp[3] = ':';
-	if (current_time->tm_min < 10)
+	if (current_time.tm_min < 10)
 	{
 		new_message.timestamp[4] = '0';
-		new_message.timestamp[5] = std::to_string(current_time->tm_min).c_str()[0];
+		new_message.timestamp[5] = std::to_string(current_time.tm_min).c_str()[0];
 	}
 	else
 	{
-		new_message.timestamp[4] = std::to_string(current_time->tm_min).c_str()[0];
-		new_message.timestamp[5] = std::to_string(current_time->tm_min).c_str()[1];
+		new_message.timestamp[4] = std::to_string(current_time.tm_min).c_str()[0];
+		new_message.timestamp[5] = std::to_string(current_time.tm_min).c_str()[1];
 	}
 	new_message.timestamp[6] = ':';
-	if (current_time->tm_sec < 10)
+	if (current_time.tm_sec < 10)
 	{
 		new_message.timestamp[7] = '0';
-		new_message.timestamp[8] = std::to_string(current_time->tm_sec).c_str()[0];
+		new_message.timestamp[8] = std::to_string(current_time.tm_sec).c_str()[0];
 	}
 	else
 	{
-		new_message.timestamp[7] = std::to_string(current_time->tm_sec).c_str()[0];
-		new_message.timestamp[8] = std::to_string(current_time->tm_sec).c_str()[1];
+		new_message.timestamp[7] = std::to_string(current_time.tm_sec).c_str()[0];
+		new_message.timestamp[8] = std::to_string(current_time.tm_sec).c_str()[1];
 	}
 	new_message.timestamp[9] = ']';
 	new_message.timestamp[10] = ' ';

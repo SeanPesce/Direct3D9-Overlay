@@ -6,7 +6,6 @@
 
 myIDirect3DDevice9::myIDirect3DDevice9(IDirect3DDevice9* pOriginal)
 {
-
 	m_pIDirect3DDevice9 = pOriginal; // Store the pointer to original object
 	
 	D3DDEVICE_CREATION_PARAMETERS creation_params;
@@ -61,16 +60,19 @@ ULONG myIDirect3DDevice9::Release(void)
 	// global var
 	extern myIDirect3DDevice9* gl_pmyIDirect3DDevice9;
 
-	// Release/delete own objects
-	// .....
-
 	// Call original function
 	ULONG count = m_pIDirect3DDevice9->Release();
 
-	// Now that the original object has deleted itself, so do we
-	gl_pmyIDirect3DDevice9 = NULL;
-	delete(this);  // Destructor will be called automatically
+	if (count == 0)
+	{
+		gl_pmyIDirect3DDevice9->text_overlay.font->Release();
+		gl_pmyIDirect3DDevice9->text_overlay.font = NULL;
 
+		// Now that the original object has deleted itself, so do we
+		gl_pmyIDirect3DDevice9 = NULL;
+		delete(this);  // Destructor will be called automatically
+	}
+	
 	return (count);
 }
 

@@ -134,6 +134,8 @@ HRESULT __stdcall myIDirect3D9::CreateDevice(UINT Adapter,D3DDEVTYPE DeviceType,
 	// store our pointer (the fake one) for returning it to the calling progam
 	*ppReturnedDeviceInterface = gl_pmyIDirect3DDevice9;
 
+	gl_pmyIDirect3DDevice9->Reset(pPresentationParameters);
+
 	return(hres); 
 }
   

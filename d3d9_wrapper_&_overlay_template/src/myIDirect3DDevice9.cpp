@@ -11,6 +11,7 @@ myIDirect3DDevice9::myIDirect3DDevice9(IDirect3DDevice9* pOriginal)
 	// Store the program window attributes
 	D3DDEVICE_CREATION_PARAMETERS creation_params;
 	m_pIDirect3DDevice9->GetCreationParameters(&creation_params);
+	window = creation_params.hFocusWindow;
 	GetClientRect(creation_params.hFocusWindow, &window_rect);
 	window_width = window_rect.right - window_rect.left;
 	window_height = window_rect.bottom - window_rect.top;
@@ -189,8 +190,11 @@ HRESULT myIDirect3DDevice9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRe
 	// Might want to draw things here before flipping surfaces
 	// (Draw stuff, etc)
 
-	// Increment frame counter for current second
-	frame_count++;
+	if (use_alt_fps_counter) // Some games might need frames to be counted from the Present() method instead of the normal EndScene() method
+	{
+		// Increment frame counter for current second
+		frame_count++;
+	}
 
 	// Call original routine
 	return m_pIDirect3DDevice9->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
@@ -319,6 +323,12 @@ HRESULT myIDirect3DDevice9::BeginScene(void)
 HRESULT myIDirect3DDevice9::EndScene(void)
 {
 	// Draw overlay before the scene is shown to the user:
+
+	if (!use_alt_fps_counter) // Some games might need frames to be counted from the Present() method instead of the normal EndScene() method
+	{
+		// Increment frame counter for current second
+		frame_count++;
+	}
 
 	if (text_overlay.enabled)
 	{
@@ -838,6 +848,10 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 	{
 		// Handle error
 	}
+
+	// Some games might need frames to be counted from the Present() method instead of the normal EndScene() method to accurately calculate FPS
+	extern bool user_pref_use_alt_fps_counter;
+	use_alt_fps_counter = user_pref_use_alt_fps_counter;
 
 	// Initialize overlay font
 	HRESULT font_hr = D3DXCreateFont(

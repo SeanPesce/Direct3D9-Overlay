@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef _SP_DS_MOD_TEMPLATE_H_
-	#define _SP_DS_MOD_TEMPLATE_H_
+#ifndef _SP_D3D9_MOD_TEMPLATE_H_
+	#define _SP_D3D9_MOD_TEMPLATE_H_
 
 #include <Windows.h>
 #include "SP_IO.hpp"
@@ -32,7 +32,6 @@
 
 // Output
 #define _SP_DS_DEFAULT_BEEP_DURATION_ 100
-#define _SP_DS_OL_TXT_TITLE_MESSAGE_ "Dark Souls mod template by Sean Pesce"
 #define _SP_DS_OL_TXT_DINPUT8_LOADED_EARLY_MESSAGE_ "DEBUG: dinput8.dll loaded early"
 #define _SP_DS_OL_TXT_DINPUT8_NOT_LOADED_EARLY_MESSAGE_ "DEBUG: dinput8.dll was not preloaded (default option)"
 #define _SP_DS_OL_TXT_OL_ENABLED_MESSAGE_ "Overlay enabled"
@@ -95,18 +94,15 @@ int test_message_color;
 int dspw_overlay_adjustment; // Used to adjust the overlay to avoid clipping with the PvP Watchdog overlay
 
 // Mod-related variables
-extern HWND ds_game_window; // Dark Souls game window handle
 extern SHORT key_state[256]; // Key state buffer to hold the states of all 256 virtual keys
 bool mod_loop_enabled; // Controls whether the main loop for the mod is enabled/disabled
 
 // Function definitions
 void mod_loop();	// Main loop for the mod thread
 void initialize_mod(); // Initializes mod data and settings based on user preferences
-void get_ds_window(); // Obtains the handle for the Dark Souls game window and stores it in ds_game_window
-BOOL CALLBACK try_ds_window(HWND hwnd, LPARAM lParam); // Tests whether a window is the Dark Souls game window
 void next_overlay_text_position(DWORD current_position); // Cycles through the 9 overlay text feed position presets
 void next_overlay_text_style(int current_style); // Cycles through the overlay text styles (outlined, shadowed, or plain)
 void SP_beep(DWORD frequency, DWORD duration, bool wait); // Beeps at the specified frequency for a specified duration(in milliseconds) if audio feedback is enabled. If audio is disabled and wait==true, the thread is put to sleep for the specified duration instead.
 void SP_beep(DWORD frequency, DWORD duration); // Beeps at the specified frequency for a specified duration(in milliseconds) if audio feedback is enabled. If audio is disabled, the thread is put to sleep for the specified duration instead.
 
-#endif // _SP_DS_MOD_TEMPLATE_H_
+#endif // _SP_D3D9_MOD_TEMPLATE_H_

@@ -21,7 +21,7 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 
 //////////////////////// CONSTANTS & ENUMS ////////////////////////
 // Settings file data:
-#define _SP_DS_SETTINGS_FILE_ ".\\DS_d3d9_Mod.ini"	// Settings file name
+#define _SP_DS_SETTINGS_FILE_ ".\\d3d9_Mod.ini"	// Settings file name
 //	Settings file sections
 #define _SP_DS_SETTINGS_SECTION_KEYBINDS_ "Keybinds"
 #define _SP_DS_SETTINGS_SECTION_PREFS_ "Preferences"
@@ -57,6 +57,7 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 //	Developer preferences section keys
 #define _SP_DS_OL_TXT_VERBOSE_OUTPUT_ENABLED_KEY_ "EnableVerboseOutput"
 #define _SP_DS_OL_TXT_MULTICOLOR_FEED_ENABLED_KEY_ "EnableMultiColorTextFeed"
+#define _SP_DS_OL_USE_ALT_FPS_COUNTER_KEY_ "UseAltFPSCounter"
 #define _SP_DS_OL_LOAD_DINPUT8_EARLY_KEY_ "PreLoadDinput8DLL"
 
 // Enumerator whose values specify whether a toggleable setting is enabled or disabled:
@@ -117,6 +118,7 @@ bool user_pref_overlay_text_feed_enabled;
 bool user_pref_audio_feedback_enabled;
 bool user_pref_verbose_output_enabled;
 bool user_pref_multicolor_feed_enabled;
+bool user_pref_use_alt_fps_counter; // Some games might need frames to be counted from the Present() method instead of the normal EndScene() method to accurately calculate FPS
 bool user_pref_load_dinput8_early;
 int user_pref_overlay_text_size;
 DWORD user_pref_overlay_text_pos;

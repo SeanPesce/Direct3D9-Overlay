@@ -1,7 +1,7 @@
 // Author: Sean Pesce
 
 #include "stdafx.h"
-#include "SP_DS_Mod_Template.h"
+#include "SP_D3D9_Mod_Template.h"
 
 
 // Main loop for the mod thread
@@ -11,7 +11,7 @@ void mod_loop()
 
 	while (mod_loop_enabled)
 	{
-		if (GetForegroundWindow() == ds_game_window) { // Check if Dark Souls game window is active
+		if (GetForegroundWindow() == gl_pmyIDirect3DDevice9->window) { // Check if game window is active
 
 			get_async_keyboard_state(key_state); // Capture all current async key states
 
@@ -175,7 +175,7 @@ void mod_loop()
 		}
 		else
 		{
-			// Dark Souls game window is not active
+			// Game window is not active
 			Sleep(100);
 		}
 
@@ -183,56 +183,10 @@ void mod_loop()
 	}
 }
 
-// Obtains the window handle for the Dark Souls game window
-void get_ds_window()
-{
-	bool found_ds_window = false;
-
-	while (!found_ds_window)
-	{
-		// Iterate through all open windows to find the Dark Souls game window
-		if (!EnumWindows(try_ds_window, (LPARAM)&found_ds_window))
-		{
-			// Handle error
-		}
-		Sleep(30);
-	}
-}
-
-// Checks if a given window is the Dark Souls game window, and if so, saves the window handle
-BOOL CALLBACK try_ds_window(HWND hwnd, LPARAM lParam)
-{
-	bool *found_ds_window = (bool*)lParam;
-	DWORD pid;
-
-	GetWindowThreadProcessId(hwnd, &pid); // Get Dark Souls process ID
-
-	if (pid == GetCurrentProcessId())
-	{
-		// hwnd was created by Dark Souls process
-		char window_class[128];
-		
-		if (!RealGetWindowClass(hwnd, window_class, 128))
-		{
-			// Handle error
-		}
-		window_class[127] = '\0';
-
-		if (strcmp(window_class, _SP_DS_WINDOW_CLASS_) == 0)
-		{
-			// hwnd is the Dark Souls game window
-			ds_game_window = hwnd;
-			*found_ds_window = true;
-		}
-	}
-	return 1;
-}
-
 // Initializes mod data and settings based on user preferences
 void initialize_mod()
 {
-	get_ds_window(); // Get the Dark Souls window handle
-	while (gl_pmyIDirect3DDevice9 == NULL)
+	while (gl_pmyIDirect3DDevice9 == NULL || gl_pmyIDirect3DDevice9->window == NULL)
 	{
 		// Wait for the IDirect3DDevice9 wrapper object to be initialized
 		Sleep(500);

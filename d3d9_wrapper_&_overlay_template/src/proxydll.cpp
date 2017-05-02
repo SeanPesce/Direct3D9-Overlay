@@ -237,7 +237,10 @@ void get_user_preferences()
 	// Check if dinput8.dll should be loaded before d3d9.dll
 	user_pref_load_dinput8_early = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_DEV_PREFS_, _SP_DS_OL_LOAD_DINPUT8_EARLY_KEY_, _SP_DS_DEFAULT_VAL_OL_LOAD_DINPUT8_EARLY_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
-	// PvP Watchdog overlay adjustment
+	// Some games might need frames to be counted from the Present() method instead of the normal EndScene() method to accurately calculate FPS
+	user_pref_use_alt_fps_counter = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_DEV_PREFS_, _SP_DS_OL_USE_ALT_FPS_COUNTER_KEY_, OL_TXT_DISABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
+
+	// PvP Watchdog overlay adjustment (Dark Souls)
 	user_pref_dspw_ol_offset = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DSPW_ADJUSTMENT_KEY_, OL_TXT_DISABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
 	// FPS counter enabled/disabled

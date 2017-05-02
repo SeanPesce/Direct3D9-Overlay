@@ -83,11 +83,13 @@ class myIDirect3DDevice9 : public IDirect3DDevice9
 {
 public:
 
+	HWND window; // Game window
 	bool is_windowed; // Specifies whether the program is running in windowed or exclusive full-screen mode
 	RECT window_rect; // Denotes the area of screenspace being rendered
 	long window_width; // Denotes the width of the screenspace being rendered
 	long window_height; // Denotes the height of the screenspace being rendered
 	SP_DX9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for overlay text feed
+	bool use_alt_fps_counter = false; // Some games might need frames to be counted from the Present() method instead of the normal EndScene() method
 	int fps; // Number of frames rendered in the last second
 	int frame_count; // Number of frames rendered in the current second
 	UINT_PTR fps_timer_id; // ID of the timer used to update FPS values every second

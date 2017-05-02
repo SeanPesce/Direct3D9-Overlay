@@ -35,7 +35,7 @@
     <ClInclude Include="include\SP_IO.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\SP_DS_Mod_Template.h">
+    <ClInclude Include="include\SP_D3D9_Mod_Template.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -52,7 +52,7 @@
     <ClCompile Include="src\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\SP_DS_Mod_Template.cpp">
+    <ClCompile Include="src\SP_D3D9_Mod_Template.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

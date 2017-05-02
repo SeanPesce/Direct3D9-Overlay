@@ -338,23 +338,23 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 		if (is_windowed) // Windowed mode
 		{
 			// Only draw overlay if viewport dimensions match the window dimensions, to avoid issue with double-drawing overlays
-			//	in Dark Souls (when DSFix is not present) due to the subpar PC port (PvP Watchdog has this issue)
+			//	in games like Dark Souls (when DSFix is not present) due to the subpar PC port (PvP Watchdog has this issue)
 			if (vp.Width == (DWORD)(window_width) && vp.Height == (DWORD)(window_height))
 			{
 				// Draw overlay
 				if (multicolor_overlay_text_feed_enabled)
 				{
-					SP_DX9_draw_text_overlay_multicolor();
+					SP_DX9_draw_overlay_text_feed_multicolor();
 				}
 				else
 				{
-					SP_DX9_draw_text_overlay();
+					SP_DX9_draw_overlay_text_feed();
 				}
 			}
 		}
 		else // Exclusive full-screen mode
 		{
-			// Update program window attributes
+			// Update program window attributes		// @TODO: some games will double-render overlay if these statements aren't removed
 			SetRect(&window_rect, 0, 0, vp.Width, vp.Height);
 			window_width = window_rect.right - window_rect.left;
 			window_height = window_rect.bottom - window_rect.top;
@@ -365,11 +365,11 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 			// Draw overlay
 			if (multicolor_overlay_text_feed_enabled)
 			{
-				SP_DX9_draw_text_overlay_multicolor();
+				SP_DX9_draw_overlay_text_feed_multicolor();
 			}
 			else
 			{
-				SP_DX9_draw_text_overlay();
+				SP_DX9_draw_overlay_text_feed();
 			}
 		}
 	}
@@ -764,7 +764,7 @@ HRESULT myIDirect3DDevice9::CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** ppQ
 
 
 // Renders the overlay text feed (monochromatic)
-void myIDirect3DDevice9::SP_DX9_draw_text_overlay()
+void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed()
 {
 	clean_text_overlay_feed(); // Remove expired messages
 
@@ -793,7 +793,7 @@ void myIDirect3DDevice9::SP_DX9_draw_text_overlay()
 
 
 // Renders the overlay text feed (multicolor)
-void myIDirect3DDevice9::SP_DX9_draw_text_overlay_multicolor()
+void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed_multicolor()
 {
 	cycle_text_colors(); // Calculate the next ARGB color value for text whose color cycles through all colors
 

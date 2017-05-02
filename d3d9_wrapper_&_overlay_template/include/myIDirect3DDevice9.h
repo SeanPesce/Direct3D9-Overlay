@@ -252,8 +252,8 @@ private:
 
 	// Private overlay function definitions:
 	void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height, unsigned int text_border_thickness, int text_shadow_x_offset, int text_shadow_y_offset, D3DXCOLOR text_color, D3DXCOLOR text_border_color, D3DXCOLOR text_shadow_color, DWORD text_format, int text_style); // Initializes overlay text feed data structure
-	void myIDirect3DDevice9::SP_DX9_draw_text_overlay(); // Renders the overlay text feed (monochromatic)
-	void myIDirect3DDevice9::SP_DX9_draw_text_overlay_multicolor(); // Renders the overlay text feed (multicolor)
+	void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed(); // Renders the overlay text feed (monochromatic)
+	void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed_multicolor(); // Renders the overlay text feed (multicolor)
 	void myIDirect3DDevice9::clean_text_overlay_feed(); // Removes expired messages from the overlay text feed
 	void myIDirect3DDevice9::build_text_overlay_feed_string(); // Constructs the overlay text feed from the current list of messages (monochromatic)
 	void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor(); // Constructs the overlay text feed from the current list of messages (multicolor)

@@ -21,8 +21,10 @@
 #define _SP_DEFAULT_TEXT_FONT_ "Arial"
 // Total number of supported overlay text feed colors in multicolor mode
 #define _SP_DX9_TEXT_COLOR_COUNT_ 10
-// Default overlay text message
-#define _SP_DEFAULT_OVERLAY_TEXT_MESSAGE_ "Dark Souls mod template by Sean Pesce"
+// Default overlay text feed title
+#define _SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_ "Direct3D Overlay by Sean Pesce"
+// Text overlay watermark string length
+#define _SP_OL_TXT_WATERMARK_STR_LENGTH_ 128
 
 // Enumerator whose values denote the supported overlay text styles (outlined, shadowed, or plain)
 enum SP_DX9_TEXT_OVERLAY_STYLES {
@@ -42,6 +44,13 @@ enum SP_DX9_TEXT_OVERLAY_COLORS_ENUM {
 	SP_DX9_TEXT_COLOR_PURPLE,
 	SP_DX9_TEXT_COLOR_PINK,
 	SP_DX9_TEXT_COLOR_CYCLE_ALL
+};
+// Enumerator whose values denote whether to display the various overlay text watermark attributes
+enum SP_DX9_TEXT_OVERLAY_WATERMARK_ENUM {
+	SP_DX9_WATERMARK_TITLE = 1,
+	SP_DX9_WATERMARK_DATE = 2,
+	SP_DX9_WATERMARK_TIME = 4,
+	SP_DX9_WATERMARK_FPS = 8
 };
 // Data structure for a single message entry in the overlay text feed:
 typedef struct SP_DX9_TEXT_OVERLAY_FEED_ENTRY {
@@ -78,6 +87,11 @@ public:
 	long window_width; // Denotes the width of the screenspace being rendered
 	long window_height; // Denotes the height of the screenspace being rendered
 	SP_DX9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for overlay text feed
+	int fps; // Number of frames rendered in the last second
+	int frame_count; // Number of frames rendered in the current second
+	UINT_PTR fps_timer_id; // ID of the timer used to update FPS values every second
+	int show_text_watermark; // Denotes whether to display the various text watermark attributes
+	char text_watermark[_SP_OL_TXT_WATERMARK_STR_LENGTH_]; // Buffer to hold the text overlay watermark string
 	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY> text_overlay_feed; // List of entries in the overlay text feed
 	std::string text_overlay_feed_text[_SP_DX9_TEXT_COLOR_COUNT_]; // Array of strings to hold text (of each supported color) that will be printed to the text overlay
 	bool multicolor_overlay_text_feed_enabled; // If disabled, all printed text is the color indicated by text_overlay.text_color
@@ -242,4 +256,7 @@ private:
 	void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor(); // Constructs the overlay text feed from the current list of messages (multicolor)
 	void myIDirect3DDevice9::cycle_text_colors(); // Calculates the next ARGB color value for text whose color cycles through all colors
 	void myIDirect3DDevice9::init_text_overlay_rects(); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
+	void myIDirect3DDevice9::update_overlay_text_watermark(); // Updates the various text watermark attributes
 };
+
+void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime); // Updates the FPS counter every second

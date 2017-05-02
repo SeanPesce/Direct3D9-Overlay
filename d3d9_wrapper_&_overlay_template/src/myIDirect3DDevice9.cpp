@@ -189,6 +189,9 @@ HRESULT myIDirect3DDevice9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRe
 	// Might want to draw things here before flipping surfaces
 	// (Draw stuff, etc)
 
+	// Increment frame counter for current second
+	frame_count++;
+
 	// Call original routine
 	return m_pIDirect3DDevice9->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
@@ -856,6 +859,8 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 	}
 
 	text_overlay_old_font = NULL;
+	fps = 0;
+	frame_count = 0;
 
 	// Set text colors
 	text_overlay.text_color = text_color;
@@ -890,8 +895,16 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 	}
 	
 	// Set the default-colored text string to the default message
-	text_overlay_feed_text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT] = std::string(_SP_DEFAULT_OVERLAY_TEXT_MESSAGE_);
+	text_overlay_feed_text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT] = std::string(_SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_);
 	text_overlay.text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT] = text_overlay_feed_text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT].c_str();
+
+	// Start the FPS timer
+	fps_timer_id = 0;
+	fps_timer_id = SetTimer(NULL, 0, 1000, &update_fps);
+	if (!fps_timer_id)
+	{
+		// Handle error
+	}
 }
 
 
@@ -1190,6 +1203,13 @@ void myIDirect3DDevice9::build_text_overlay_feed_string()
 	// Erase text feed string from last-rendered frame
 	text_overlay_feed_text[0].clear();
 
+	if (show_text_watermark)
+	{
+		update_overlay_text_watermark();
+		text_overlay_feed_text[0].append(text_watermark);
+		text_overlay_feed_text[0].append("\n");
+	}
+
 	// Iterate through overlay text feed message list
 	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator;
 	for (iterator = text_overlay_feed.begin(); iterator != text_overlay_feed.end(); iterator++)
@@ -1220,6 +1240,17 @@ void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor()
 	for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
 	{
 		text_overlay_feed_text[c].clear();
+	}
+
+	if (show_text_watermark)
+	{
+		update_overlay_text_watermark();
+		text_overlay_feed_text[0].append(text_watermark);
+		text_overlay_feed_text[0].append("\n");
+		for (int c = 1; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+		{
+			text_overlay_feed_text[c].append(" \r\n");
+		}
 	}
 
 	// Iterate through overlay text feed message list for each color
@@ -1258,6 +1289,102 @@ void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor()
 	for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
 	{
 		text_overlay.text[c] = text_overlay_feed_text[c].c_str();
+	}
+}
+
+
+
+// Updates the various overlay text watermark attributes
+void myIDirect3DDevice9::update_overlay_text_watermark()
+{
+	int index = 0; // Stores the current character index in the watermark string buffer
+
+	if ((show_text_watermark & SP_DX9_WATERMARK_DATE)
+		|| (show_text_watermark & SP_DX9_WATERMARK_TIME))
+	{
+		text_watermark[index++] = '[';
+	}
+	
+	if (show_text_watermark & SP_DX9_WATERMARK_DATE)
+	{
+		// Insert current date into text watermark
+		generate_current_date(&text_watermark[index], false, SP_DATE_MMDDYYYY);
+		index += 10;
+		if (show_text_watermark & SP_DX9_WATERMARK_TIME)
+		{
+			text_watermark[index++] = ' ';
+			text_watermark[index++] = ' ';
+		}
+		else
+		{
+			text_watermark[index++] = ']';
+			text_watermark[index++] = ' ';
+			text_watermark[index++] = ' ';
+		}
+	}
+
+	if (show_text_watermark & SP_DX9_WATERMARK_TIME)
+	{
+		// Insert current timestamp into text watermark
+		generate_current_timestamp(&text_watermark[index], false);
+		index += 8;
+		text_watermark[index++] = ']';
+		text_watermark[index++] = ' ';
+		text_watermark[index++] = ' ';
+	}
+
+	if (show_text_watermark & SP_DX9_WATERMARK_FPS)
+	{
+		
+
+		// Insert FPS counter into text watermark
+		text_watermark[index++] = '[';
+
+		int current_fps = fps; // Get FPS
+
+		if (current_fps < 999)
+		{
+			strcpy(&text_watermark[index++], std::to_string(current_fps).c_str());
+			while (text_watermark[index] != '\0')
+			{
+				index++;
+			}
+		}
+		else
+		{
+			text_watermark[index++] = '9';
+			text_watermark[index++] = '9';
+			text_watermark[index++] = '9';
+		}
+
+		text_watermark[index++] = ' ';
+		text_watermark[index++] = 'F';
+		text_watermark[index++] = 'P';
+		text_watermark[index++] = 'S';
+		text_watermark[index++] = ']';
+		text_watermark[index++] = ' ';
+		text_watermark[index++] = ' ';
+	}
+
+	text_watermark[index] = '\0';
+
+	if (show_text_watermark & SP_DX9_WATERMARK_TITLE)
+	{
+		// Insert title into text watermark
+		strcpy(&text_watermark[index], _SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_);
+	}
+}
+
+
+
+void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
+{
+	extern myIDirect3DDevice9 *gl_pmyIDirect3DDevice9;
+	gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->frame_count; // Store the number of frames that were rendered in the last second
+	gl_pmyIDirect3DDevice9->frame_count = 0; // Reset the frame counter for the next second
+	if (!(gl_pmyIDirect3DDevice9->fps_timer_id = SetTimer(NULL, idEvent, 1000, &update_fps)))
+	{
+		// Handle error
 	}
 }
 

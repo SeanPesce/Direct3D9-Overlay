@@ -34,6 +34,7 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 #define _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_ "ToggleOverlay"
 #define _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_ "ChangeOverlayTextPosition"
 #define _SP_DS_HOTKEY_NEXT_OL_TXT_STYLE_KEY_ "ChangeOverlayTextStyle"
+#define _SP_DS_HOTKEY_TOGGLE_TEXT_WATERMARK_KEY_ "ToggleInfoWatermark"
 //	User preferences section keys
 #define _SP_DS_OL_TXT_ENABLED_KEY_ "EnableOverlay"
 #define _SP_DS_OL_TXT_SIZE_KEY_ "OverlayTextSize"
@@ -41,6 +42,9 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 #define _SP_DS_OL_TXT_VERTICAL_POS_KEY_ "OverlayTextVerticalPosition"
 #define _SP_DS_OL_TXT_STYLE_KEY_ "OverlayTextStyle"
 #define _SP_DS_OL_TXT_AUDIO_ENABLED_KEY_ "EnableAudioFeedback"
+#define _SP_DS_OL_TXT_ENABLE_FPS_KEY_ "DisplayFPS"
+#define _SP_DS_OL_TXT_ENABLE_TIME_KEY_ "DisplayTime"
+#define _SP_DS_OL_TXT_ENABLE_DATE_KEY_ "DisplayDate"
 //	Developer keybinds section keys
 #define _SP_DS_HOTKEY_PRINT_OL_TXT_TEST_MSG_KEY_ "PrintTestMessage"
 #define _SP_DS_HOTKEY_TOGGLE_AUDIO_FEEDBACK_KEY_ "ToggleAudioFeedback"
@@ -106,6 +110,7 @@ unsigned int hotkey_increase_overlay_text_size;
 unsigned int hotkey_decrease_overlay_text_size;
 unsigned int hotkey_reset_overlay_text_size;
 unsigned int hotkey_toggle_multicolor_feed;
+unsigned int hotkey_toggle_info_watermark;
 // User preferences
 bool user_pref_overlay_text_feed_enabled;
 bool user_pref_audio_feedback_enabled;
@@ -115,6 +120,7 @@ bool user_pref_load_dinput8_early;
 int user_pref_overlay_text_size;
 DWORD user_pref_overlay_text_pos;
 int user_pref_overlay_text_style;
+int user_pref_show_text_watermark;
 
 
 //////////////////////// MOD FUNCTION PROTOTYPES ////////////////////////

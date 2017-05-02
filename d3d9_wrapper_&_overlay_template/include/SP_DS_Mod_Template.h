@@ -6,14 +6,12 @@
 	#define _SP_DS_MOD_TEMPLATE_H_
 
 #include <Windows.h>
-#include <string>
 #include "SP_IO.hpp"
 #include "myIDirect3DDevice9.h"
 
 // Macro to determine if a hotkey is enabled and currently being pressed
 #define hotkey_is_down(hotkey) (hotkey != 0 && (key_state[hotkey] & _SP_KEY_DOWN_))
-#define print_color_feed(message, duration, include_timestamp, text_color) gl_pmyIDirect3DDevice9->print_to_overlay_feed(message, duration, include_timestamp, text_color)
-#define print_feed(message, duration, include_timestamp) gl_pmyIDirect3DDevice9->print_to_overlay_feed(message, duration, include_timestamp)
+#define print_ol_feed gl_pmyIDirect3DDevice9->print_to_overlay_feed
 // Overlay text feed position presets
 #define _SP_TEXT_TOP_LEFT_ (DT_NOCLIP | DT_TOP | DT_LEFT)
 #define _SP_TEXT_TOP_CENTER_ (DT_NOCLIP | DT_TOP | DT_CENTER)
@@ -34,10 +32,12 @@
 
 // Output
 #define _SP_DS_DEFAULT_BEEP_DURATION_ 100
-#define _SP_DS_OL_TXT_INTRO_MESSAGE_ "Dark Souls mod template by Sean Pesce"
+#define _SP_DS_OL_TXT_TITLE_MESSAGE_ "Dark Souls mod template by Sean Pesce"
 #define _SP_DS_OL_TXT_DINPUT8_LOADED_EARLY_MESSAGE_ "DEBUG: dinput8.dll loaded early"
 #define _SP_DS_OL_TXT_DINPUT8_NOT_LOADED_EARLY_MESSAGE_ "DEBUG: dinput8.dll was not preloaded (default option)"
 #define _SP_DS_OL_TXT_OL_ENABLED_MESSAGE_ "Overlay enabled"
+#define _SP_DS_OL_TXT_OL_TEXT_WATERMARK_ENABLED_MESSAGE_ "Info watermark enabled"
+#define _SP_DS_OL_TXT_OL_TEXT_WATERMARK_DISABLED_MESSAGE_ "Info watermark disabled"
 #define _SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_ "Text style changed to outlined"
 #define _SP_DS_OL_TXT_SHADOW_STYLE_MESSAGE_ "Text style changed to shadowed"
 #define _SP_DS_OL_TXT_PLAIN_STYLE_MESSAGE_ "Text style changed to plain"
@@ -74,6 +74,7 @@ extern unsigned int hotkey_increase_overlay_text_size;
 extern unsigned int hotkey_decrease_overlay_text_size;
 extern unsigned int hotkey_reset_overlay_text_size;
 extern unsigned int hotkey_toggle_multicolor_feed;
+extern unsigned int hotkey_toggle_info_watermark;
 extern bool user_pref_overlay_text_feed_enabled;
 extern bool user_pref_audio_feedback_enabled;
 extern bool user_pref_verbose_output_enabled;
@@ -82,6 +83,7 @@ extern int user_pref_overlay_text_size;
 extern bool user_pref_load_dinput8_early;
 extern DWORD user_pref_overlay_text_pos;
 extern int user_pref_overlay_text_style;
+extern int user_pref_show_text_watermark;
 
 // Overlay-related variables
 extern myIDirect3DDevice9* gl_pmyIDirect3DDevice9; // Pointer to the IDirect3DDevice9 wrapper that contains the overlay

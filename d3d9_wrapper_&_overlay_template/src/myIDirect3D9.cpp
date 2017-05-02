@@ -1,5 +1,5 @@
 // Author: Sean Pesce
-// Original d3d9.dll wrapper by Michael Koch
+// Original d3d9.dll wrapper base by Michael Koch
 
 #include "stdafx.h"
 
@@ -16,12 +16,12 @@ HRESULT  __stdcall myIDirect3D9::QueryInterface(REFIID riid, void** ppvObj)
 {
     *ppvObj = NULL;
 
-	// call this to increase AddRef at original object
+	// Call this to increase AddRef at original object
 	// and to check if such an interface is there
 
 	HRESULT hRes = m_pIDirect3D9->QueryInterface(riid, ppvObj); 
 
-	if (hRes == NOERROR) // if OK, send our "fake" address
+	if (hRes == NOERROR) // If OK, send our "fake" address
 	{
 		*ppvObj = this;
 	}
@@ -38,11 +38,11 @@ ULONG    __stdcall myIDirect3D9::Release(void)
 {
     extern myIDirect3D9* gl_pmyIDirect3D9;
 
-	// call original routine
+	// Call original routine
 	ULONG count = m_pIDirect3D9->Release();
 	
-    // in case no further Ref is there, the Original Object has deleted itself
-	// so do we here
+    // In case no further Ref is there, the Original Object has deleted itself,
+	// and so do we here
 	if (count == 0) 
 	{
 		gl_pmyIDirect3D9 = NULL;
@@ -119,21 +119,22 @@ HMONITOR __stdcall myIDirect3D9::GetAdapterMonitor(UINT Adapter)
 
 HRESULT __stdcall myIDirect3D9::CreateDevice(UINT Adapter,D3DDEVTYPE DeviceType,HWND hFocusWindow,DWORD BehaviorFlags,D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DDevice9** ppReturnedDeviceInterface)
 {
-    // global var
-	extern myIDirect3DDevice9* gl_pmyIDirect3DDevice9;
+	extern myIDirect3DDevice9* gl_pmyIDirect3DDevice9; // Global var
 
-	// we intercept this call and provide our own "fake" Device Object
+	// We intercept this call and provide our own "fake" Device Object
 	HRESULT hres = m_pIDirect3D9->CreateDevice( Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface);
     
 	// Create our own Device object and store it in global pointer
-	// note: the object will delete itself once Ref count is zero (similar to COM objects)
+	// Note: The object will delete itself once Ref count is zero (similar to COM objects)
 	gl_pmyIDirect3DDevice9 = new myIDirect3DDevice9(*ppReturnedDeviceInterface);
 
+	// Check if program is running in windowed or full-screen mode to determine when and how overlay is rendered
 	gl_pmyIDirect3DDevice9->is_windowed = !(pPresentationParameters->Windowed == 0);
 	
-	// store our pointer (the fake one) for returning it to the calling progam
+	// Store our pointer (the fake one) for returning it to the calling progam
 	*ppReturnedDeviceInterface = gl_pmyIDirect3DDevice9;
 
+	// Reset device to position overlay correctly
 	gl_pmyIDirect3DDevice9->Reset(pPresentationParameters);
 
 	return(hres); 

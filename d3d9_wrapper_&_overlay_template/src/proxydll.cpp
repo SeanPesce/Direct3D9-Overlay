@@ -1,10 +1,10 @@
 // Author: Sean Pesce
-// Original d3d9.dll wrapper by Michael Koch
+// Original d3d9.dll wrapper base by Michael Koch
 
 #include "stdafx.h"
 #include "proxydll.h"
 
-// global variables
+// Global variables
 #pragma data_seg (".d3d9_shared")
 myIDirect3DDevice9* gl_pmyIDirect3DDevice9;
 myIDirect3D9*       gl_pmyIDirect3D9;
@@ -15,7 +15,7 @@ HINSTANCE			dinput8_inst;
 
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
-	// To avoid compiler lvl4 warnings 
+	// To avoid compiler level 4 warnings 
     LPVOID lpDummy = lpReserved;
     lpDummy = NULL;
     
@@ -55,7 +55,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 // Exported function (faking d3d9.dll's one-and-only export)
 IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
 {
-	if (!gl_hOriginalDll) LoadOriginalDll(); // Looking for the "right d3d9.dll"
+	if (!gl_hOriginalDll) LoadOriginalDll(); // Looking for the real d3d9.dll
 	
 	// Hooking IDirect3D Object from Original Library
 	typedef IDirect3D9 *(WINAPI* D3D9_Type)(UINT SDKVersion);
@@ -65,17 +65,17 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
 	if (!D3DCreate9_fn) 
     {
         OutputDebugString("PROXYDLL: Pointer to original D3DCreate9 function not received ERROR ****\r\n");
-        ::ExitProcess(0); // exit the hard way
+        ::ExitProcess(0); // Exit the hard way
     }
 	
-	// Request pointer from Original Dll. 
+	// Request pointer from Original Dll 
 	IDirect3D9 *pIDirect3D9_orig = D3DCreate9_fn(SDKVersion);
 
-	// Create my IDirect3D9 object and store pointer to original object there.
-	// Note: the object will delete itself once Ref count is zero (similar to COM objects)
+	// Create myIDirect3D9 object and store pointer to original object there.
+	// Note: The object will delete itself once the Ref count is zero (similar to COM objects)
 	gl_pmyIDirect3D9 = new myIDirect3D9(pIDirect3D9_orig);
 
-	// Return pointer to hooking Object instead of "real one"
+	// Return pointer to hooking Object instead of the real one
 	return (gl_pmyIDirect3D9);
 }
 
@@ -94,6 +94,7 @@ void InitInstance(HANDLE hModule)
 	gl_hThisInstance = (HINSTANCE)  hModule;
 }
 
+// Loads the original d3d9.dll from the system directory
 void LoadOriginalDll(void)
 {
     char buffer[MAX_PATH];
@@ -115,7 +116,7 @@ void LoadOriginalDll(void)
 	}
 }
 
-// Load dinput8.dll to mitigate conflicts if DSFix is installed
+// Load dinput8.dll
 void load_dinput8()
 {
 	char *dinput8_filename = "dinput8.dll";
@@ -132,11 +133,11 @@ void load_dinput8()
 
 }
 
-// Parses settings file for intialization settings
+// Parses settings file (.ini) for intialization settings
 int InitSettings()
 {
 	// Get keybinds from settings file
-	hotkey_toggle_overlay_text = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_);
+	hotkey_toggle_overlay_text_feed = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_);
 	hotkey_next_overlay_text_pos = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_);
 	hotkey_next_overlay_text_style = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_STYLE_KEY_);
 	hotkey_toggle_audio_feedback = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_AUDIO_FEEDBACK_KEY_);
@@ -168,7 +169,7 @@ int InitSettings()
 		{
 			// Failed to load next wrapper DLL
 			OutputDebugString("PROXYDLL: Failed to load chained DLL; loading original from system directory instead...\r\n");
-			return 2; // Return 2 if given DLL could not be loaded
+			return 2; // Return 2 if specified DLL could not be loaded
 		}
 	}
 	else
@@ -180,12 +181,12 @@ int InitSettings()
 	return 0; // Return 0 on success
 }
 
-
+// Determines whether mod is enabled and calls the main loop for the mod
 DWORD WINAPI init_mod_thread(LPVOID lpParam)
 {
 
-	if (!user_pref_overlay_text_enabled		// @TODO: update this in real implementation
-		&& hotkey_toggle_overlay_text == 0
+	if (!user_pref_overlay_text_feed_enabled	// @TODO: update this in real implementation
+		&& hotkey_toggle_overlay_text_feed == 0
 		&& hotkey_next_overlay_text_style == 0
 		&& hotkey_next_overlay_text_pos == 0
 		&& hotkey_print_overlay_test_message == 0)
@@ -198,11 +199,13 @@ DWORD WINAPI init_mod_thread(LPVOID lpParam)
 		mod_loop_enabled = true;
 	}
 
+	extern void mod_loop();	// Main loop for the mod thread
 	mod_loop();
 
 	return 0;
 }
 
+// Unloads DLL when exiting
 void ExitInstance() 
 {    
     OutputDebugString("PROXYDLL: ExitInstance called.\r\n");
@@ -215,13 +218,11 @@ void ExitInstance()
 	}
 }
 
+// Reads in user preferences as specified in the settings file (.ini)
 void get_user_preferences()
 {
-	char settings_buffer[128];
-	std::string setting_value;
-
 	// Overlay enabled/disabled
-	user_pref_overlay_text_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
+	user_pref_overlay_text_feed_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
 	// Audio feedback enabled/disabled
 	user_pref_audio_feedback_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_AUDIO_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_AUDIO_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
@@ -243,9 +244,11 @@ void get_user_preferences()
 		user_pref_overlay_text_size = _SP_DEFAULT_TEXT_HEIGHT_;
 	}
 
+	char settings_buffer[128];
+	
 	// Overlay text horizonal position
 	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_HORIZONTAL_POS_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
-	setting_value = settings_buffer;
+	std::string setting_value = settings_buffer;
 	std::transform(setting_value.begin(), setting_value.end(), setting_value.begin(), ::toupper);
 	if (strcmp(setting_value.c_str(), SP_OL_TXT_POS_VALS[OL_TXT_POS_LEFT]) == 0)
 	{
@@ -283,7 +286,7 @@ void get_user_preferences()
 		user_pref_overlay_text_pos |= (DT_NOCLIP | DT_BOTTOM);
 	}
 
-	// Overlay text style
+	// Overlay text style (outlined, shadowed, or plain)
 	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_STYLE_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_STYLE_, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
 	setting_value = settings_buffer;
 	std::transform(setting_value.begin(), setting_value.end(), setting_value.begin(), ::toupper);

@@ -1,14 +1,14 @@
 // Author: Sean Pesce
-// Original d3d9.dll wrapper by Michael Koch
+// Original d3d9.dll wrapper base by Michael Koch
 
 #pragma once
 
-#include <chrono>
 #include <ctime>
 #include <list>
 #include <string>
 #include <d3dx9core.h>
 
+// Default overlay text attributes
 #define _SP_DEFAULT_TEXT_HEIGHT_ 28
 #define _SP_DEFAULT_TEXT_SHADOW_X_OFFSET_ 2
 #define _SP_DEFAULT_TEXT_SHADOW_Y_OFFSET_ 2
@@ -19,16 +19,18 @@
 #define _SP_DEFAULT_TEXT_FORMAT_ (DT_NOCLIP | DT_TOP | DT_CENTER)
 #define _SP_DEFAULT_TEXT_STYLE_ SP_DX9_BORDERED_TEXT
 #define _SP_DEFAULT_TEXT_FONT_ "Arial"
+// Total number of supported overlay text feed colors in multicolor mode
+#define _SP_DX9_TEXT_COLOR_COUNT_ 10
+// Default overlay text message
 #define _SP_DEFAULT_OVERLAY_TEXT_MESSAGE_ "Dark Souls mod template by Sean Pesce"
 
-#define _SP_DX9_TEXT_COLOR_COUNT_ 10
-
+// Enumerator whose values denote the supported overlay text styles (outlined, shadowed, or plain)
 enum SP_DX9_TEXT_OVERLAY_STYLES {
 	SP_DX9_BORDERED_TEXT,
 	SP_DX9_SHADOWED_TEXT,
 	SP_DX9_PLAIN_TEXT
 };
-
+// Enumerator whose values denote the supported overlay text feed colors in multicolor mode
 enum SP_DX9_TEXT_OVERLAY_COLORS_ENUM {
 	SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT,
 	SP_DX9_TEXT_COLOR_RED,
@@ -41,47 +43,48 @@ enum SP_DX9_TEXT_OVERLAY_COLORS_ENUM {
 	SP_DX9_TEXT_COLOR_PINK,
 	SP_DX9_TEXT_COLOR_CYCLE_ALL
 };
-
+// Data structure for a single message entry in the overlay text feed:
 typedef struct SP_DX9_TEXT_OVERLAY_FEED_ENTRY {
-	std::string message = std::string("");
-	unsigned long long expire_time;
-	bool show_timestamp;
-	char timestamp[12];
-	unsigned int text_color;
+	std::string message = std::string("");	// Message
+	unsigned long long expire_time;			// Time at which the message expires
+	bool show_timestamp;					// Enable/disable prepending a timestamp to the message
+	char timestamp[12];						// Char buffer for timestamp
+	unsigned int text_color;				// Text color
 } SP_DX9_TEXT_OVERLAY_FEED_ENTRY;
-
+// Data structure for the overlay text feed:
 typedef struct SP_DX9_FULLSCREEN_TEXT_OVERLAY {
-	bool enabled;
-	RECT text_shadow_rect[2];
-	RECT text_outline_rect[9];
-	int text_shadow_x_offset;
-	int text_shadow_y_offset;
-	unsigned int text_outline_thickness;
-	ID3DXFont *font;
-	TCHAR font_name[32];
-	LPCTSTR text[_SP_DX9_TEXT_COLOR_COUNT_];
-	DWORD text_format;	// Positioning and clipping of text on screen
-	int text_style;		// Bordered, Shadowed, or Plain
-	D3DXCOLOR text_color;
-	D3DXCOLOR text_border_color;
-	D3DXCOLOR text_shadow_color;
+	bool enabled;				// Enable/disable overlay text feed
+	RECT text_shadow_rect[2];	// Screenspace for positioning shadowed text
+	RECT text_outline_rect[9];	// Screenspace for positioning outlined text
+	int text_shadow_x_offset;	// Horizontal offset (in pixels) for text shadow
+	int text_shadow_y_offset;	// Vertical offset (in pixels) for text shadow
+	unsigned int text_outline_thickness; // Text outline thickness (in pixels)
+	ID3DXFont *font;			// Font data structure which holds attributes for the overlay text feed font
+	TCHAR font_name[32];		// Character array to hold the font family name
+	LPCTSTR text[_SP_DX9_TEXT_COLOR_COUNT_]; // Array of pointers to text buffers that will hold the text data of each color
+	DWORD text_format;			// Determines horizontal and vertical positioning of text on screen
+	int text_style;				// Overlay text style (Bordered, shadowed, or plain)
+	D3DXCOLOR text_color;		// Default text color (only color if multicolor mode is disabled)
+	D3DXCOLOR text_border_color; // Text outline color
+	D3DXCOLOR text_shadow_color; // Text shadow color
 } SP_DX9_FULLSCREEN_TEXT_OVERLAY;
 
 class myIDirect3DDevice9 : public IDirect3DDevice9
 {
 public:
 
-	bool is_windowed;
-	RECT window_rect;
-	long window_width;
-	long window_height;
-	SP_DX9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for fullscreen text overlay
+	bool is_windowed; // Specifies whether the program is running in windowed or exclusive full-screen mode
+	RECT window_rect; // Denotes the area of screenspace being rendered
+	long window_width; // Denotes the width of the screenspace being rendered
+	long window_height; // Denotes the height of the screenspace being rendered
+	SP_DX9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for overlay text feed
 	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY> text_overlay_feed; // List of entries in the overlay text feed
-	std::string text_overlay_feed_text[_SP_DX9_TEXT_COLOR_COUNT_]; // Text that will be printed to the text overlay
+	std::string text_overlay_feed_text[_SP_DX9_TEXT_COLOR_COUNT_]; // Array of strings to hold text (of each supported color) that will be printed to the text overlay
 	bool multicolor_overlay_text_feed_enabled; // If disabled, all printed text is the color indicated by text_overlay.text_color
 	DWORD cycle_all_colors_current_rgb_vals[3]; // Current RGB values for text whose color cycles through the color spectrum
-	ID3DXFont* text_overlay_old_font; // Unused font from last call to SP_DX9_set_text_height(), which will be released when SP_DX9_set_text_height() is called again
+	ID3DXFont* text_overlay_old_font; // Unused font from last call to SP_DX9_set_text_height(), which will be released when SP_DX9_set_text_height() is called again (temporarily stored to avoid race conditions)
 
+	// ARGB values for the supported overlay text feed colors
 	D3DXCOLOR dx9_text_colors[_SP_DX9_TEXT_COLOR_COUNT_] =
 	{
 		D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f),	// White
@@ -93,13 +96,13 @@ public:
 		D3DXCOLOR(0xFF4286F4),				// Blue
 		D3DXCOLOR(0xFFBC42F4),				// Purple
 		D3DXCOLOR(0xFFF442EB),				// Pink
-		D3DXCOLOR(0xFF000000)				// Cycle all colors
+		D3DXCOLOR(0xFF000000)				// Starting color when cycling all colors
 	};
 
-	myIDirect3DDevice9(IDirect3DDevice9* pOriginal);
+	myIDirect3DDevice9(IDirect3DDevice9* pOriginal); // Constructor
 	virtual ~myIDirect3DDevice9(void);
 
-	// START: The original DX9 function definitions
+	// Original DX9 function definitions:
 	HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObj);
 	ULONG   __stdcall AddRef(void);
 	ULONG   __stdcall Release(void);
@@ -219,20 +222,24 @@ public:
 	HRESULT __stdcall DrawTriPatch(UINT Handle, CONST float* pNumSegs, CONST D3DTRIPATCH_INFO* pTriPatchInfo);
 	HRESULT __stdcall DeletePatch(UINT Handle);
 	HRESULT __stdcall CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** ppQuery);
-	// END: The original DX9 function definitions
-	void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height);
-	void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp);
-	void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp, int text_color);
+	// End of original DX9 function definitions
+
+	// Public overlay function definitions:
+	void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height); // Changes the font height of the overlay text feed
+	// NOTE: Overlay text feed currently does NOT support multi-line messages. Print each line as a separate message instead.
+	void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp); // Prints default-colored text to the overlay text feed
+	void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp, int text_color); // Prints text to the overlay text feed in the specified color
 
 private:
 	IDirect3DDevice9 *m_pIDirect3DDevice9;
 
-	void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height, unsigned int text_border_thickness, int text_shadow_x_offset, int text_shadow_y_offset, D3DXCOLOR text_color, D3DXCOLOR text_border_color, D3DXCOLOR text_shadow_color, DWORD text_format, int text_style);
-	void myIDirect3DDevice9::SP_DX9_draw_text_overlay();
-	void myIDirect3DDevice9::SP_DX9_draw_text_overlay_multicolor();
-	void myIDirect3DDevice9::clean_text_overlay_feed();
-	void myIDirect3DDevice9::build_text_overlay_feed_string();
-	void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor();
-	void myIDirect3DDevice9::cycle_text_colors();
-	void myIDirect3DDevice9::init_text_overlay_rects();
+	// Private overlay function definitions:
+	void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height, unsigned int text_border_thickness, int text_shadow_x_offset, int text_shadow_y_offset, D3DXCOLOR text_color, D3DXCOLOR text_border_color, D3DXCOLOR text_shadow_color, DWORD text_format, int text_style); // Initializes overlay text feed data structure
+	void myIDirect3DDevice9::SP_DX9_draw_text_overlay(); // Renders the overlay text feed (monochromatic)
+	void myIDirect3DDevice9::SP_DX9_draw_text_overlay_multicolor(); // Renders the overlay text feed (multicolor)
+	void myIDirect3DDevice9::clean_text_overlay_feed(); // Removes expired messages from the overlay text feed
+	void myIDirect3DDevice9::build_text_overlay_feed_string(); // Constructs the overlay text feed from the current list of messages (monochromatic)
+	void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor(); // Constructs the overlay text feed from the current list of messages (multicolor)
+	void myIDirect3DDevice9::cycle_text_colors(); // Calculates the next ARGB color value for text whose color cycles through all colors
+	void myIDirect3DDevice9::init_text_overlay_rects(); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
 };

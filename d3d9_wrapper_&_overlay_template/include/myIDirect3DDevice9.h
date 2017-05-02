@@ -63,6 +63,7 @@ typedef struct SP_DX9_TEXT_OVERLAY_FEED_ENTRY {
 // Data structure for the overlay text feed:
 typedef struct SP_DX9_FULLSCREEN_TEXT_OVERLAY {
 	bool enabled;				// Enable/disable overlay text feed
+	RECT text_plain_rect;		// Screenspace for positioning plain text
 	RECT text_shadow_rect[2];	// Screenspace for positioning shadowed text
 	RECT text_outline_rect[9];	// Screenspace for positioning outlined text
 	int text_shadow_x_offset;	// Horizontal offset (in pixels) for text shadow

@@ -766,7 +766,7 @@ void myIDirect3DDevice9::SP_DX9_draw_text_overlay()
 			text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, text_overlay.text_color); // Draw text
 			break;
 		case SP_DX9_PLAIN_TEXT:
-			text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &window_rect, text_overlay.text_format, text_overlay.text_color); // Draw text
+			text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_plain_rect, text_overlay.text_format, text_overlay.text_color); // Draw text
 			break;
 		case SP_DX9_BORDERED_TEXT:
 		default:
@@ -802,7 +802,7 @@ void myIDirect3DDevice9::SP_DX9_draw_text_overlay_multicolor()
 		case SP_DX9_PLAIN_TEXT:
 			for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
 			{
-				text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &window_rect, text_overlay.text_format, dx9_text_colors[c]); // Draw text
+				text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_plain_rect, text_overlay.text_format, dx9_text_colors[c]); // Draw text
 			}
 			break;
 		case SP_DX9_BORDERED_TEXT:
@@ -912,13 +912,22 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
 void myIDirect3DDevice9::init_text_overlay_rects()
 {
+	extern int user_pref_dspw_ol_offset; // Used to adjust the overlay to avoid clipping with the DSPW overlay
+
+	// Initialize plain text rect
+	SetRect(&text_overlay.text_plain_rect,
+		window_rect.left,
+		window_rect.top + user_pref_dspw_ol_offset,
+		window_rect.right,
+		window_rect.bottom);
+
 	// Inititialize main shadowed text rect
 	if (text_overlay.text_shadow_x_offset >= 0 && text_overlay.text_shadow_y_offset >= 0)
 	{
 		// Case: x and y offsets are both positive
 		SetRect(&text_overlay.text_shadow_rect[0],
 			window_rect.left,
-			window_rect.top,
+			window_rect.top + user_pref_dspw_ol_offset,
 			window_rect.right - text_overlay.text_shadow_x_offset,
 			window_rect.bottom - text_overlay.text_shadow_y_offset);
 	}
@@ -962,7 +971,7 @@ void myIDirect3DDevice9::init_text_overlay_rects()
 	// Inititialize main bordered text rect
 	SetRect(&text_overlay.text_outline_rect[0],
 		window_rect.left + text_overlay.text_outline_thickness,
-		window_rect.top + text_overlay.text_outline_thickness,
+		window_rect.top + text_overlay.text_outline_thickness + user_pref_dspw_ol_offset,
 		window_rect.right - text_overlay.text_outline_thickness,
 		window_rect.bottom - text_overlay.text_outline_thickness);
 

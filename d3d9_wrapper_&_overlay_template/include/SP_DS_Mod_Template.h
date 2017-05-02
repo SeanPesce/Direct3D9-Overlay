@@ -84,11 +84,15 @@ extern bool user_pref_load_dinput8_early;
 extern DWORD user_pref_overlay_text_pos;
 extern int user_pref_overlay_text_style;
 extern int user_pref_show_text_watermark;
+// Dark Souls PvP Watchdog Settings
+extern int dspw_pref_font_size;
+extern int user_pref_dspw_ol_offset;
 
 // Overlay-related variables
 extern myIDirect3DDevice9* gl_pmyIDirect3DDevice9; // Pointer to the IDirect3DDevice9 wrapper that contains the overlay
 int current_overlay_text_size;
 int test_message_color;
+int dspw_overlay_adjustment; // Used to adjust the overlay to avoid clipping with the PvP Watchdog overlay
 
 // Mod-related variables
 extern HWND ds_game_window; // Dark Souls game window handle

@@ -162,7 +162,7 @@ int InitSettings()
 
 	// Check settings file for DLL chain
 	settings_buffer[0] = '\0';
-	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_SETTINGS_, _SP_DS_DLL_CHAIN_KEY_, NULL, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
+	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DLL_CHAIN_KEY_, NULL, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
 	if (settings_buffer[0] != '\0') // Found DLL_Chain entry in settings file
 	{
 		gl_hOriginalDll = LoadLibrary(settings_buffer);
@@ -236,6 +236,9 @@ void get_user_preferences()
 
 	// Check if dinput8.dll should be loaded before d3d9.dll
 	user_pref_load_dinput8_early = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_DEV_PREFS_, _SP_DS_OL_LOAD_DINPUT8_EARLY_KEY_, _SP_DS_DEFAULT_VAL_OL_LOAD_DINPUT8_EARLY_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
+
+	// PvP Watchdog overlay adjustment
+	user_pref_dspw_ol_offset = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DSPW_ADJUSTMENT_KEY_, OL_TXT_DISABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
 	// FPS counter enabled/disabled
 	if ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLE_FPS_KEY_, OL_TXT_ENABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED)
@@ -331,5 +334,52 @@ void get_user_preferences()
 		// Overlay text style will be outlined
 		user_pref_overlay_text_style = SP_DX9_BORDERED_TEXT;
 	}
+
+	// Get DSPW font size in case user wants to adjust this overlay to avoid clipping with the PvP Watchdog overlay
+	dspw_pref_font_size = get_dspw_font_size();
+
+	if (user_pref_dspw_ol_offset && dspw_pref_font_size)
+	{
+		// Set overlay offset to adjust for PvP Watchdog overlay
+		user_pref_dspw_ol_offset = dspw_pref_font_size + 5;
+	}
+}
+
+// Reads the PvP Watchdog settings file (DSPWSteam.ini) to obtain the DSPW font size in
+//  case the user wants to adjust this overlay to avoid clipping with the PvP Watchdog
+//  overlay
+int get_dspw_font_size()
+{
+	std::ifstream in("DSPWSteam.ini"); // Open DSPW settings file stream
+
+	if (!in)
+	{
+		// Failed to open PvP Watchdog settings file; DSPW is probably not installed
+		return 0;
+	}
+
+	// The DSPW setting we're looking for (font size)
+	std::string dspw_ol_font_size_key = "FontSize ";
+
+	std::string line;
+
+	while (std::getline(in, line)) {
+		
+		if (line.compare(0, dspw_ol_font_size_key.length(), dspw_ol_font_size_key.c_str()) == 0)
+		{
+			// Found the DSPW font size key
+			std::stringstream string_to_int(&line.c_str()[dspw_ol_font_size_key.length()]);
+			int dspw_font_size = 0;
+			if (!(string_to_int >> dspw_font_size))
+			{
+				// Failed to parse the DSPW font size; return default font size
+				return 15;
+			}
+			return dspw_font_size;
+		}
+	}
+
+	// Couldn't find the FontSize key in the DSPW settings file
+	return 0;
 }
 

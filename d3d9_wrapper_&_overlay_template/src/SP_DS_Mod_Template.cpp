@@ -257,6 +257,18 @@ void initialize_mod()
 	gl_pmyIDirect3DDevice9->show_text_watermark = user_pref_show_text_watermark;
 	print_ol_feed("--------------------------------------------------------", 0, false, SP_DX9_TEXT_COLOR_CYCLE_ALL);
 	
+	if (user_pref_verbose_output_enabled)
+	{
+		if (dspw_pref_font_size)
+		{
+			print_ol_feed(std::string("DEBUG: PvP Watchdog overlay font size = ").append(std::to_string(dspw_pref_font_size)).c_str(), _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_ * 8, true, SP_DX9_TEXT_COLOR_BLUE);
+		}
+		else
+		{
+			print_ol_feed("DEBUG: PvP Watchdog overlay font size not found (assuming zero)", _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_ * 8, true, SP_DX9_TEXT_COLOR_BLUE);
+		}
+	}
+	
 	if (user_pref_load_dinput8_early)
 	{
 		// Notify user that dinput8.dll was preloaded

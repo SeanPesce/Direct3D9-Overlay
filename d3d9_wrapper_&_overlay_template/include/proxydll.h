@@ -24,12 +24,13 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 #define _SP_DS_SETTINGS_FILE_ ".\\DS_d3d9_Mod.ini"	// Settings file name
 //	Settings file sections
 #define _SP_DS_SETTINGS_SECTION_KEYBINDS_ "Keybinds"
-#define _SP_DS_SETTINGS_SECTION_SETTINGS_ "Settings"
 #define _SP_DS_SETTINGS_SECTION_PREFS_ "Preferences"
+#define _SP_DS_SETTINGS_SECTION_ADV_SETTINGS_ "Advanced Settings"
 #define _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_ "Developer Keybinds"
 #define _SP_DS_SETTINGS_SECTION_DEV_PREFS_ "Developer Preferences"
-//	Settings section keys
-#define _SP_DS_DLL_CHAIN_KEY_ "DLL_Chain"
+//	Advanced settings section keys
+#define _SP_DS_DLL_CHAIN_KEY_ "d3d9Chain"
+#define _SP_DS_DSPW_ADJUSTMENT_KEY_ "DspwOverlayAdjustment"
 //	Keybinds section keys
 #define _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_ "ToggleOverlay"
 #define _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_ "ChangeOverlayTextPosition"
@@ -121,12 +122,17 @@ int user_pref_overlay_text_size;
 DWORD user_pref_overlay_text_pos;
 int user_pref_overlay_text_style;
 int user_pref_show_text_watermark;
+// Dark Souls PvP Watchdog Settings
+// (These values will be used to adjust the overlay to avoid clipping with the DSPW overlay)
+int dspw_pref_font_size;
+int user_pref_dspw_ol_offset;
 
 
 //////////////////////// MOD FUNCTION PROTOTYPES ////////////////////////
 DWORD WINAPI init_mod_thread(LPVOID lpParam); // Determines whether mod is enabled and calls the main loop for the mod
 void get_user_preferences(); // Reads in user preferences as specified in the settings file (.ini)
 void load_dinput8(); // Loads dinput8.dll
+int get_dspw_font_size(); // Reads the PvP Watchdog settings file (DSPWSteam.ini) to obtain the DSPW font size in case user wants to adjust this overlay to avoid clipping with the PvP Watchdog overlay
 
 
 #endif // _SP_D3D9_OVERLAY_TEMPLATE_H_

@@ -91,7 +91,9 @@ public:
 	SP_DX9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for overlay text feed
 	bool use_alt_fps_counter = false; // Some games might need frames to be counted from the Present() method instead of the normal EndScene() method
 	int fps; // Number of frames rendered in the last second
-	int frame_count; // Number of frames rendered in the current second
+	int present_calls = 0; // Number of times Present() was called thus far in the current second (used to determine FPS)
+	int endscene_calls = 0; // Number of times EndScene() was called thus far in the current second (used to determine FPS)
+	bool render_ol; // Signifies that EndScene() is called exactly once per call to Present()
 	UINT_PTR fps_timer_id; // ID of the timer used to update FPS values every second
 	int show_text_watermark; // Denotes whether to display the various text watermark attributes
 	char text_watermark[_SP_OL_TXT_WATERMARK_STR_LENGTH_]; // Buffer to hold the text overlay watermark string
@@ -259,6 +261,7 @@ private:
 	void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor(); // Constructs the overlay text feed from the current list of messages (multicolor)
 	void myIDirect3DDevice9::cycle_text_colors(); // Calculates the next ARGB color value for text whose color cycles through all colors
 	void myIDirect3DDevice9::init_text_overlay_rects(); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
+	void myIDirect3DDevice9::init_text_overlay_rects(RECT new_rect); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
 	void myIDirect3DDevice9::update_overlay_text_watermark(); // Updates the various text watermark attributes
 };
 

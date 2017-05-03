@@ -172,15 +172,20 @@ HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters
 		text_overlay.font->OnResetDevice(); // (Must be called after resetting a device)
 	}
 
-	// Store the new program window attributes
-	D3DVIEWPORT9 vp;
-	GetViewport(&vp);
-	SetRect(&window_rect, 0, 0, vp.Width, vp.Height);
-	window_width = window_rect.right - window_rect.left;
-	window_height = window_rect.bottom - window_rect.top;
+	if (is_windowed)
+	{
+		// Store the new program window attributes
+		D3DVIEWPORT9 vp;
+		GetViewport(&vp);
 
-	// Re-initialize the RECT structures that denote the usable screenspace for the overlay text feed
-	init_text_overlay_rects();
+		SetRect(&window_rect, 0, 0, vp.Width, vp.Height);
+		window_width = window_rect.right - window_rect.left;
+		window_height = window_rect.bottom - window_rect.top;
+
+		// Re-initialize the RECT structures that denote the usable screenspace for the overlay text feed
+		init_text_overlay_rects();
+	}
+	
 
 	return hres;
 }
@@ -190,11 +195,7 @@ HRESULT myIDirect3DDevice9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRe
 	// Might want to draw things here before flipping surfaces
 	// (Draw stuff, etc)
 
-	if (use_alt_fps_counter) // Some games might need frames to be counted from the Present() method instead of the normal EndScene() method
-	{
-		// Increment frame counter for current second
-		frame_count++;
-	}
+	present_calls++; // Increment Present call counter for the current second to determine FPS later
 
 	// Call original routine
 	return m_pIDirect3DDevice9->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
@@ -324,11 +325,7 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 {
 	// Draw overlay before the scene is shown to the user:
 
-	if (!use_alt_fps_counter) // Some games might need frames to be counted from the Present() method instead of the normal EndScene() method
-	{
-		// Increment frame counter for current second
-		frame_count++;
-	}
+	endscene_calls++;  // Increment EndScene call counter for the current second to determine FPS later
 
 	if (text_overlay.enabled)
 	{
@@ -354,22 +351,22 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 		}
 		else // Exclusive full-screen mode
 		{
-			// Update program window attributes		// @TODO: some games will double-render overlay if these statements aren't removed
-			SetRect(&window_rect, 0, 0, vp.Width, vp.Height);
-			window_width = window_rect.right - window_rect.left;
-			window_height = window_rect.bottom - window_rect.top;
+			// Update the RECT structures that denote the usable screenspace for the overlay text feed
+			RECT vp_rect;
+			SetRect(&vp_rect, 0, 0, vp.Width, vp.Height);
+			init_text_overlay_rects(vp_rect);
 
-			// Re-initialize the RECT structures that denote the usable screenspace for the overlay text feed
-			init_text_overlay_rects();
-
-			// Draw overlay
-			if (multicolor_overlay_text_feed_enabled)
+			if (render_ol || (vp.Width == (DWORD)(window_width) && vp.Height == (DWORD)(window_height)))
 			{
-				SP_DX9_draw_overlay_text_feed_multicolor();
-			}
-			else
-			{
-				SP_DX9_draw_overlay_text_feed();
+				// Draw overlay
+				if (multicolor_overlay_text_feed_enabled)
+				{
+					SP_DX9_draw_overlay_text_feed_multicolor();
+				}
+				else
+				{
+					SP_DX9_draw_overlay_text_feed();
+				}
 			}
 		}
 	}
@@ -874,7 +871,9 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 
 	text_overlay_old_font = NULL;
 	fps = 0;
-	frame_count = 0;
+	present_calls = 0;
+	endscene_calls = 0;
+	render_ol = false;
 
 	// Set text colors
 	text_overlay.text_color = text_color;
@@ -922,9 +921,14 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 }
 
 
-
 // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
 void myIDirect3DDevice9::init_text_overlay_rects()
+{
+	init_text_overlay_rects(window_rect);
+}
+
+// Initializes the RECT structures that denote the usable screenspace for the overlay text feed
+void myIDirect3DDevice9::init_text_overlay_rects(RECT window_rect)
 {
 	extern int user_pref_dspw_ol_offset; // Used to adjust the overlay to avoid clipping with the DSPW overlay
 
@@ -1403,8 +1407,35 @@ void myIDirect3DDevice9::update_overlay_text_watermark()
 void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 {
 	extern myIDirect3DDevice9 *gl_pmyIDirect3DDevice9;
-	gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->frame_count; // Store the number of frames that were rendered in the last second
-	gl_pmyIDirect3DDevice9->frame_count = 0; // Reset the frame counter for the next second
+
+	if (gl_pmyIDirect3DDevice9->present_calls == gl_pmyIDirect3DDevice9->endscene_calls
+		|| gl_pmyIDirect3DDevice9->present_calls == gl_pmyIDirect3DDevice9->endscene_calls-1
+		|| gl_pmyIDirect3DDevice9->present_calls == gl_pmyIDirect3DDevice9->endscene_calls+1)
+	{
+		// EndScene() is called exactly once per call to Present()
+		gl_pmyIDirect3DDevice9->render_ol = true;
+	}
+	else
+	{
+		gl_pmyIDirect3DDevice9->render_ol = false;
+	}
+	
+	if (!gl_pmyIDirect3DDevice9->present_calls || gl_pmyIDirect3DDevice9->present_calls >= gl_pmyIDirect3DDevice9->endscene_calls)
+	{
+		// Present() was not called, or was called as many times as EndScene
+		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->endscene_calls; // Store the number of frames that were rendered in the last second
+	}
+	else
+	{
+		// EndScene was called more times
+		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->present_calls; // Store the number of frames that were rendered in the last second
+	}
+
+	// Reset call counters
+	gl_pmyIDirect3DDevice9->present_calls = 0;
+	gl_pmyIDirect3DDevice9->endscene_calls = 0;
+
+	// Restart timer
 	if (!(gl_pmyIDirect3DDevice9->fps_timer_id = SetTimer(NULL, idEvent, 1000, &update_fps)))
 	{
 		// Handle error

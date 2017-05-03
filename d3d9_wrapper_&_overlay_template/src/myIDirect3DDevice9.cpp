@@ -1493,3 +1493,11 @@ void myIDirect3DDevice9::cycle_text_colors()
 	}
 	dx9_text_colors[SP_DX9_TEXT_COLOR_CYCLE_ALL] = D3DXCOLOR(0xFF000000 + cycle_all_colors_current_rgb_vals[0] + cycle_all_colors_current_rgb_vals[1] + cycle_all_colors_current_rgb_vals[2]);
 }
+
+
+// Constructs a string describing the specified RECT struct and stores it in the given std::string
+void rect_to_string(RECT *rect, const char *rect_name, std::string *str)
+{
+	str->clear();
+	str->append(rect_name).append(std::string(" (")).append(std::to_string(rect->left)).append(",").append(std::to_string(rect->top)).append(")  ").append(std::to_string(rect->right - rect->left)).append("x").append(std::to_string(rect->bottom - rect->top));
+}

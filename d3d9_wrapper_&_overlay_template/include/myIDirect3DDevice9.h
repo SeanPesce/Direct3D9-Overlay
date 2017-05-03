@@ -266,3 +266,4 @@ private:
 };
 
 void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime); // Updates the FPS counter every second
+void rect_to_string(RECT *rect, const char *rect_name, std::string *str); // Constructs a string describing the specified RECT struct and stores it in the given std::string

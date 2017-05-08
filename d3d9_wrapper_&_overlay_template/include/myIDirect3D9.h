@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "myIDirect3DDevice9.h"
+
 class myIDirect3D9 : public IDirect3D9
 {
 public:

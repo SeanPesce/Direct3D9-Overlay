@@ -148,6 +148,7 @@
     <ClInclude Include="include\myIDirect3D9.h" />
     <ClInclude Include="include\myIDirect3DDevice9.h" />
     <ClInclude Include="include\proxydll.h" />
+    <ClInclude Include="include\spIDirect3DSwapChain9.h" />
     <ClInclude Include="include\SP_D3D9_Mod_Template.h" />
     <ClInclude Include="include\SP_IO.hpp" />
     <ClInclude Include="include\stdafx.h" />
@@ -156,6 +157,7 @@
     <ClCompile Include="src\myIDirect3D9.cpp" />
     <ClCompile Include="src\myIDirect3DDevice9.cpp" />
     <ClCompile Include="src\proxydll.cpp" />
+    <ClCompile Include="src\spIDirect3DSwapChain9.cpp" />
     <ClCompile Include="src\SP_D3D9_Mod_Template.cpp" />
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

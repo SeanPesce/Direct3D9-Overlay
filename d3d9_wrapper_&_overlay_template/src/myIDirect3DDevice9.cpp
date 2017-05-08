@@ -217,7 +217,24 @@ HRESULT myIDirect3DDevice9::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPr
 
 HRESULT myIDirect3DDevice9::GetSwapChain(UINT iSwapChain, IDirect3DSwapChain9** pSwapChain)
 {
-	return(m_pIDirect3DDevice9->GetSwapChain(iSwapChain, pSwapChain));
+	extern spIDirect3DSwapChain9 *gl_pspIDirect3DSwapChain9;
+
+	HRESULT hres = m_pIDirect3DDevice9->GetSwapChain(iSwapChain, pSwapChain);
+
+	if (iSwapChain == 0 && hres == D3D_OK)
+	{
+		if (gl_pspIDirect3DSwapChain9 == NULL)
+		{
+			gl_pspIDirect3DSwapChain9 = new spIDirect3DSwapChain9(pSwapChain, (UINT*)&swap_chain_present_calls, &overlay_rendered_this_frame);
+		}
+		*pSwapChain = gl_pspIDirect3DSwapChain9;
+	}
+	else if (iSwapChain != 0)
+	{
+		print_to_overlay_feed(std::string("WARNING: Multiple swap chains not supported (GetSwapChain called with index ").append(std::to_string(iSwapChain)).append(")").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, SP_DX9_TEXT_COLOR_RED);
+	}
+
+	return hres;
 }
 
 UINT    myIDirect3DDevice9::GetNumberOfSwapChains(void)
@@ -231,7 +248,9 @@ HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters
 
 	// Store presentation parameters
 	D3DPRESENT_PARAMETERS present_params;
+
 	memcpy_s(&present_params, sizeof(present_params), pPresentationParameters, sizeof(*pPresentationParameters));
+
 
 	if (text_overlay.font != NULL)
 	{
@@ -249,6 +268,7 @@ HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters
 
 	is_windowed = present_params.Windowed != 0;
 
+	//print_to_overlay_feed(std::string("Reset() - BackBuffer: ").append(std::to_string(present_params.BackBufferWidth)).append("x").append(std::to_string(present_params.BackBufferHeight)).c_str(), 30000, false);
 	device_window = present_params.hDeviceWindow;
 	if (device_window != NULL)
 	{
@@ -307,6 +327,12 @@ HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters
 		}
 	}
 
+	Sleep(100);
+
+	update_overlay_parameters();
+
+	overlay_needs_reset = true;
+
 	return hres;
 }
 
@@ -315,56 +341,8 @@ HRESULT myIDirect3DDevice9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRe
 	// Might want to draw things here before flipping surfaces
 	// (Draw stuff, etc)
 
-	/*using_present = true;
-
-	if (text_overlay.enabled)
-	{
-		RECT render_target_rect = set_overlay_parameters();
-
-		D3DVIEWPORT9 vp;
-		if (GetViewport(&vp) != D3D_OK) // Get current viewport attributes
-		{
-			// Handle error
-		}
-
-		if (is_windowed) // Windowed mode
-		{
-			init_text_overlay_rects();
-			//if (drawing_to_display)
-			//{
-				// Draw overlay
-				if (multicolor_overlay_text_feed_enabled)
-				{
-					SP_DX9_draw_overlay_text_feed_multicolor();
-				}
-				else
-				{
-					SP_DX9_draw_overlay_text_feed();
-				}
-			//}
-		}
-		else // Exclusive full-screen mode
-		{
-			RECT vp_rect;
-			SetRect(&vp_rect, 0, 0, vp.Width, vp.Height);
-			init_text_overlay_rects(vp_rect);
-
-			//if (drawing_to_display)
-			//{
-				// Draw overlay
-				if (multicolor_overlay_text_feed_enabled)
-				{
-					SP_DX9_draw_overlay_text_feed_multicolor();
-				}
-				else
-				{
-					SP_DX9_draw_overlay_text_feed();
-				}
-			//}
-		}
-	}*/
-
 	present_calls++; // Increment Present call counter for the current second to determine FPS later
+	overlay_rendered_this_frame = false;
 
 	// Call original routine
 	return m_pIDirect3DDevice9->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
@@ -424,7 +402,6 @@ HRESULT myIDirect3DDevice9::CreateIndexBuffer(UINT Length, DWORD Usage, D3DFORMA
 
 HRESULT myIDirect3DDevice9::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Lockable, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
 {
-	// print_to_overlay_feed(std::string("New RenderTarget: ").append(std::to_string(Width)).append("x").append(std::to_string(Height)).c_str(), 30000, false);
 	return(m_pIDirect3DDevice9->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle));
 }
 
@@ -498,11 +475,15 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 {
 	// Draw overlay before the scene is shown to the user:
 
-	if (text_overlay.enabled && !using_present)
+	if (text_overlay.enabled)
 	{
-		RECT render_target_rect = update_overlay_parameters();
+		print_debug_data(10, false);
 
-		// print_debug_data(12, false);
+		if (overlay_needs_reset)
+		{
+			update_overlay_parameters();
+		}
+		render_target_is_display_format();
 
 		D3DVIEWPORT9 vp;
 		if (GetViewport(&vp) != D3D_OK) // Get current viewport attributes
@@ -512,7 +493,7 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 
 		if (is_windowed) // Windowed mode
 		{
-			init_text_overlay_rects();
+			init_text_overlay_rects(game_window_rect);
 			if (drawing_to_display || (vp.Width == game_window_rect->right && vp.Height == game_window_rect->bottom))
 			{
 				// Draw overlay
@@ -530,7 +511,7 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 		{
 			RECT vp_rect;
 			SetRect(&vp_rect, 0, 0, vp.Width, vp.Height);
-			init_text_overlay_rects(vp_rect);
+			init_text_overlay_rects(&vp_rect);
 			
 			#ifndef _SP_DARK_SOULS_1_
 			if(drawing_to_display)
@@ -948,25 +929,29 @@ void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed()
 {
 	clean_text_overlay_feed(); // Remove expired messages
 
-	build_text_overlay_feed_string(); // Build text feed string
+	if (!overlay_rendered_this_frame)
+	{
+		build_text_overlay_feed_string(); // Build text feed string
 
-	switch (text_overlay.text_style) {
-		case SP_DX9_SHADOWED_TEXT:
-			text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color); // Draw text shadow
-			text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, text_overlay.text_color); // Draw text
-			break;
-		case SP_DX9_PLAIN_TEXT:
-			text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_plain_rect, text_overlay.text_format, text_overlay.text_color); // Draw text
-			break;
-		case SP_DX9_BORDERED_TEXT:
-		default:
-			// Draw bordered text
-			for (int r = 1; r <= 8; r++)
-			{
-				text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_border_color); // Draw text outline
-			}
-			text_overlay.font->DrawText(NULL, text_overlay.text[0], -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, text_overlay.text_color); // Draw text
-			break;
+		switch (text_overlay.text_style) {
+			case SP_DX9_SHADOWED_TEXT:
+				text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color); // Draw text shadow
+				text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, text_overlay.text_color); // Draw text
+				break;
+			case SP_DX9_PLAIN_TEXT:
+				text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_plain_rect, text_overlay.text_format, text_overlay.text_color); // Draw text
+				break;
+			case SP_DX9_BORDERED_TEXT:
+			default:
+				// Draw bordered text
+				for (int r = 1; r <= 8; r++)
+				{
+					text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_border_color); // Draw text outline
+				}
+				text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, text_overlay.text_color); // Draw text
+				break;
+		}
+		overlay_rendered_this_frame = true;
 	}
 }
 
@@ -975,38 +960,42 @@ void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed()
 // Renders the overlay text feed (multicolor)
 void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed_multicolor()
 {
-	cycle_text_colors(); // Calculate the next ARGB color value for text whose color cycles through all colors
-
 	clean_text_overlay_feed(); // Remove expired messages
 
-	build_text_overlay_feed_string_multicolor(); // Build text feed string
+	if (!overlay_rendered_this_frame)
+	{
+		cycle_text_colors(); // Calculate the next ARGB color value for text whose color cycles through all colors
 
-	switch (text_overlay.text_style) {
-		case SP_DX9_SHADOWED_TEXT:
-			for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
-			{
-				text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color); // Draw text shadow
-				text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, dx9_text_colors[c]); // Draw text
-			}
-			break;
-		case SP_DX9_PLAIN_TEXT:
-			for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
-			{
-				text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_plain_rect, text_overlay.text_format, dx9_text_colors[c]); // Draw text
-			}
-			break;
-		case SP_DX9_BORDERED_TEXT:
-		default:
-			// Draw bordered text
-			for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
-			{
+		build_text_overlay_feed_string_multicolor(); // Build text feed string
+
+		switch (text_overlay.text_style) {
+			case SP_DX9_SHADOWED_TEXT:
+				text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color); // Draw text shadow
+				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				{
+					text_overlay.font->DrawText(NULL, text_overlay.feed_text[c].c_str(), -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, dx9_text_colors[c]); // Draw text
+				}
+				break;
+			case SP_DX9_PLAIN_TEXT:
+				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				{
+					text_overlay.font->DrawText(NULL, text_overlay.feed_text[c].c_str(), -1, &text_overlay.text_plain_rect, text_overlay.text_format, dx9_text_colors[c]); // Draw text
+				}
+				break;
+			case SP_DX9_BORDERED_TEXT:
+			default:
+				// Draw outlined text
 				for (int r = 1; r <= 8 && text_overlay.font != NULL; r++)
 				{
-					text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_border_color); // Draw text outline
+					text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_border_color); // Draw text outline
 				}
-				text_overlay.font->DrawText(NULL, text_overlay.text[c], -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, dx9_text_colors[c]); // Draw text
-			}
-			break;
+				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				{
+					text_overlay.font->DrawText(NULL, text_overlay.feed_text[c].c_str(), -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, dx9_text_colors[c]); // Draw text
+				}
+				break;
+		}
+		overlay_rendered_this_frame = true;
 	}
 }
 
@@ -1028,10 +1017,6 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 	{
 		// Handle error
 	}
-
-	// Some games might need frames to be counted from the Present() method instead of the normal EndScene() method to accurately calculate FPS
-	extern bool user_pref_use_alt_fps_counter;
-	use_alt_fps_counter = user_pref_use_alt_fps_counter;
 
 	// Initialize overlay font
 	HRESULT font_hr = D3DXCreateFont(
@@ -1086,13 +1071,12 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 	// Initialize all colored text feed strings to empty strings
 	for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
 	{
-		text_overlay_feed_text[c] = "";
-		text_overlay.text[c] = text_overlay_feed_text[c].c_str();
+		text_overlay.feed_text[c] = "";
 	}
 	
 	// Set the default-colored text string to the default message
-	text_overlay_feed_text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT] = std::string(_SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_);
-	text_overlay.text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT] = text_overlay_feed_text[SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT].c_str();
+	text_overlay.feed_text[_SP_DEFAULT_TEXT_COLOR_INDEX_] = std::string(_SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_);
+	text_overlay.feed_full_text = std::string(_SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_);
 
 	// Start the FPS timer
 	fps_timer_id = 0;
@@ -1107,57 +1091,57 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
 void myIDirect3DDevice9::init_text_overlay_rects()
 {
-	init_text_overlay_rects(*game_window_rect);
+	init_text_overlay_rects(game_window_rect);
 }
 
 // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
-void myIDirect3DDevice9::init_text_overlay_rects(RECT window_rect)
+void myIDirect3DDevice9::init_text_overlay_rects(RECT *window_rect)
 {
 	extern int user_pref_dspw_ol_offset; // Used to adjust the overlay to avoid clipping with the DSPW overlay
 
 	// Initialize plain text rect
 	SetRect(&text_overlay.text_plain_rect,
-		window_rect.left,
-		window_rect.top + user_pref_dspw_ol_offset,
-		window_rect.right,
-		window_rect.bottom);
+		window_rect->left,
+		window_rect->top + user_pref_dspw_ol_offset,
+		window_rect->right,
+		window_rect->bottom);
 
 	// Inititialize main shadowed text rect
 	if (text_overlay.text_shadow_x_offset >= 0 && text_overlay.text_shadow_y_offset >= 0)
 	{
 		// Case: x and y offsets are both positive
 		SetRect(&text_overlay.text_shadow_rect[0],
-			window_rect.left,
-			window_rect.top + user_pref_dspw_ol_offset,
-			window_rect.right - text_overlay.text_shadow_x_offset,
-			window_rect.bottom - text_overlay.text_shadow_y_offset);
+			window_rect->left,
+			window_rect->top + user_pref_dspw_ol_offset,
+			window_rect->right - text_overlay.text_shadow_x_offset,
+			window_rect->bottom - text_overlay.text_shadow_y_offset);
 	}
 	else if (text_overlay.text_shadow_x_offset <= 0 && text_overlay.text_shadow_y_offset >= 0)
 	{
 		// Case: x offset is negative; y offset is positive
 		SetRect(&text_overlay.text_shadow_rect[0],
-			window_rect.left - text_overlay.text_shadow_x_offset,
-			window_rect.top,
-			window_rect.right,
-			window_rect.bottom - text_overlay.text_shadow_y_offset);
+			window_rect->left - text_overlay.text_shadow_x_offset,
+			window_rect->top,
+			window_rect->right,
+			window_rect->bottom - text_overlay.text_shadow_y_offset);
 	}
 	else if (text_overlay.text_shadow_x_offset >= 0 && text_overlay.text_shadow_y_offset <= 0)
 	{
 		// Case: x offset is positive; y offset is negative
 		SetRect(&text_overlay.text_shadow_rect[0],
-			window_rect.left,
-			window_rect.top - text_overlay.text_shadow_y_offset,
-			window_rect.right - text_overlay.text_shadow_x_offset,
-			window_rect.bottom);
+			window_rect->left,
+			window_rect->top - text_overlay.text_shadow_y_offset,
+			window_rect->right - text_overlay.text_shadow_x_offset,
+			window_rect->bottom);
 	}
 	else
 	{
 		// Case: x and y offsets are both negative
 		SetRect(&text_overlay.text_shadow_rect[0],
-			window_rect.left - text_overlay.text_shadow_x_offset,
-			window_rect.top - text_overlay.text_shadow_y_offset,
-			window_rect.right,
-			window_rect.bottom);
+			window_rect->left - text_overlay.text_shadow_x_offset,
+			window_rect->top - text_overlay.text_shadow_y_offset,
+			window_rect->right,
+			window_rect->bottom);
 	}
 
 
@@ -1171,10 +1155,10 @@ void myIDirect3DDevice9::init_text_overlay_rects(RECT window_rect)
 
 	// Inititialize main bordered text rect
 	SetRect(&text_overlay.text_outline_rect[0],
-		window_rect.left + text_overlay.text_outline_thickness,
-		window_rect.top + text_overlay.text_outline_thickness + user_pref_dspw_ol_offset,
-		window_rect.right - text_overlay.text_outline_thickness,
-		window_rect.bottom - text_overlay.text_outline_thickness);
+		window_rect->left + text_overlay.text_outline_thickness,
+		window_rect->top + text_overlay.text_outline_thickness + user_pref_dspw_ol_offset,
+		window_rect->right - text_overlay.text_outline_thickness,
+		window_rect->bottom - text_overlay.text_outline_thickness);
 
 	// Initialize text border rects:
 	//		Top left outline extrusion
@@ -1360,7 +1344,7 @@ void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned lon
 	new_message.timestamp[11] = '\0';
 
 	// Add the constructed message to the overlay text feed message queue
-	text_overlay_feed.push_back(new_message);
+	text_overlay.feed.push_back(new_message);
 
 	// Re-enable the overlay, if it was enabled
 	if (reenable_overlay)
@@ -1390,13 +1374,13 @@ void myIDirect3DDevice9::clean_text_overlay_feed()
 										std::chrono::milliseconds(1);
 
 	// Iterate through overlay text feed message list
-	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator = text_overlay_feed.begin();
-	while (text_overlay.enabled && iterator != text_overlay_feed.end())
+	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator = text_overlay.feed.begin();
+	while (text_overlay.enabled && iterator != text_overlay.feed.end())
 	{
 		if (text_overlay.enabled && (*iterator).expire_time != 0 && ms_since_epoch >= (*iterator).expire_time)
 		{
 			// Remove expired message
-			iterator = text_overlay_feed.erase(iterator);
+			iterator = text_overlay.feed.erase(iterator);
 		}
 		else
 		{
@@ -1411,34 +1395,32 @@ void myIDirect3DDevice9::clean_text_overlay_feed()
 void myIDirect3DDevice9::build_text_overlay_feed_string()
 {
 	// Erase text feed string from last-rendered frame
-	text_overlay_feed_text[0].clear();
+	text_overlay.feed_full_text.clear();
 
 	if (show_text_watermark)
 	{
 		update_overlay_text_watermark();
-		text_overlay_feed_text[0].append(text_watermark);
-		text_overlay_feed_text[0].append("\n");
+		text_overlay.feed_full_text.append(text_watermark);
+		text_overlay.feed_full_text.append("\n");
 	}
 
 	// Iterate through overlay text feed message list
 	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator;
-	for (iterator = text_overlay_feed.begin(); iterator != text_overlay_feed.end(); iterator++)
+	for (iterator = text_overlay.feed.begin(); iterator != text_overlay.feed.end(); iterator++)
 	{
-		if (iterator != text_overlay_feed.begin())
+		if (iterator != text_overlay.feed.begin())
 		{
 			// Each message starts on a new line
-			text_overlay_feed_text[0].append("\n");
+			text_overlay.feed_full_text.append("\n");
 		}
 		if ((*iterator).show_timestamp)
 		{
 			// Prepend timestamp to message
-			text_overlay_feed_text[0].append(iterator->timestamp);
+			text_overlay.feed_full_text.append(iterator->timestamp);
 		}
 		// Append message text
-		text_overlay_feed_text[0].append((*iterator).message);
+		text_overlay.feed_full_text.append((*iterator).message);
 	}
-
-	text_overlay.text[0] = text_overlay_feed_text[0].c_str();
 }
 
 
@@ -1446,35 +1428,34 @@ void myIDirect3DDevice9::build_text_overlay_feed_string()
 // Constructs the overlay text feed from the current list of messages (multicolor)
 void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor()
 {
-	// Erase text feed strings from last-rendered frame
-	for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
-	{
-		text_overlay_feed_text[c].clear();
-	}
-
-	if (show_text_watermark)
-	{
-		update_overlay_text_watermark();
-		text_overlay_feed_text[0].append(text_watermark);
-		text_overlay_feed_text[0].append("\n");
-		for (int c = 1; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
-		{
-			text_overlay_feed_text[c].append(" \r\n");
-		}
-	}
-
 	// Iterate through overlay text feed message list for each color
 	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator;
-	for (iterator = text_overlay_feed.begin(); iterator != text_overlay_feed.end(); iterator++)
+	for (iterator = text_overlay.feed.begin(); iterator != text_overlay.feed.end(); iterator++)
 	{
-		if (iterator != text_overlay_feed.begin())
+		if (iterator == text_overlay.feed.begin())
 		{
-			for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+			text_overlay.feed_full_text.clear(); // Erase text feed shadow/outline strings from last-rendered frame
+			if (show_text_watermark)
 			{
-				// Each message starts on a new line
-				text_overlay_feed_text[c].append("\r\n");
+				text_overlay.feed_text[0].clear();
+				update_overlay_text_watermark();
+				text_overlay.feed_text[0].append(text_watermark).append("\n");
+				text_overlay.feed_full_text.append(text_watermark).append("\n");
+				for (int c = 1; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				{
+					text_overlay.feed_text[c].clear(); // Erase text feed strings from last-rendered frame
+					text_overlay.feed_text[c].append(" \r\n");
+				}
+			}
+			else
+			{
+				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				{
+					text_overlay.feed_text[c].clear(); // Erase text feed strings from last-rendered frame
+				}
 			}
 		}
+
 		for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
 		{
 			if (c == (*iterator).text_color)
@@ -1483,22 +1464,19 @@ void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor()
 				if ((*iterator).show_timestamp)
 				{
 					// Prepend timestamp to message
-					text_overlay_feed_text[c].append(iterator->timestamp);
+					text_overlay.feed_text[c].append(iterator->timestamp);
+					text_overlay.feed_full_text.append(iterator->timestamp);
 				}
 				// Append message text for the specified color
-				text_overlay_feed_text[c].append((*iterator).message);
+				text_overlay.feed_text[c].append((*iterator).message).append("\r\n");
+				text_overlay.feed_full_text.append((*iterator).message).append("\r\n");
 			}
 			else
 			{
 				// Create a blank message for all other colors at this line
-				text_overlay_feed_text[c].append(" ");
+				text_overlay.feed_text[c].append(" \r\n");
 			}
 		}
-	}
-
-	for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
-	{
-		text_overlay.text[c] = text_overlay_feed_text[c].c_str();
 	}
 }
 
@@ -1603,19 +1581,37 @@ void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 		gl_pmyIDirect3DDevice9->render_ol = false;
 	}
 	
-	if (!gl_pmyIDirect3DDevice9->present_calls || gl_pmyIDirect3DDevice9->present_calls >= gl_pmyIDirect3DDevice9->endscene_calls)
+	/*if ((!gl_pmyIDirect3DDevice9->present_calls && !gl_pmyIDirect3DDevice9->swap_chain_present_calls)
+		|| gl_pmyIDirect3DDevice9->present_calls >= gl_pmyIDirect3DDevice9->endscene_calls
+		|| gl_pmyIDirect3DDevice9->swap_chain_present_calls >= gl_pmyIDirect3DDevice9->endscene_calls)
 	{
 		// Present() was not called, or was called as many times as EndScene
 		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->endscene_calls; // Store the number of frames that were rendered in the last second
 	}
-	else
+	else if(gl_pmyIDirect3DDevice9->present_calls)
 	{
 		// EndScene was called more times
 		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->present_calls; // Store the number of frames that were rendered in the last second
 	}
+	else
+	{
+		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->swap_chain_present_calls; // Store the number of frames that were rendered in the last second
+	}*/
+
+	if (gl_pmyIDirect3DDevice9->present_calls >= gl_pmyIDirect3DDevice9->swap_chain_present_calls)
+	{
+		// Program uses IDirect3DDevice9::Present() to render frames
+		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->present_calls; // Store the number of frames that were rendered in the last second
+	}
+	else
+	{
+		// Program uses IDirect3DSwapChain9::Present() to render frames
+		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->swap_chain_present_calls; // Store the number of frames that were rendered in the last second
+	}
 
 	// Reset call counters
 	gl_pmyIDirect3DDevice9->present_calls = 0;
+	gl_pmyIDirect3DDevice9->swap_chain_present_calls = 0;
 	gl_pmyIDirect3DDevice9->endscene_calls = 0;
 	gl_pmyIDirect3DDevice9->get_back_buffer_calls = 0;
 
@@ -1692,6 +1688,7 @@ void myIDirect3DDevice9::print_debug_data(unsigned long long duration, bool show
 
 	print_to_overlay_feed(std::string("GetBackBufferCallCount: ").append(std::to_string(get_back_buffer_calls)).c_str(), duration, false);
 	print_to_overlay_feed(std::string("PresentCallCount: ").append(std::to_string(present_calls)).c_str(), duration, false);
+	print_to_overlay_feed(std::string("SwapChainPresentCallCount: ").append(std::to_string(swap_chain_present_calls)).c_str(), duration, false);
 	print_to_overlay_feed(std::string("EndSceneCallCount: ").append(std::to_string(endscene_calls)).c_str(), duration, false);
 
 	if (drawing_to_display)
@@ -1794,7 +1791,7 @@ RECT *myIDirect3DDevice9::get_viewport_as_rect(RECT *rect, D3DVIEWPORT9 *viewpor
 	return rect;
 }
 
-RECT myIDirect3DDevice9::update_overlay_parameters()
+void myIDirect3DDevice9::update_overlay_parameters()
 {
 	// Store the device window attributes
 	if (device_window != NULL)
@@ -1826,6 +1823,11 @@ RECT myIDirect3DDevice9::update_overlay_parameters()
 		}
 	}
 
+	overlay_needs_reset = false;
+}
+
+void myIDirect3DDevice9::render_target_is_display_format()
+{
 	IDirect3DSurface9 *render_target;
 	D3DSURFACE_DESC render_target_desc;
 	if (GetRenderTarget(0, &render_target) != D3D_OK) // Get render target surface
@@ -1843,11 +1845,11 @@ RECT myIDirect3DDevice9::update_overlay_parameters()
 
 	switch (render_target_desc.Format)
 	{
-		//case D3DFMT_UNKNOWN:
+			//case D3DFMT_UNKNOWN:
 		case D3DFMT_A2R10G10B10:
-		//case D3DFMT_A8R8G8B8:		// Not a display format (only Back buffer)
+			//case D3DFMT_A8R8G8B8:		// Not a display format (only Back buffer)
 		case D3DFMT_X8R8G8B8:
-		//case D3DFMT_A1R5G5B5:		// Not a display format (only Back buffer)
+			//case D3DFMT_A1R5G5B5:		// Not a display format (only Back buffer)
 		case D3DFMT_X1R5G5B5:
 		case D3DFMT_R5G6B5:
 			drawing_to_display = (render_target_desc.Usage == D3DUSAGE_RENDERTARGET);
@@ -1856,14 +1858,9 @@ RECT myIDirect3DDevice9::update_overlay_parameters()
 			drawing_to_display = false;
 			break;
 	}
-	
+
 	if (render_target != NULL)
 	{
 		render_target->Release();
 	}
-
-	RECT render_target_rect;
-	SetRect(&render_target_rect, 0, 0, render_target_desc.Width, render_target_desc.Height);
-
-	return render_target_rect;
 }

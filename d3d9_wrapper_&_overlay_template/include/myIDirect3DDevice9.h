@@ -13,6 +13,7 @@
 #define _SP_DEFAULT_TEXT_SHADOW_X_OFFSET_ 2
 #define _SP_DEFAULT_TEXT_SHADOW_Y_OFFSET_ 2
 #define _SP_DEFAULT_TEXT_BORDER_THICKNESS_ 2
+#define _SP_DEFAULT_TEXT_COLOR_INDEX_ SP_DX9_TEXT_COLOR_WHITE
 #define _SP_DEFAULT_TEXT_COLOR_ D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f)
 #define _SP_DEFAULT_TEXT_BORDER_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f)
 #define _SP_DEFAULT_TEXT_SHADOW_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f)
@@ -34,7 +35,7 @@ enum SP_DX9_TEXT_OVERLAY_STYLES {
 };
 // Enumerator whose values denote the supported overlay text feed colors in multicolor mode
 enum SP_DX9_TEXT_OVERLAY_COLORS_ENUM {
-	SP_DX9_TEXT_COLOR_WHITE_OR_DEFAULT,
+	SP_DX9_TEXT_COLOR_WHITE,
 	SP_DX9_TEXT_COLOR_RED,
 	SP_DX9_TEXT_COLOR_ORANGE,
 	SP_DX9_TEXT_COLOR_YELLOW,
@@ -71,7 +72,9 @@ typedef struct SP_DX9_FULLSCREEN_TEXT_OVERLAY {
 	unsigned int text_outline_thickness; // Text outline thickness (in pixels)
 	ID3DXFont *font;			// Font data structure which holds attributes for the overlay text feed font
 	TCHAR font_name[32];		// Character array to hold the font family name
-	LPCTSTR text[_SP_DX9_TEXT_COLOR_COUNT_]; // Array of pointers to text buffers that will hold the text data of each color
+	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY> feed; // List of messages in the overlay text feed
+	std::string feed_text[_SP_DX9_TEXT_COLOR_COUNT_]; // Array of strings to hold text (of each supported color) for text feed
+	std::string feed_full_text;	// String to hold the feed text as a single string (used when multicolor is disabled, or for shadow/outline when multicolor is enabled)
 	DWORD text_format;			// Determines horizontal and vertical positioning of text on screen
 	int text_style;				// Overlay text style (Bordered, shadowed, or plain)
 	D3DXCOLOR text_color;		// Default text color (only color if multicolor mode is disabled)
@@ -85,7 +88,6 @@ public:
 	
 	UINT id; // Adapter number
 	bool is_windowed; // Specifies whether the program is running in windowed or exclusive full-screen mode
-	bool using_present = false;
 	bool in_scene = false; // Indicates whether the program is currently between a BeginScene() and EndScene() call
 	HWND *game_window = NULL; // Main game window (should be pointer to focus_window or device_window)
 	RECT *game_window_rect = NULL;
@@ -95,18 +97,18 @@ public:
 	RECT device_window_rect;
 	RECT back_buffer_rect;
 	SP_DX9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for overlay text feed
-	bool use_alt_fps_counter = false; // Some games might need frames to be counted from the Present() method instead of the normal EndScene() method
+	bool overlay_rendered_this_frame = false;
+	bool overlay_needs_reset = true;
 	bool drawing_to_display = false;
 	int fps; // Number of frames rendered in the last second
-	int present_calls = 0; // Number of times Present() was called thus far in the current second (used to determine FPS)
-	int endscene_calls = 0; // Number of times EndScene() was called thus far in the current second (used to determine FPS)
-	int get_back_buffer_calls = 0; // Number of times GetBackBuffer() was called thus far in the current second (used to FPS/Vsync)
+	unsigned int present_calls = 0; // Number of times Present() was called thus far in the current second (used to determine FPS)
+	unsigned int endscene_calls = 0; // Number of times EndScene() was called thus far in the current second (used to determine FPS)
+	unsigned int swap_chain_present_calls = 0;
+	unsigned int get_back_buffer_calls = 0; // Number of times GetBackBuffer() was called thus far in the current second
 	bool render_ol; // Signifies that EndScene() is called exactly once per call to Present()
 	UINT_PTR fps_timer_id; // ID of the timer used to update FPS values every second
 	int show_text_watermark; // Denotes whether to display the various text watermark attributes
 	char text_watermark[_SP_OL_TXT_WATERMARK_STR_LENGTH_]; // Buffer to hold the text overlay watermark string
-	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY> text_overlay_feed; // List of entries in the overlay text feed
-	std::string text_overlay_feed_text[_SP_DX9_TEXT_COLOR_COUNT_]; // Array of strings to hold text (of each supported color) that will be printed to the text overlay
 	bool multicolor_overlay_text_feed_enabled; // If disabled, all printed text is the color indicated by text_overlay.text_color
 	DWORD cycle_all_colors_current_rgb_vals[3]; // Current RGB values for text whose color cycles through the color spectrum
 	ID3DXFont* text_overlay_old_font; // Unused font from last call to SP_DX9_set_text_height(), which will be released when SP_DX9_set_text_height() is called again (temporarily stored to avoid race conditions)
@@ -272,9 +274,10 @@ private:
 	void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor(); // Constructs the overlay text feed from the current list of messages (multicolor)
 	void myIDirect3DDevice9::cycle_text_colors(); // Calculates the next ARGB color value for text whose color cycles through all colors
 	void myIDirect3DDevice9::init_text_overlay_rects(); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
-	void myIDirect3DDevice9::init_text_overlay_rects(RECT new_rect); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
+	void myIDirect3DDevice9::init_text_overlay_rects(RECT *new_rect); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
 	void myIDirect3DDevice9::update_overlay_text_watermark(); // Updates the various text watermark attributes
-	RECT myIDirect3DDevice9::update_overlay_parameters();
+	void myIDirect3DDevice9::update_overlay_parameters();
+	void myIDirect3DDevice9::render_target_is_display_format();
 };
 
 void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime); // Updates the FPS counter every second

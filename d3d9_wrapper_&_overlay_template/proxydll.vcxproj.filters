@@ -38,6 +38,9 @@
     <ClInclude Include="include\SP_D3D9_Mod_Template.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\spIDirect3DSwapChain9.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\myIDirect3D9.cpp">
@@ -53,6 +56,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\SP_D3D9_Mod_Template.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\spIDirect3DSwapChain9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

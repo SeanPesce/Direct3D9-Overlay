@@ -26,8 +26,6 @@
 #define _SP_DS_WINDOW_CLASS_ "DARK SOULS"
 // Delay, in milliseconds, after a mod keybind is pressed, before the mod will continue listening for future keypresses
 #define _SP_DS_KEYPRESS_WAIT_TIME_ 100
-// Standard lifetime (in milliseconds) of an overlay text feed message
-#define _SP_DS_OL_TEXT_FEED_MSG_LIFESPAN_ 2000
 
 
 // Output

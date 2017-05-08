@@ -8,6 +8,9 @@
 #include <string>
 #include <d3dx9core.h>
 
+// Forward declaration
+class spIDirect3DSwapChain9; // Wrapper class for IDirect3DSwapChain9
+
 // Default overlay text attributes
 #define _SP_DEFAULT_TEXT_HEIGHT_ 28
 #define _SP_DEFAULT_TEXT_SHADOW_X_OFFSET_ 2
@@ -87,6 +90,7 @@ class myIDirect3DDevice9 : public IDirect3DDevice9
 public:
 	
 	UINT id; // Adapter number
+	DWORD thread;
 	bool is_windowed; // Specifies whether the program is running in windowed or exclusive full-screen mode
 	bool in_scene = false; // Indicates whether the program is currently between a BeginScene() and EndScene() call
 	HWND *game_window = NULL; // Main game window (should be pointer to focus_window or device_window)
@@ -96,16 +100,15 @@ public:
 	HWND device_window = NULL; // Game device window
 	RECT device_window_rect;
 	RECT back_buffer_rect;
+	IDirect3DStateBlock9 *overlay_state_block = NULL; // State block applied before drawing overlay
 	SP_DX9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for overlay text feed
 	bool overlay_rendered_this_frame = false;
 	bool overlay_needs_reset = true;
-	bool drawing_to_display = false;
 	int fps; // Number of frames rendered in the last second
 	unsigned int present_calls = 0; // Number of times Present() was called thus far in the current second (used to determine FPS)
 	unsigned int endscene_calls = 0; // Number of times EndScene() was called thus far in the current second (used to determine FPS)
 	unsigned int swap_chain_present_calls = 0;
 	unsigned int get_back_buffer_calls = 0; // Number of times GetBackBuffer() was called thus far in the current second
-	bool render_ol; // Signifies that EndScene() is called exactly once per call to Present()
 	UINT_PTR fps_timer_id; // ID of the timer used to update FPS values every second
 	int show_text_watermark; // Denotes whether to display the various text watermark attributes
 	char text_watermark[_SP_OL_TXT_WATERMARK_STR_LENGTH_]; // Buffer to hold the text overlay watermark string
@@ -261,6 +264,7 @@ public:
 	RECT *myIDirect3DDevice9::get_viewport_as_rect(RECT *rect); // Constructs a RECT struct from the device viewport
 	RECT *myIDirect3DDevice9::get_viewport_as_rect(RECT *rect, D3DVIEWPORT9 *viewport); // Constructs a RECT struct from the device viewport (and stores the viewport)
 	void myIDirect3DDevice9::print_debug_data(unsigned long long duration, bool show_timestamp); // Prints various game window data to the overlay text feed
+	void myIDirect3DDevice9::draw_overlay(IDirect3DDevice9 *device, IDirect3DSwapChain9 *swap_chain);
 
 private:
 	IDirect3DDevice9 *m_pIDirect3DDevice9;
@@ -277,8 +281,8 @@ private:
 	void myIDirect3DDevice9::init_text_overlay_rects(RECT *new_rect); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
 	void myIDirect3DDevice9::update_overlay_text_watermark(); // Updates the various text watermark attributes
 	void myIDirect3DDevice9::update_overlay_parameters();
-	void myIDirect3DDevice9::render_target_is_display_format();
+	void myIDirect3DDevice9::create_overlay_state_block(); // Creates a suitable state block for drawing the overlay
 };
 
-void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime); // Updates the FPS counter every second
+void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime); // (Called once per second) Records the number of frames that were rendered in the last second
 void rect_to_string(RECT *rect, const char *rect_name, std::string *str); // Constructs a string describing the specified RECT struct and stores it in the given std::string

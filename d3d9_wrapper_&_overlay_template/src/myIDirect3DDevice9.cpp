@@ -2,7 +2,7 @@
 // Original d3d9.dll wrapper base by Michael Koch
 
 #include "stdafx.h"
-#include "myIDirect3DDevice9.h"
+
 
 myIDirect3DDevice9::myIDirect3DDevice9(UINT Adapter, IDirect3DDevice9* pOriginal, HWND new_focus_window, D3DPRESENT_PARAMETERS *present_params)
 {
@@ -115,7 +115,7 @@ myIDirect3DDevice9::~myIDirect3DDevice9(void)
 
 HRESULT myIDirect3DDevice9::QueryInterface(REFIID riid, void** ppvObj)
 {
-	// Check if original dll can provide interface. then send *our* address
+	// Check if original dll can provide interface, then send this address
 	*ppvObj = NULL;
 
 	HRESULT hRes = m_pIDirect3DDevice9->QueryInterface(riid, ppvObj);
@@ -141,15 +141,32 @@ ULONG myIDirect3DDevice9::Release(void)
 	// original Release() function.
 
 	// Global var
-	extern myIDirect3DDevice9* gl_pmyIDirect3DDevice9;
+	extern myIDirect3DDevice9 *gl_pmyIDirect3DDevice9;
+	extern spIDirect3DSwapChain9 *gl_pspIDirect3DSwapChain9;
 
 	// Call original function
 	ULONG count = m_pIDirect3DDevice9->Release();
 
 	if (count == 0)
 	{
-		// Release the overlay text feed font to avoid memory leaks
-		gl_pmyIDirect3DDevice9->text_overlay.font->Release();
+		if (gl_pspIDirect3DSwapChain9 != NULL)
+		{
+			gl_pspIDirect3DSwapChain9->Release();
+		}
+		gl_pspIDirect3DSwapChain9 = NULL;
+
+
+		if (overlay_state_block != NULL)
+		{
+			overlay_state_block->Release();
+		}
+		overlay_state_block = NULL;
+
+		// Release overlay resources to avoid memory leaks
+		if (gl_pmyIDirect3DDevice9->text_overlay.font != NULL)
+		{
+			gl_pmyIDirect3DDevice9->text_overlay.font->Release();
+		}
 		gl_pmyIDirect3DDevice9->text_overlay.font = NULL;
 
 		// Now that the original object has deleted itself, so do we
@@ -223,10 +240,13 @@ HRESULT myIDirect3DDevice9::GetSwapChain(UINT iSwapChain, IDirect3DSwapChain9** 
 
 	if (iSwapChain == 0 && hres == D3D_OK)
 	{
+		// Initialize swap chain wrapper object
 		if (gl_pspIDirect3DSwapChain9 == NULL)
 		{
-			gl_pspIDirect3DSwapChain9 = new spIDirect3DSwapChain9(pSwapChain, (UINT*)&swap_chain_present_calls, &overlay_rendered_this_frame);
+			gl_pspIDirect3DSwapChain9 = new spIDirect3DSwapChain9(pSwapChain, this);
 		}
+
+		// Return wrapper object to calling program
 		*pSwapChain = gl_pspIDirect3DSwapChain9;
 	}
 	else if (iSwapChain != 0)
@@ -244,31 +264,77 @@ UINT    myIDirect3DDevice9::GetNumberOfSwapChains(void)
 
 HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
-	// Adjust overlay to match new presentation parameters:
+	HRESULT hres;
+	DWORD current_thread = GetCurrentThreadId();
 
 	// Store presentation parameters
 	D3DPRESENT_PARAMETERS present_params;
-
 	memcpy_s(&present_params, sizeof(present_params), pPresentationParameters, sizeof(*pPresentationParameters));
 
 
-	if (text_overlay.font != NULL)
+	// Release the previously-created overlay state block (if it exists)
+	if (overlay_state_block != NULL)
 	{
-		// Release video memory resources used by overlay text feed font
-		text_overlay.font->OnLostDevice(); // (Must be called before resetting a device)
+		overlay_state_block->Release();
+		overlay_state_block = NULL;
 	}
 
-	HRESULT hres = m_pIDirect3DDevice9->Reset(pPresentationParameters);
 
+	// Release video memory resources used by overlay text feed font
+	text_overlay.font->OnLostDevice(); // (Must be called before resetting a device)
+
+	/*if (text_overlay.font != NULL)
+	{
+		if (current_thread == thread)
+		{
+			text_overlay.font->OnLostDevice(); // (Must be called before resetting a device)
+			Beep(900, 200);
+		}
+		else
+		{
+			text_overlay.font->Release();
+			text_overlay.font = NULL;
+			Beep(500, 500);
+		}
+	}*/
+
+
+	// Call original Reset() method
+	hres = m_pIDirect3DDevice9->Reset(pPresentationParameters);
+
+	/*if (current_thread == thread)
+	{
+		hres = m_pIDirect3DDevice9->Reset(pPresentationParameters);
+	}
+	else
+	{
+		extern spIDirect3DSwapChain9 *gl_pspIDirect3DSwapChain9;
+		IDirect3DDevice9 *device;
+		if (gl_pspIDirect3DSwapChain9->GetDevice(&device) != D3D_OK)
+		{
+			// Handle error
+		}
+		else
+		{
+			device->Release();
+			device = NULL;
+		}
+	}*/
+
+
+	// Re-acquire video memory resources for overlay text feed font
 	if (text_overlay.font != NULL)
 	{
-		// Re-acquire video memory resources for overlay text feed font
 		text_overlay.font->OnResetDevice(); // (Must be called after resetting a device)
 	}
 
+
+	// Store window mode (windowed or fullscreen)
 	is_windowed = present_params.Windowed != 0;
 
 	//print_to_overlay_feed(std::string("Reset() - BackBuffer: ").append(std::to_string(present_params.BackBufferWidth)).append("x").append(std::to_string(present_params.BackBufferHeight)).c_str(), 30000, false);
+	
+	// Set device window parameters
 	device_window = present_params.hDeviceWindow;
 	if (device_window != NULL)
 	{
@@ -296,6 +362,7 @@ HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters
 			SetRect(&back_buffer_rect, 0, 0, 0, 0);
 		}
 	}
+
 
 	// Set main game window
 	if (is_windowed)
@@ -327,9 +394,13 @@ HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters
 		}
 	}
 
+
 	Sleep(100);
 
+
 	update_overlay_parameters();
+
+	create_overlay_state_block();
 
 	overlay_needs_reset = true;
 
@@ -338,10 +409,10 @@ HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters
 
 HRESULT myIDirect3DDevice9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion)
 {
-	// Might want to draw things here before flipping surfaces
-	// (Draw stuff, etc)
+	// Draw overlay before presenting frame
+	draw_overlay(m_pIDirect3DDevice9, NULL);
 
-	present_calls++; // Increment Present call counter for the current second to determine FPS later
+	present_calls++; // Increment Present() call counter for the current second
 	overlay_rendered_this_frame = false;
 
 	// Call original routine
@@ -477,59 +548,28 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 
 	if (text_overlay.enabled)
 	{
-		print_debug_data(10, false);
-
+		// Set overlay rect sizes and positions
 		if (overlay_needs_reset)
 		{
 			update_overlay_parameters();
-		}
-		render_target_is_display_format();
-
-		D3DVIEWPORT9 vp;
-		if (GetViewport(&vp) != D3D_OK) // Get current viewport attributes
-		{
-			// Handle error
-		}
-
-		if (is_windowed) // Windowed mode
-		{
-			init_text_overlay_rects(game_window_rect);
-			if (drawing_to_display || (vp.Width == game_window_rect->right && vp.Height == game_window_rect->bottom))
+			if (is_windowed)
 			{
-				// Draw overlay
-				if (multicolor_overlay_text_feed_enabled)
+				init_text_overlay_rects(game_window_rect);
+			}
+			else
+			{
+				D3DDISPLAYMODE display_mode;
+				if (GetDisplayMode(0, &display_mode) == D3D_OK)
 				{
-					SP_DX9_draw_overlay_text_feed_multicolor();
+					// Handle error
 				}
-				else
-				{
-					SP_DX9_draw_overlay_text_feed();
-				}
+				RECT display_mode_rect;
+				SetRect(&display_mode_rect, 0, 0, display_mode.Width, display_mode.Height);
+				init_text_overlay_rects(&display_mode_rect);
 			}
 		}
-		else // Exclusive full-screen mode
-		{
-			RECT vp_rect;
-			SetRect(&vp_rect, 0, 0, vp.Width, vp.Height);
-			init_text_overlay_rects(&vp_rect);
-			
-			#ifndef _SP_DARK_SOULS_1_
-			if(drawing_to_display)
-			{
-			#endif // _SP_DARK_SOULS_1_
-				// Draw overlay
-				if (multicolor_overlay_text_feed_enabled)
-				{
-					SP_DX9_draw_overlay_text_feed_multicolor();
-				}
-				else
-				{
-					SP_DX9_draw_overlay_text_feed();
-				}
-			#ifndef _SP_DARK_SOULS_1_
-			}
-			#endif // _SP_DARK_SOULS_1_
-		}
+
+		clean_text_overlay_feed(); // Remove expired text feed messages
 	}
 
 	endscene_calls++;  // Increment EndScene call counter for the current second to determine FPS later
@@ -927,8 +967,6 @@ HRESULT myIDirect3DDevice9::CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** ppQ
 // Renders the overlay text feed (monochromatic)
 void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed()
 {
-	clean_text_overlay_feed(); // Remove expired messages
-
 	if (!overlay_rendered_this_frame)
 	{
 		build_text_overlay_feed_string(); // Build text feed string
@@ -960,8 +998,6 @@ void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed()
 // Renders the overlay text feed (multicolor)
 void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed_multicolor()
 {
-	clean_text_overlay_feed(); // Remove expired messages
-
 	if (!overlay_rendered_this_frame)
 	{
 		cycle_text_colors(); // Calculate the next ARGB color value for text whose color cycles through all colors
@@ -1037,11 +1073,12 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 		// Handle error
 	}
 
+	thread = GetCurrentThreadId(); // Store the creator thread
+
 	text_overlay_old_font = NULL;
 	fps = 0;
 	present_calls = 0;
 	endscene_calls = 0;
-	render_ol = false;
 
 	// Set text colors
 	text_overlay.text_color = text_color;
@@ -1564,39 +1601,10 @@ void myIDirect3DDevice9::update_overlay_text_watermark()
 }
 
 
-
+// (Called once per second) Records the number of frames that were rendered in the last second.
 void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 {
 	extern myIDirect3DDevice9 *gl_pmyIDirect3DDevice9;
-
-	if (gl_pmyIDirect3DDevice9->present_calls == gl_pmyIDirect3DDevice9->endscene_calls
-		|| gl_pmyIDirect3DDevice9->present_calls == gl_pmyIDirect3DDevice9->endscene_calls-1
-		|| gl_pmyIDirect3DDevice9->present_calls == gl_pmyIDirect3DDevice9->endscene_calls+1)
-	{
-		// EndScene() is called exactly once per call to Present()
-		gl_pmyIDirect3DDevice9->render_ol = true;
-	}
-	else
-	{
-		gl_pmyIDirect3DDevice9->render_ol = false;
-	}
-	
-	/*if ((!gl_pmyIDirect3DDevice9->present_calls && !gl_pmyIDirect3DDevice9->swap_chain_present_calls)
-		|| gl_pmyIDirect3DDevice9->present_calls >= gl_pmyIDirect3DDevice9->endscene_calls
-		|| gl_pmyIDirect3DDevice9->swap_chain_present_calls >= gl_pmyIDirect3DDevice9->endscene_calls)
-	{
-		// Present() was not called, or was called as many times as EndScene
-		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->endscene_calls; // Store the number of frames that were rendered in the last second
-	}
-	else if(gl_pmyIDirect3DDevice9->present_calls)
-	{
-		// EndScene was called more times
-		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->present_calls; // Store the number of frames that were rendered in the last second
-	}
-	else
-	{
-		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->swap_chain_present_calls; // Store the number of frames that were rendered in the last second
-	}*/
 
 	if (gl_pmyIDirect3DDevice9->present_calls >= gl_pmyIDirect3DDevice9->swap_chain_present_calls)
 	{
@@ -1690,15 +1698,6 @@ void myIDirect3DDevice9::print_debug_data(unsigned long long duration, bool show
 	print_to_overlay_feed(std::string("PresentCallCount: ").append(std::to_string(present_calls)).c_str(), duration, false);
 	print_to_overlay_feed(std::string("SwapChainPresentCallCount: ").append(std::to_string(swap_chain_present_calls)).c_str(), duration, false);
 	print_to_overlay_feed(std::string("EndSceneCallCount: ").append(std::to_string(endscene_calls)).c_str(), duration, false);
-
-	if (drawing_to_display)
-	{
-		print_to_overlay_feed("DrawToDisplay: Yes", duration, false);
-	}
-	else
-	{
-		print_to_overlay_feed("DrawToDisplay: No", duration, false);
-	}
 }
 
 
@@ -1826,41 +1825,168 @@ void myIDirect3DDevice9::update_overlay_parameters()
 	overlay_needs_reset = false;
 }
 
-void myIDirect3DDevice9::render_target_is_display_format()
+
+// Creates a suitable state block for drawing the overlay.
+//	This method was created with the help of the Mumble source code, found here:
+//		https://github.com/mumble-voip/mumble/blob/master/overlay/d3d9.cpp
+void myIDirect3DDevice9::create_overlay_state_block()
 {
-	IDirect3DSurface9 *render_target;
-	D3DSURFACE_DESC render_target_desc;
-	if (GetRenderTarget(0, &render_target) != D3D_OK) // Get render target surface
+	// Release the previously-created overlay state block, if it exists
+	if (overlay_state_block != NULL)
 	{
-		render_target = NULL;
+		overlay_state_block->Release();
+		overlay_state_block = NULL;
+	}
+
+
+	// Capture current state block
+	IDirect3DStateBlock9 *current_state_block = NULL;
+	if (CreateStateBlock(D3DSBT_ALL, &current_state_block) != D3D_OK)
+	{
 		// Handle error
+	}
+	current_state_block->Capture();
+
+
+	// Create and configure new state block for drawing the overlay
+	if (CreateStateBlock(D3DSBT_ALL, &overlay_state_block) != D3D_OK)
+	{
+		// Handle error
+		current_state_block->Release();
+	}
+
+	SetVertexShader(NULL);
+	SetPixelShader(NULL);
+	SetFVF(D3DFVF_XYZRHW | D3DFVF_TEX1);
+
+	SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
+	SetRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
+	SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE); // 0x16
+	SetRenderState(D3DRS_WRAP0, FALSE); // 0x80
+
+	SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
+	SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+
+	SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+	SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+
+	SetRenderState(D3DRS_ZENABLE, FALSE);
+	SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+	SetRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
+	SetRenderState(D3DRS_COLORVERTEX, FALSE);
+
+	SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+	SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+	SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+
+	SetRenderState(D3DRS_LIGHTING, FALSE);
+
+	// Store overlay state block
+	overlay_state_block->Capture();
+
+	// Restore current state block and release temporary resources
+	current_state_block->Apply();
+	current_state_block->Release();
+}
+
+
+// Draws the overlay.
+//	This method was created with the help of the Mumble source code, found here:
+//		https://github.com/mumble-voip/mumble/blob/master/overlay/d3d9.cpp
+void myIDirect3DDevice9::draw_overlay(IDirect3DDevice9 *device, IDirect3DSwapChain9 *swap_chain)
+{
+	HRESULT hres = NULL;
+	
+	// Get back buffer
+	IDirect3DSurface9 *back_buffer = NULL;
+	if (swap_chain != NULL)
+	{
+		// Present() was called from swap chain
+		if(swap_chain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &back_buffer) != D3D_OK)
+		{
+			// Handle error
+		}
 	}
 	else
 	{
-		if (render_target->GetDesc(&render_target_desc) != D3D_OK) // Get render target description
+		// Present() was called from device
+		if (device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &back_buffer) != D3D_OK)
 		{
 			// Handle error
 		}
 	}
 
-	switch (render_target_desc.Format)
+
+	// Get current render target
+	IDirect3DSurface9 *render_target = NULL;
+	hres = device->GetRenderTarget(0, &render_target);
+	if (FAILED(hres))
 	{
-			//case D3DFMT_UNKNOWN:
-		case D3DFMT_A2R10G10B10:
-			//case D3DFMT_A8R8G8B8:		// Not a display format (only Back buffer)
-		case D3DFMT_X8R8G8B8:
-			//case D3DFMT_A1R5G5B5:		// Not a display format (only Back buffer)
-		case D3DFMT_X1R5G5B5:
-		case D3DFMT_R5G6B5:
-			drawing_to_display = (render_target_desc.Usage == D3DUSAGE_RENDERTARGET);
-			break;
-		default:
-			drawing_to_display = false;
-			break;
+		// Handle error
 	}
 
-	if (render_target != NULL)
+	
+	// Capture current state block
+	IDirect3DStateBlock9 *current_state_block = NULL;
+	if(device->CreateStateBlock(D3DSBT_ALL, &current_state_block) != D3D_OK)
 	{
-		render_target->Release();
+		// Handle error
 	}
+	current_state_block->Capture();
+
+
+	// Apply state block for writing the overlay
+	overlay_state_block->Apply();
+
+
+	// Set render target to back buffer (if it isn't already)
+	if (back_buffer != render_target)
+	{
+		if(device->SetRenderTarget(0, back_buffer) != D3D_OK)
+		{
+			// Handle error
+		}
+	}
+
+	//print_debug_data(10, false);
+
+	D3DVIEWPORT9 viewport;
+	device->GetViewport(&viewport);
+
+
+	// Adjust viewport to be the correct size
+	if (viewport.Width != (DWORD)game_window_rect->right || viewport.Height != (DWORD)game_window_rect->bottom)
+	{
+		viewport.X = 0;
+		viewport.Y = 0;
+		viewport.Width = (DWORD)game_window_rect->right;
+		viewport.Height = (DWORD)game_window_rect->bottom;
+		viewport.MinZ = 0.0f;
+		viewport.MaxZ = 1.0f;
+	}
+
+	
+	device->BeginScene(); // Begin drawing the overlay
+	
+	//	Draw text feed
+	if (multicolor_overlay_text_feed_enabled)
+	{
+		SP_DX9_draw_overlay_text_feed_multicolor();
+	}
+	else
+	{
+		SP_DX9_draw_overlay_text_feed();
+	}
+
+	device->EndScene(); // Finished drawing the overlay
+	
+
+	// Restore current state block
+	current_state_block->Apply();
+
+	// Release temporary resources
+	current_state_block->Release();
+	render_target->Release();
+	back_buffer->Release();
 }

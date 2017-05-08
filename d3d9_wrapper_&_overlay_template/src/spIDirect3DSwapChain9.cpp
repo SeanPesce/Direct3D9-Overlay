@@ -1,15 +1,16 @@
 // Author: Sean Pesce
 
 #include "stdafx.h"
-#include "spIDirect3DSwapChain9.h"
 
-
-spIDirect3DSwapChain9::spIDirect3DSwapChain9(IDirect3DSwapChain9 **ppIDirect3DSwapChain9, UINT *present_counter, bool *presented_flag) {
+spIDirect3DSwapChain9::spIDirect3DSwapChain9(IDirect3DSwapChain9 **ppIDirect3DSwapChain9, myIDirect3DDevice9 *device)
+{
 	m_pD3D9_swap_chain = *ppIDirect3DSwapChain9;
-	present_calls = present_counter;
-	overlay_rendered_this_frame = presented_flag;
+	this->device = device;
+	present_calls = &(device->present_calls);
+	overlay_rendered_this_frame = &(device->overlay_rendered_this_frame);
 	*ppIDirect3DSwapChain9 = this;
 }
+
 
 ULONG spIDirect3DSwapChain9::AddRef()
 {
@@ -19,13 +20,34 @@ ULONG spIDirect3DSwapChain9::AddRef()
 
 HRESULT spIDirect3DSwapChain9::QueryInterface(REFIID riid, void **ppvObject)
 {
-	return m_pD3D9_swap_chain->QueryInterface(riid, ppvObject);
+	// Check if original dll can provide interface, then send this address
+	*ppvObject = NULL;
+
+	HRESULT hRes = m_pD3D9_swap_chain->QueryInterface(riid, ppvObject);
+
+	if (hRes == NOERROR)
+	{
+		*ppvObject = this;
+	}
+
+	return hRes;
 }
 
 
 ULONG spIDirect3DSwapChain9::Release()
 {
-	return m_pD3D9_swap_chain->Release();
+	extern spIDirect3DSwapChain9 *gl_pspIDirect3DSwapChain9;
+
+	ULONG count = m_pD3D9_swap_chain->Release();
+
+	if (count == 0)
+	{
+		m_pD3D9_swap_chain = NULL;
+		gl_pspIDirect3DSwapChain9 = NULL;
+		delete this;
+	}
+
+	return count;
 }
 
 
@@ -67,6 +89,23 @@ HRESULT spIDirect3DSwapChain9::GetRasterStatus(D3DRASTER_STATUS *pRasterStatus)
 
 HRESULT spIDirect3DSwapChain9::Present(const RECT *pSourceRect, const RECT *pDestRect, HWND hDestWindowOverride, const RGNDATA *pDirtyRegion, DWORD dwFlags)
 {
+	// Draw overlay before calling the real Present() method:
+
+	IDirect3DDevice9 *real_device = NULL;
+	if (GetDevice(&real_device) != D3D_OK)
+	{
+		// Handle error
+	}
+
+	
+	if (real_device != NULL)
+	{
+		device->draw_overlay(real_device, m_pD3D9_swap_chain); // Draw overlay
+		real_device->Release();
+		real_device = NULL;
+	}
+
+
 	(*present_calls)++;
 	HRESULT hres = m_pD3D9_swap_chain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
 	(*overlay_rendered_this_frame) = false;

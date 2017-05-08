@@ -126,10 +126,7 @@ HRESULT __stdcall myIDirect3D9::CreateDevice(UINT Adapter,D3DDEVTYPE DeviceType,
     
 	// Create our own Device object and store it in global pointer
 	// Note: The object will delete itself once Ref count is zero (similar to COM objects)
-	gl_pmyIDirect3DDevice9 = new myIDirect3DDevice9(*ppReturnedDeviceInterface);
-
-	// Check if program is running in windowed or full-screen mode to determine when and how overlay is rendered
-	gl_pmyIDirect3DDevice9->is_windowed = !(pPresentationParameters->Windowed == 0);
+	gl_pmyIDirect3DDevice9 = new myIDirect3DDevice9(Adapter, *ppReturnedDeviceInterface, hFocusWindow, pPresentationParameters);
 	
 	// Store our pointer (the fake one) for returning it to the calling progam
 	*ppReturnedDeviceInterface = gl_pmyIDirect3DDevice9;

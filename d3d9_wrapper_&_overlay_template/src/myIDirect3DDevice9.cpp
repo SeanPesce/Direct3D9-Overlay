@@ -4,17 +4,98 @@
 #include "stdafx.h"
 #include "myIDirect3DDevice9.h"
 
-myIDirect3DDevice9::myIDirect3DDevice9(IDirect3DDevice9* pOriginal)
+myIDirect3DDevice9::myIDirect3DDevice9(UINT Adapter, IDirect3DDevice9* pOriginal, HWND new_focus_window, D3DPRESENT_PARAMETERS *present_params)
 {
 	m_pIDirect3DDevice9 = pOriginal; // Store the pointer to original object
 	
-	// Store the program window attributes
-	D3DDEVICE_CREATION_PARAMETERS creation_params;
-	m_pIDirect3DDevice9->GetCreationParameters(&creation_params);
-	window = creation_params.hFocusWindow;
-	GetClientRect(creation_params.hFocusWindow, &window_rect);
-	window_width = window_rect.right - window_rect.left;
-	window_height = window_rect.bottom - window_rect.top;
+	id = Adapter;
+	is_windowed = present_params->Windowed != 0;
+
+	// Store the focus window attributes
+	focus_window = new_focus_window;
+	if (focus_window != NULL)
+	{
+		if (GetClientRect(focus_window, &focus_window_rect))
+		{
+			// Handle error
+		}
+	}
+	else
+	{
+		SetRect(&focus_window_rect, 0, 0, 0, 0);
+	}
+
+	// Store the device window attributes
+	device_window = present_params->hDeviceWindow;
+	if (device_window != NULL)
+	{
+		if (GetClientRect(device_window, &device_window_rect))
+		{
+			// Handle error
+		}
+
+		// Store the back buffer attributes
+		if (present_params->BackBufferWidth && present_params->BackBufferHeight)
+		{
+			SetRect(&back_buffer_rect, 0, 0, present_params->BackBufferWidth, present_params->BackBufferHeight);
+		}
+		else
+		{
+			// BackBuffer Width or Height was zero; use device window attributes
+			if (GetClientRect(device_window, &back_buffer_rect))
+			{
+				// Handle error
+			}
+		}
+	}
+	else
+	{
+		SetRect(&device_window_rect, 0, 0, 0, 0);
+
+		// Store the back buffer attributes
+		if (present_params->BackBufferWidth && present_params->BackBufferHeight)
+		{
+			SetRect(&back_buffer_rect, 0, 0, present_params->BackBufferWidth, present_params->BackBufferHeight);
+		}
+		else
+		{
+			// BackBuffer Width or Height was zero; use focus window attributes
+			if (GetClientRect(focus_window, &back_buffer_rect))
+			{
+				// Handle error
+			}
+		}
+	}
+
+	// Set main game window
+	if (is_windowed)
+	{ // Windowed mode
+		
+		if (device_window != NULL)
+		{
+			game_window = &device_window;
+			game_window_rect = &device_window_rect;
+		}
+		else
+		{
+			game_window = &focus_window;
+			game_window_rect = &focus_window_rect;
+		}
+	}
+	else
+	{ // Full-screen mode
+		
+		if (focus_window != NULL)
+		{
+			game_window = &focus_window;
+			game_window_rect = &focus_window_rect;
+		}
+		else
+		{
+			game_window = &device_window;
+			game_window_rect = &device_window_rect;
+		}
+	}
 
 	// Initialize overlay text feed
 	SP_DX9_init_text_overlay(_SP_DEFAULT_TEXT_HEIGHT_,
@@ -148,15 +229,9 @@ HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters
 {
 	// Adjust overlay to match new presentation parameters:
 
-	// Check if program is in windowed or exclusive full-screen mode
-	if (pPresentationParameters->Windowed)
-	{
-		is_windowed = true;
-	}
-	else
-	{
-		is_windowed = false;
-	}
+	// Store presentation parameters
+	D3DPRESENT_PARAMETERS present_params;
+	memcpy_s(&present_params, sizeof(present_params), pPresentationParameters, sizeof(*pPresentationParameters));
 
 	if (text_overlay.font != NULL)
 	{
@@ -172,20 +247,65 @@ HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters
 		text_overlay.font->OnResetDevice(); // (Must be called after resetting a device)
 	}
 
-	if (is_windowed)
+	is_windowed = present_params.Windowed != 0;
+
+	device_window = present_params.hDeviceWindow;
+	if (device_window != NULL)
 	{
-		// Store the new program window attributes
-		D3DVIEWPORT9 vp;
-		GetViewport(&vp);
-
-		SetRect(&window_rect, 0, 0, vp.Width, vp.Height);
-		window_width = window_rect.right - window_rect.left;
-		window_height = window_rect.bottom - window_rect.top;
-
-		// Re-initialize the RECT structures that denote the usable screenspace for the overlay text feed
-		init_text_overlay_rects();
+		// Store the back buffer attributes
+		if (present_params.BackBufferWidth && present_params.BackBufferHeight)
+		{
+			SetRect(&back_buffer_rect, 0, 0, present_params.BackBufferWidth, present_params.BackBufferHeight);
+		}
+		else
+		{
+			// BackBuffer Width and/or Height was zero
+			SetRect(&back_buffer_rect, 0, 0, 0, 0);
+		}
 	}
-	
+	else
+	{
+		// Store the back buffer attributes
+		if (present_params.BackBufferWidth && present_params.BackBufferHeight)
+		{
+			SetRect(&back_buffer_rect, 0, 0, present_params.BackBufferWidth, present_params.BackBufferHeight);
+		}
+		else
+		{
+			// BackBuffer Width and/or Height was zero
+			SetRect(&back_buffer_rect, 0, 0, 0, 0);
+		}
+	}
+
+	// Set main game window
+	if (is_windowed)
+	{ // Windowed mode
+
+		if (device_window != NULL)
+		{
+			game_window = &device_window;
+			game_window_rect = &device_window_rect;
+		}
+		else
+		{
+			game_window = &focus_window;
+			game_window_rect = &focus_window_rect;
+		}
+	}
+	else
+	{ // Full-screen mode
+
+		if (focus_window != NULL)
+		{
+			game_window = &focus_window;
+			game_window_rect = &focus_window_rect;
+		}
+		else
+		{
+			game_window = &device_window;
+			game_window_rect = &device_window_rect;
+		}
+	}
 
 	return hres;
 }
@@ -195,6 +315,55 @@ HRESULT myIDirect3DDevice9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRe
 	// Might want to draw things here before flipping surfaces
 	// (Draw stuff, etc)
 
+	/*using_present = true;
+
+	if (text_overlay.enabled)
+	{
+		RECT render_target_rect = set_overlay_parameters();
+
+		D3DVIEWPORT9 vp;
+		if (GetViewport(&vp) != D3D_OK) // Get current viewport attributes
+		{
+			// Handle error
+		}
+
+		if (is_windowed) // Windowed mode
+		{
+			init_text_overlay_rects();
+			//if (drawing_to_display)
+			//{
+				// Draw overlay
+				if (multicolor_overlay_text_feed_enabled)
+				{
+					SP_DX9_draw_overlay_text_feed_multicolor();
+				}
+				else
+				{
+					SP_DX9_draw_overlay_text_feed();
+				}
+			//}
+		}
+		else // Exclusive full-screen mode
+		{
+			RECT vp_rect;
+			SetRect(&vp_rect, 0, 0, vp.Width, vp.Height);
+			init_text_overlay_rects(vp_rect);
+
+			//if (drawing_to_display)
+			//{
+				// Draw overlay
+				if (multicolor_overlay_text_feed_enabled)
+				{
+					SP_DX9_draw_overlay_text_feed_multicolor();
+				}
+				else
+				{
+					SP_DX9_draw_overlay_text_feed();
+				}
+			//}
+		}
+	}*/
+
 	present_calls++; // Increment Present call counter for the current second to determine FPS later
 
 	// Call original routine
@@ -203,6 +372,8 @@ HRESULT myIDirect3DDevice9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRe
 
 HRESULT myIDirect3DDevice9::GetBackBuffer(UINT iSwapChain, UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer)
 {
+	get_back_buffer_calls++;
+
 	return(m_pIDirect3DDevice9->GetBackBuffer(iSwapChain, iBackBuffer, Type, ppBackBuffer));
 }
 
@@ -253,6 +424,7 @@ HRESULT myIDirect3DDevice9::CreateIndexBuffer(UINT Length, DWORD Usage, D3DFORMA
 
 HRESULT myIDirect3DDevice9::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Lockable, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
 {
+	// print_to_overlay_feed(std::string("New RenderTarget: ").append(std::to_string(Width)).append("x").append(std::to_string(Height)).c_str(), 30000, false);
 	return(m_pIDirect3DDevice9->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle));
 }
 
@@ -318,6 +490,7 @@ HRESULT myIDirect3DDevice9::GetDepthStencilSurface(IDirect3DSurface9** ppZStenci
 
 HRESULT myIDirect3DDevice9::BeginScene(void)
 {
+	in_scene = true;
 	return(m_pIDirect3DDevice9->BeginScene());
 }
 
@@ -325,18 +498,22 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 {
 	// Draw overlay before the scene is shown to the user:
 
-	endscene_calls++;  // Increment EndScene call counter for the current second to determine FPS later
-
-	if (text_overlay.enabled)
+	if (text_overlay.enabled && !using_present)
 	{
+		RECT render_target_rect = update_overlay_parameters();
+
+		// print_debug_data(12, false);
+
 		D3DVIEWPORT9 vp;
-		GetViewport(&vp); // Get current viewport attributes
+		if (GetViewport(&vp) != D3D_OK) // Get current viewport attributes
+		{
+			// Handle error
+		}
 
 		if (is_windowed) // Windowed mode
 		{
-			// Only draw overlay if viewport dimensions match the window dimensions, to avoid issue with double-drawing overlays
-			//	in games like Dark Souls (when DSFix is not present) due to the subpar PC port (PvP Watchdog has this issue)
-			if (vp.Width == (DWORD)(window_width) && vp.Height == (DWORD)(window_height))
+			init_text_overlay_rects();
+			if (drawing_to_display || (vp.Width == game_window_rect->right && vp.Height == game_window_rect->bottom))
 			{
 				// Draw overlay
 				if (multicolor_overlay_text_feed_enabled)
@@ -351,13 +528,14 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 		}
 		else // Exclusive full-screen mode
 		{
-			// Update the RECT structures that denote the usable screenspace for the overlay text feed
 			RECT vp_rect;
 			SetRect(&vp_rect, 0, 0, vp.Width, vp.Height);
 			init_text_overlay_rects(vp_rect);
-
-			if (render_ol || (vp.Width == (DWORD)(window_width) && vp.Height == (DWORD)(window_height)))
+			
+			#ifndef _SP_DARK_SOULS_1_
+			if(drawing_to_display)
 			{
+			#endif // _SP_DARK_SOULS_1_
 				// Draw overlay
 				if (multicolor_overlay_text_feed_enabled)
 				{
@@ -367,9 +545,14 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 				{
 					SP_DX9_draw_overlay_text_feed();
 				}
+			#ifndef _SP_DARK_SOULS_1_
 			}
+			#endif // _SP_DARK_SOULS_1_
 		}
 	}
+
+	endscene_calls++;  // Increment EndScene call counter for the current second to determine FPS later
+	in_scene = false;
 
 	return(m_pIDirect3DDevice9->EndScene());
 }
@@ -924,7 +1107,7 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height,
 // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
 void myIDirect3DDevice9::init_text_overlay_rects()
 {
-	init_text_overlay_rects(window_rect);
+	init_text_overlay_rects(*game_window_rect);
 }
 
 // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
@@ -1434,6 +1617,7 @@ void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 	// Reset call counters
 	gl_pmyIDirect3DDevice9->present_calls = 0;
 	gl_pmyIDirect3DDevice9->endscene_calls = 0;
+	gl_pmyIDirect3DDevice9->get_back_buffer_calls = 0;
 
 	// Restart timer
 	if (!(gl_pmyIDirect3DDevice9->fps_timer_id = SetTimer(NULL, idEvent, 1000, &update_fps)))
@@ -1442,6 +1626,83 @@ void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 	}
 }
 
+// Prints various game window data to the overlay text feed
+void myIDirect3DDevice9::print_debug_data(unsigned long long duration, bool show_timestamp)
+{
+	std::string str;
+	if (is_windowed)
+	{
+		print_to_overlay_feed("Windowed mode", duration, show_timestamp);
+	}
+	else
+	{
+		print_to_overlay_feed("Fullscreen mode", duration, show_timestamp);
+	}
+
+	D3DDISPLAYMODE display_mode;
+	if (GetDisplayMode(0, &display_mode) == D3D_OK)
+	{
+		print_to_overlay_feed(std::string("DisplayMode: (0,0)  ").append(std::to_string(display_mode.Width)).append("x").append(std::to_string(display_mode.Height)).c_str(), duration, show_timestamp);
+	}
+	else
+	{
+		// Handle error
+		print_to_overlay_feed("Device: ERROR", duration, show_timestamp);
+	}
+
+	if (game_window != NULL)
+	{
+		rect_to_string(game_window_rect, "GameWindow", &str);
+		print_to_overlay_feed(str.c_str(), duration, show_timestamp);
+	}
+	else
+	{
+		print_to_overlay_feed("GameWindow: NULL", duration, show_timestamp);
+	}
+
+	// Print focus window data (if not NULL)
+	if (focus_window != NULL)
+	{
+		rect_to_string(&focus_window_rect, "FocusWindow", &str);
+		print_to_overlay_feed(str.c_str(), duration, show_timestamp);
+	}
+	else
+	{
+		print_to_overlay_feed("FocusWindow: NULL", duration, show_timestamp);
+	}
+
+	// Print device window data (if not NULL)
+	if (device_window != NULL)
+	{
+		rect_to_string(&device_window_rect, "DeviceWindow", &str);
+		print_to_overlay_feed(str.c_str(), duration, show_timestamp);
+	}
+	else
+	{
+		print_to_overlay_feed("DeviceWindow: NULL", duration, show_timestamp);
+	}
+
+	rect_to_string(&focus_window_rect, "BackBuffer", &str);
+	print_to_overlay_feed(str.c_str(), duration, show_timestamp);
+	
+	RECT vp_rect;
+	get_viewport_as_rect(&vp_rect);
+	rect_to_string(&vp_rect, "ViewPort", &str);
+	print_to_overlay_feed(str.c_str(), duration, show_timestamp);
+
+	print_to_overlay_feed(std::string("GetBackBufferCallCount: ").append(std::to_string(get_back_buffer_calls)).c_str(), duration, false);
+	print_to_overlay_feed(std::string("PresentCallCount: ").append(std::to_string(present_calls)).c_str(), duration, false);
+	print_to_overlay_feed(std::string("EndSceneCallCount: ").append(std::to_string(endscene_calls)).c_str(), duration, false);
+
+	if (drawing_to_display)
+	{
+		print_to_overlay_feed("DrawToDisplay: Yes", duration, false);
+	}
+	else
+	{
+		print_to_overlay_feed("DrawToDisplay: No", duration, false);
+	}
+}
 
 
 // Calculates the next ARGB color value for text whose color cycles through all colors
@@ -1500,4 +1761,109 @@ void rect_to_string(RECT *rect, const char *rect_name, std::string *str)
 {
 	str->clear();
 	str->append(rect_name).append(std::string(" (")).append(std::to_string(rect->left)).append(",").append(std::to_string(rect->top)).append(")  ").append(std::to_string(rect->right - rect->left)).append("x").append(std::to_string(rect->bottom - rect->top));
+}
+
+// Constructs a RECT struct from the device viewport
+RECT *myIDirect3DDevice9::get_viewport_as_rect(RECT *rect)
+{
+	D3DVIEWPORT9 viewport;
+	HRESULT hres = GetViewport(&viewport);
+
+	if (hres == D3DERR_INVALIDCALL)
+	{
+		// Handle error
+	}
+
+	SetRect(rect, viewport.X, viewport.Y, viewport.X + viewport.Width, viewport.Y + viewport.Height);
+
+	return rect;
+}
+
+// Constructs a RECT struct from the device viewport (and stores the viewport)
+RECT *myIDirect3DDevice9::get_viewport_as_rect(RECT *rect, D3DVIEWPORT9 *viewport)
+{
+	HRESULT hres = GetViewport(viewport);
+
+	if (hres == D3DERR_INVALIDCALL)
+	{
+		// Handle error
+	}
+
+	SetRect(rect, viewport->X, viewport->Y, viewport->X + viewport->Width, viewport->Y + viewport->Height);
+
+	return rect;
+}
+
+RECT myIDirect3DDevice9::update_overlay_parameters()
+{
+	// Store the device window attributes
+	if (device_window != NULL)
+	{
+		if (GetClientRect(device_window, &device_window_rect))
+		{
+			// Handle error
+		}
+
+		// Store the back buffer attributes
+		if (!back_buffer_rect.right || !back_buffer_rect.bottom)
+		{
+			// BackBuffer Width or Height was zero; use device window attributes
+			SetRect(&back_buffer_rect, device_window_rect.left, device_window_rect.top, device_window_rect.right, device_window_rect.bottom);
+		}
+	}
+	else
+	{
+		SetRect(&device_window_rect, 0, 0, 0, 0);
+
+		// Store the back buffer attributes
+		if (!back_buffer_rect.right || !back_buffer_rect.bottom)
+		{
+			// BackBuffer Width or Height was zero; use device window attributes
+			if (GetClientRect(focus_window, &back_buffer_rect))
+			{
+				// Handle error
+			}
+		}
+	}
+
+	IDirect3DSurface9 *render_target;
+	D3DSURFACE_DESC render_target_desc;
+	if (GetRenderTarget(0, &render_target) != D3D_OK) // Get render target surface
+	{
+		render_target = NULL;
+		// Handle error
+	}
+	else
+	{
+		if (render_target->GetDesc(&render_target_desc) != D3D_OK) // Get render target description
+		{
+			// Handle error
+		}
+	}
+
+	switch (render_target_desc.Format)
+	{
+		//case D3DFMT_UNKNOWN:
+		case D3DFMT_A2R10G10B10:
+		//case D3DFMT_A8R8G8B8:		// Not a display format (only Back buffer)
+		case D3DFMT_X8R8G8B8:
+		//case D3DFMT_A1R5G5B5:		// Not a display format (only Back buffer)
+		case D3DFMT_X1R5G5B5:
+		case D3DFMT_R5G6B5:
+			drawing_to_display = (render_target_desc.Usage == D3DUSAGE_RENDERTARGET);
+			break;
+		default:
+			drawing_to_display = false;
+			break;
+	}
+	
+	if (render_target != NULL)
+	{
+		render_target->Release();
+	}
+
+	RECT render_target_rect;
+	SetRect(&render_target_rect, 0, 0, render_target_desc.Width, render_target_desc.Height);
+
+	return render_target_rect;
 }

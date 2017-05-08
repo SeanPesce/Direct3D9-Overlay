@@ -11,7 +11,12 @@ void mod_loop()
 
 	while (mod_loop_enabled)
 	{
-		if (GetForegroundWindow() == gl_pmyIDirect3DDevice9->window) { // Check if game window is active
+		// Check if game window is active
+		// @TODO: This doesn't always detect the window as active (Example: Oblivion)
+		if ((GetForegroundWindow() == gl_pmyIDirect3DDevice9->focus_window || GetForegroundWindow() == gl_pmyIDirect3DDevice9->device_window
+			|| GetActiveWindow() == gl_pmyIDirect3DDevice9->focus_window || GetActiveWindow() == gl_pmyIDirect3DDevice9->device_window
+			|| GetFocus() == gl_pmyIDirect3DDevice9->focus_window || GetFocus() == gl_pmyIDirect3DDevice9->device_window
+			/*|| IsWindowEnabled(gl_pmyIDirect3DDevice9->focus_window) || IsWindowEnabled(gl_pmyIDirect3DDevice9->device_window)*/)) {
 
 			get_async_keyboard_state(key_state); // Capture all current async key states
 
@@ -186,7 +191,7 @@ void mod_loop()
 // Initializes mod data and settings based on user preferences
 void initialize_mod()
 {
-	while (gl_pmyIDirect3DDevice9 == NULL || gl_pmyIDirect3DDevice9->window == NULL)
+	while (gl_pmyIDirect3DDevice9 == NULL || gl_pmyIDirect3DDevice9->game_window == NULL /* || gl_pmyIDirect3DDevice9->focus_window == NULL || gl_pmyIDirect3DDevice9->device_window == NULL*/)
 	{
 		// Wait for the IDirect3DDevice9 wrapper object to be initialized
 		Sleep(500);
@@ -209,6 +214,7 @@ void initialize_mod()
 
 	// Enable/disable overlay text watermark
 	gl_pmyIDirect3DDevice9->show_text_watermark = user_pref_show_text_watermark;
+
 	print_ol_feed("--------------------------------------------------------", 0, false, SP_DX9_TEXT_COLOR_CYCLE_ALL);
 	
 	if (user_pref_verbose_output_enabled)

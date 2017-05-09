@@ -27,8 +27,9 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 			InitSettings();
 			if (!gl_hOriginalDll)
 			{
-				// No chain was loaded; get original DLL from system directory
+				// Get original DLL from system directory
 				LoadOriginalDll();
+				d3d9_dll_chain_failed = true;
 			}
 			// Initialize the thread for the mod:
 			mod_thread = CreateThread(
@@ -56,7 +57,11 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 // Exported function (faking d3d9.dll's one-and-only export)
 IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
 {
-	if (!gl_hOriginalDll) LoadOriginalDll(); // Looking for the real d3d9.dll
+	if (!gl_hOriginalDll)
+	{
+		LoadOriginalDll(); // Looking for the real d3d9.dll
+		d3d9_dll_chain_failed = true;
+	}
 	
 	// Hooking IDirect3D Object from Original Library
 	typedef IDirect3D9 *(WINAPI* D3D9_Type)(UINT SDKVersion);
@@ -85,6 +90,7 @@ void InitInstance(HANDLE hModule)
 	OutputDebugString("PROXYDLL: InitInstance called.\r\n");
 	
 	// Initialization
+	generic_dll_count = 0;
 	gl_hOriginalDll				= NULL;
 	gl_hThisInstance			= NULL;
 	gl_pmyIDirect3D9			= NULL;
@@ -136,7 +142,7 @@ void load_dinput8()
 }
 
 // Parses settings file (.ini) for intialization settings
-int InitSettings()
+void InitSettings()
 {
 	// Get keybinds from settings file
 	hotkey_toggle_overlay_text_feed = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_);
@@ -160,29 +166,90 @@ int InitSettings()
 		load_dinput8();
 	}
 
-	char settings_buffer[128];
+	// Load generic DLLs
+	generic_dll_count = load_generic_dlls_from_settings_file(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DLL_GENERIC_KEY_);
 
-	// Check settings file for DLL chain
-	settings_buffer[0] = '\0';
-	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DLL_CHAIN_KEY_, NULL, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
-	if (settings_buffer[0] != '\0') // Found DLL_Chain entry in settings file
+	// Chain d3d9.dll wrapper (if one is specified in the settings file)
+	char d3d9_chain_buffer[128]; // Buffer to hold the filename of the d3d9.dll wrapper to load
+	d3d9_chain_buffer[0] = '\0';
+
+	// Check settings file for d3d9 DLL chain
+	gl_hOriginalDll = load_dll_from_settings_file(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DLL_CHAIN_KEY_, d3d9_chain_buffer, 128);
+	d3d9_dll_chain = std::string(d3d9_chain_buffer);
+}
+
+
+// Load as many generic DLLs (not wrappers) as are specified in the settings file (key numbers must be consecutive).
+//	@return the number of generic DLLs that were loaded
+unsigned int load_generic_dlls_from_settings_file(const char *file_name, const char *section, const char *base_key)
+{
+	unsigned int dll_count = 0; // Number of chained DLLs loaded
+	int count_modifier = 0;
+	char dll_name_buffer[128]; // Buffer to hold the filenames of the DLLs to load
+	std::string load_dll_key = std::string(base_key); // Key that might hold the next d3d9.dll wrapper file name in the settings file
+	HINSTANCE dll_chain_instance = NULL;
+
+	if ((dll_chain_instance = load_dll_from_settings_file(file_name, section, load_dll_key.c_str(), dll_name_buffer, 128)) == NULL)
 	{
-		gl_hOriginalDll = LoadLibrary(settings_buffer);
-		if (!gl_hOriginalDll)
+		// First DLL entry not found
+		count_modifier--;
+	}
+	
+	load_dll_key = std::string(base_key).append(std::to_string(dll_count++)); // Get first numbered generic DLL settings key name
+
+	// Load optional DLL #0
+	if ((dll_chain_instance = load_dll_from_settings_file(file_name, section, load_dll_key.c_str(), dll_name_buffer, 128)) == NULL)
+	{
+		// Generic DLL #0 was not specified
+		count_modifier--;
+	}
+
+	load_dll_key = std::string(base_key).append(std::to_string(dll_count++)); // Get next generic DLL settings key name
+
+	if (!(dll_count + count_modifier))
+	{
+		return 0;
+	}
+
+	// Load all DLLs specified in the settings file
+	while ((dll_chain_instance = load_dll_from_settings_file(file_name, section, load_dll_key.c_str(), dll_name_buffer, 128)) != NULL)
+	{
+		// Successfully loaded a DLL
+		load_dll_key = std::string(base_key).append(std::to_string(dll_count++));
+	}
+
+	return dll_count + count_modifier;
+}
+
+
+// Loads a single DLL specified by the given settings file, section, and key parameters
+HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section, const char *key, char *buffer, unsigned int buffer_size)
+{
+	// Clear the buffer
+	buffer[0] = '\0';
+
+	// Read settings file for a DLL to load
+	GetPrivateProfileString(section, key, NULL, buffer, buffer_size, file_name);
+
+	if (buffer[0] != '\0') // Found DLL entry in settings file
+	{
+		HINSTANCE new_dll_instance = LoadLibrary(buffer);
+		if (!new_dll_instance)
 		{
-			// Failed to load next wrapper DLL
-			OutputDebugString("PROXYDLL: Failed to load chained DLL; loading original from system directory instead...\r\n");
-			return 2; // Return 2 if specified DLL could not be loaded
+			// Failed to load DLL (probably couldnt locate the file)
+			return NULL;
+		}
+		else
+		{
+			return new_dll_instance; // Successfully loaded the DLL
 		}
 	}
 	else
 	{
-		OutputDebugString("PROXYDLL: No DLL chain specified; loading original from system directory...\r\n");
-		return 1; // Return 1 if d3d9.ini or DLL_Chain entry could not be located
+		return NULL; // No DLL specified, or settings file was not found
 	}
-
-	return 0; // Return 0 on success
 }
+
 
 // Determines whether mod is enabled and calls the main loop for the mod
 DWORD WINAPI init_mod_thread(LPVOID lpParam)

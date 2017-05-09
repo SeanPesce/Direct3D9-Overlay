@@ -14,7 +14,7 @@
 IDirect3D9* WINAPI Direct3DCreate9 (UINT SDKVersion);
 // Regular functions
 void InitInstance(HANDLE hModule);
-int InitSettings(); // Parses settings file (.ini) for intialization settings
+void InitSettings(); // Parses settings file (.ini) for intialization settings
 void ExitInstance(void); // Unloads DLL when exiting
 void LoadOriginalDll(void); // Loads the original d3d9.dll from the system directory
 
@@ -30,6 +30,7 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 #define _SP_DS_SETTINGS_SECTION_DEV_PREFS_ "Developer Preferences"
 //	Advanced settings section keys
 #define _SP_DS_DLL_CHAIN_KEY_ "d3d9Chain"
+#define _SP_DS_DLL_GENERIC_KEY_ "GenericDLL"
 #define _SP_DS_DSPW_ADJUSTMENT_KEY_ "DspwOverlayAdjustment"
 //	Keybinds section keys
 #define _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_ "ToggleOverlay"
@@ -93,11 +94,12 @@ const char *SP_OL_TXT_STYLE_VALS[3] = { "OUTLINE", "SHADOW", "PLAIN" }; // If sp
 
 //////////////////////// VARIABLES & DATA ////////////////////////
 
+// Initialization data
 HANDLE mod_thread;		// Mod thread handle
 DWORD mod_thread_id;	// Mod thread ID
-HWND ds_game_window;	// Game window handle
-SHORT key_state[256];	// Buffer for async key states
-extern bool mod_loop_enabled; // Controls whether the main loop for the mod is enabled/disabled
+std::string d3d9_dll_chain; // Filename of the d3d9.dll wrapper to chain with (if any)
+bool d3d9_dll_chain_failed; // Indicated that a d3d9.dll wrapper chain was specified, but failed to load
+unsigned int generic_dll_count; // Number of generic DLLs loaded at runtime
 
 // Keybinds (stored as virtual key codes)
 //	More info and a reference for virtual key codes can be found at:
@@ -128,11 +130,16 @@ int user_pref_show_text_watermark;
 // (These values will be used to adjust the overlay to avoid clipping with the DSPW overlay)
 int dspw_pref_font_size;
 int user_pref_dspw_ol_offset;
+// Mod variables & data
+SHORT key_state[256];	// Buffer for async key states
+extern bool mod_loop_enabled; // Controls whether the main loop for the mod is enabled/disabled
 
 
 //////////////////////// MOD FUNCTION PROTOTYPES ////////////////////////
 DWORD WINAPI init_mod_thread(LPVOID lpParam); // Determines whether mod is enabled and calls the main loop for the mod
 void get_user_preferences(); // Reads in user preferences as specified in the settings file (.ini)
+HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section, const char *key, char *buffer, unsigned int buffer_size); // Loads a single DLL specified by the given settings file, section, and key parameters
+unsigned int load_generic_dlls_from_settings_file(const char *file_name, const char *section, const char *base_key); // Load as many generic DLLs (not wrappers) as are specified in the settings file (key numbers must be consecutive)
 void load_dinput8(); // Loads dinput8.dll
 int get_dspw_font_size(); // Reads the PvP Watchdog settings file (DSPWSteam.ini) to obtain the DSPW font size in case user wants to adjust this overlay to avoid clipping with the PvP Watchdog overlay
 

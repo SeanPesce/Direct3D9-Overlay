@@ -217,27 +217,61 @@ void initialize_mod()
 
 	print_ol_feed("--------------------------------------------------------", 0, false, SP_DX9_TEXT_COLOR_CYCLE_ALL);
 	
+	
 	if (user_pref_verbose_output_enabled)
 	{
-		if (dspw_pref_font_size)
+		// Print whether a d3d9.dll wrapper was chained
+		extern std::string d3d9_dll_chain;
+		extern bool d3d9_dll_chain_failed;
+		if (d3d9_dll_chain.length() > 0)
 		{
-			print_ol_feed(std::string("DEBUG: PvP Watchdog overlay font size = ").append(std::to_string(dspw_pref_font_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 8, true, SP_DX9_TEXT_COLOR_BLUE);
+			if (!d3d9_dll_chain_failed)
+			{
+				print_ol_feed(std::string("DEBUG: \"").append(d3d9_dll_chain).append("\" successfully loaded as Direct3D 9 wrapper").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+			}
+			else
+			{
+				print_ol_feed(std::string("DEBUG: Failed to load \"").append(d3d9_dll_chain).append("\" as Direct3D 9 wrapper").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+			}
 		}
 		else
 		{
-			print_ol_feed("DEBUG: PvP Watchdog overlay font size not found (assuming zero)", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 8, true, SP_DX9_TEXT_COLOR_BLUE);
+			print_ol_feed("DEBUG: No Direct3D 9 DLL chain specified", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+		}
+		// Print number of generic DLLs that were loaded at runtime
+		extern unsigned int generic_dll_count;
+		if (generic_dll_count == 1)
+		{
+			print_ol_feed("DEBUG: 1 generic DLL loaded at runtime", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+		}
+		else if (generic_dll_count)
+		{
+			print_ol_feed(std::string("DEBUG: ").append(std::to_string(generic_dll_count)).append(" generic DLLs loaded at runtime").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+		}
+		else
+		{
+			print_ol_feed("DEBUG: No generic DLLs were loaded at runtime", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+		}
+		// Print the PvP Watchdog font size, if DSPWSteam.ini was found
+		if (dspw_pref_font_size)
+		{
+			print_ol_feed(std::string("DEBUG: PvP Watchdog overlay font size = ").append(std::to_string(dspw_pref_font_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+		}
+		else
+		{
+			print_ol_feed("DEBUG: PvP Watchdog overlay font size not found (assuming zero)", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
 		}
 	}
 	
 	if (user_pref_load_dinput8_early)
 	{
 		// Notify user that dinput8.dll was preloaded
-		print_ol_feed(_SP_DS_OL_TXT_DINPUT8_LOADED_EARLY_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 8, true, SP_DX9_TEXT_COLOR_BLUE);
+		print_ol_feed(_SP_DS_OL_TXT_DINPUT8_LOADED_EARLY_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
 	}
 	else if (user_pref_verbose_output_enabled)
 	{
 		// Notify user that dinput8.dll was not preloaded (but only if verbose output is enabled)
-		print_ol_feed(_SP_DS_OL_TXT_DINPUT8_NOT_LOADED_EARLY_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 8, true, SP_DX9_TEXT_COLOR_BLUE);
+		print_ol_feed(_SP_DS_OL_TXT_DINPUT8_NOT_LOADED_EARLY_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
 	}
 }
 

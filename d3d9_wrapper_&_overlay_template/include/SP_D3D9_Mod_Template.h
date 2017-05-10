@@ -30,8 +30,6 @@
 
 // Output
 #define _SP_DS_DEFAULT_BEEP_DURATION_ 100
-#define _SP_DS_OL_TXT_DINPUT8_LOADED_EARLY_MESSAGE_ "DEBUG: dinput8.dll loaded early"
-#define _SP_DS_OL_TXT_DINPUT8_NOT_LOADED_EARLY_MESSAGE_ "DEBUG: dinput8.dll was not preloaded (default option)"
 #define _SP_DS_OL_TXT_OL_ENABLED_MESSAGE_ "Overlay enabled"
 #define _SP_DS_OL_TXT_OL_TEXT_WATERMARK_ENABLED_MESSAGE_ "Info watermark enabled"
 #define _SP_DS_OL_TXT_OL_TEXT_WATERMARK_DISABLED_MESSAGE_ "Info watermark disabled"
@@ -77,7 +75,6 @@ extern bool user_pref_audio_feedback_enabled;
 extern bool user_pref_verbose_output_enabled;
 extern bool user_pref_multicolor_feed_enabled;
 extern int user_pref_overlay_text_size;
-extern bool user_pref_load_dinput8_early;
 extern DWORD user_pref_overlay_text_pos;
 extern int user_pref_overlay_text_style;
 extern int user_pref_show_text_watermark;

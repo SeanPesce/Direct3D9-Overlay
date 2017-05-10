@@ -262,17 +262,6 @@ void initialize_mod()
 			print_ol_feed("DEBUG: PvP Watchdog overlay font size not found (assuming zero)", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
 		}
 	}
-	
-	if (user_pref_load_dinput8_early)
-	{
-		// Notify user that dinput8.dll was preloaded
-		print_ol_feed(_SP_DS_OL_TXT_DINPUT8_LOADED_EARLY_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
-	}
-	else if (user_pref_verbose_output_enabled)
-	{
-		// Notify user that dinput8.dll was not preloaded (but only if verbose output is enabled)
-		print_ol_feed(_SP_DS_OL_TXT_DINPUT8_NOT_LOADED_EARLY_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
-	}
 }
 
 // Switches the overlay text feed to the next preset position

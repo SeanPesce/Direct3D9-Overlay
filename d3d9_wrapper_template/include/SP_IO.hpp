@@ -84,9 +84,23 @@ void enter_to_continue(const char* prompt, const char* continue_msg);
 	@param file	Path and file name of the file to write to.
 	@param msg	The string that will be written to file.
 	
-	@return 1 on success; return 0 if the file could not be written.
+	@return 0 on success; return 1 if the file could not be written.
  */
 int file_write_text(const char *file, const char *msg);
+
+
+/**
+	file_append_text(const char*, const char*)
+
+	Appends the specified text file with the given string. If the
+	specified file doesn't exist, it is created first.
+	
+	@param file	Path and file name of the file to append.
+	@param msg	The string that will be appended to file.
+	
+	@return 0 on success; return 1 if the file could not be written.
+ */
+int file_append_text(const char *file, const char *msg);
 
 
 
@@ -94,7 +108,7 @@ int file_write_text(const char *file, const char *msg);
 
 
 /**
-	generate_current_timestamp(char*, bool)
+	get_current_timestamp_string(char*, bool)
 
 	Constructs a timestamp string for the current 24-hour time,
 	formatted as "HH:MM:SS" or "[HH:MM:SS]", and stores it in
@@ -110,11 +124,46 @@ int file_write_text(const char *file, const char *msg);
 
 	@return 0 on success; return localtime_s error code on failure.
 */
-int generate_current_timestamp(char *timestamp_string_buff, bool surround_with_brackets);
+int get_current_timestamp_string(char *timestamp_string_buff, bool surround_with_brackets);
 
 
 /**
-	generate_current_date(char*, bool, int, char)
+	get_current_timestamp_string(std::string*, bool)
+
+	Constructs a timestamp string for the current 24-hour time,
+	formatted as "HH:MM:SS" or "[HH:MM:SS]", and stores it in
+	the specified string object. The string object is cleared
+	before being filled with the generated timestamp string.
+
+	@param timestamp_string			The string object that will be cleared and
+									filled with the generated timestamp string.
+	@param surround_with_brackets	Specifies whether the generated timestamp should
+									be contained within bracket characters ('[' and ']').
+
+	@return 0 on success; return localtime_s error code on failure.
+*/
+int get_current_timestamp_string(std::string *timestamp_string, bool surround_with_brackets);
+
+
+/**
+	append_current_timestamp_string(std::string*, bool)
+
+	Constructs a timestamp string for the current 24-hour time,
+	formatted as "HH:MM:SS" or "[HH:MM:SS]", and appends it to
+	the specified string object.
+
+	@param timestamp_string			The string object that will be appended with the
+									generated timestamp string.
+	@param surround_with_brackets	Specifies whether the generated timestamp should
+									be contained within bracket characters ('[' and ']').
+
+	@return 0 on success; return localtime_s error code on failure.
+*/
+int append_current_timestamp_string(std::string *timestamp_string, bool surround_with_brackets);
+
+
+/**
+	get_current_date_string(char*, bool, int, char)
 
 	Constructs a formatted date string for the current day and
 	stores it in the specified char* buffer with a trailing null
@@ -142,14 +191,92 @@ int generate_current_timestamp(char *timestamp_string_buff, bool surround_with_b
 
 	@return 0 on success; return localtime_s error code on failure.
 */
-int generate_current_date(char *date_string_buff, bool surround_with_brackets, int format, char separator);
+int get_current_date_string(char *date_string_buff, bool surround_with_brackets, int format, char separator);
 
 /**
-	generate_current_date(char*, bool, int)
+	get_current_date_string(char*, bool, int)
 
-	Calls @generate_current_date(char*, bool, int, char) with separator='/'.
+	Calls @get_current_date_string(char*, bool, int, char) with separator='/'.
 */
-int generate_current_date(char *date_string_buff, bool surround_with_brackets, int format);
+int get_current_date_string(char *date_string_buff, bool surround_with_brackets, int format);
+
+
+
+/**
+	get_current_date_string(std::string*, bool, int, char)
+
+	Constructs a formatted date string for the current day and
+	stores it in the specified std::string*. The string object
+	is cleared before being filled with the generated date
+	string. Available date formats are as follows:
+	
+		31/12/9999
+		12/31/9999
+		31/12/99
+		12/31/99
+
+	Format variations can be specified using values from the
+	SP_DATE_STRING_FORMATS enum. Date strings can also be optionally
+	enclosed in brackets.
+
+	@param date_string				Pointer to a string object that will be cleared and
+									filled with the generated date string.
+	@param surround_with_brackets	Specifies whether the generated date string should
+									be contained within bracket characters ('[' and ']').
+	@param format					The date format, specified by a value in the
+									SP_DATE_STRING_FORMATS enum. If an invalid format
+									is given, the function defaults to SP_DATE_DDMMYYYY.
+	@param separator				The character separator between the day/month/year fields
+									in the formatted date string (Generally '/' or '-').
+
+	@return 0 on success; return localtime_s error code on failure.
+*/
+int get_current_date_string(std::string *date_string, bool surround_with_brackets, int format, char separator);
+
+/**
+	get_current_date_string(std::string*, bool, int)
+
+	Calls @get_current_date_string(std::string*, bool, int, char) with separator='/'.
+*/
+int get_current_date_string(std::string *date_string, bool surround_with_brackets, int format);
+
+
+/**
+	append_current_date_string(std::string*, bool, int, char)
+
+	Constructs a formatted date string for the current day and
+	appends it to the specified std::string. Available date
+	formats are as follows:
+	
+		31/12/9999
+		12/31/9999
+		31/12/99
+		12/31/99
+
+	Format variations can be specified using values from the
+	SP_DATE_STRING_FORMATS enum. Date strings can also be optionally
+	enclosed in brackets.
+
+	@param date_string				Pointer to a string object that will be appended
+									with the generated date string.
+	@param surround_with_brackets	Specifies whether the generated date string should
+									be contained within bracket characters ('[' and ']').
+	@param format					The date format, specified by a value in the
+									SP_DATE_STRING_FORMATS enum. If an invalid format
+									is given, the function defaults to SP_DATE_DDMMYYYY.
+	@param separator				The character separator between the day/month/year fields
+									in the formatted date string (Generally '/' or '-').
+
+	@return 0 on success; return localtime_s error code on failure.
+*/
+int append_current_date_string(std::string *date_string, bool surround_with_brackets, int format, char separator);
+
+/**
+	append_current_date_string(std::string*, bool, int)
+
+	Calls @append_current_date_string(std::string*, bool, int, char) with separator='/'.
+*/
+int append_current_date_string(std::string *date_string, bool surround_with_brackets, int format);
 
 
 

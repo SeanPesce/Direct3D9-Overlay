@@ -27,8 +27,6 @@ class spIDirect3DSwapChain9; // Wrapper class for IDirect3DSwapChain9
 #define _SP_DX9_TEXT_COLOR_COUNT_ 10
 // Default overlay text feed title
 #define _SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_ "Direct3D Overlay by Sean Pesce"
-// Text overlay watermark string length
-#define _SP_OL_TXT_WATERMARK_STR_LENGTH_ 128
 
 // Enumerator whose values denote the supported overlay text styles (outlined, shadowed, or plain)
 enum SP_DX9_TEXT_OVERLAY_STYLES {
@@ -111,7 +109,7 @@ public:
 	unsigned int get_back_buffer_calls = 0; // Number of times GetBackBuffer() was called thus far in the current second
 	UINT_PTR fps_timer_id; // ID of the timer used to update FPS values every second
 	int show_text_watermark; // Denotes whether to display the various text watermark attributes
-	char text_watermark[_SP_OL_TXT_WATERMARK_STR_LENGTH_]; // Buffer to hold the text overlay watermark string
+	std::string text_watermark; // Text overlay info watermark string
 	bool multicolor_overlay_text_feed_enabled; // If disabled, all printed text is the color indicated by text_overlay.text_color
 	DWORD cycle_all_colors_current_rgb_vals[3]; // Current RGB values for text whose color cycles through the color spectrum
 	ID3DXFont* text_overlay_old_font; // Unused font from last call to SP_DX9_set_text_height(), which will be released when SP_DX9_set_text_height() is called again (temporarily stored to avoid race conditions)

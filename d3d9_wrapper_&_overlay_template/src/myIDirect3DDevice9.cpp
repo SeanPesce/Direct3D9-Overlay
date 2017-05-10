@@ -1313,6 +1313,7 @@ void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height)
 	{
 		text_overlay.enabled = true;
 	}
+	overlay_needs_reset = true;
 }
 
 
@@ -1371,7 +1372,7 @@ void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned lon
 	new_message.show_timestamp = include_timestamp;
 
 	// Build timestamp string
-	if (generate_current_timestamp(new_message.timestamp, true))
+	if (get_current_timestamp_string(new_message.timestamp, true))
 	{
 		// Handle error
 	}
@@ -1522,81 +1523,58 @@ void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor()
 // Updates the various overlay text watermark attributes
 void myIDirect3DDevice9::update_overlay_text_watermark()
 {
-	int index = 0; // Stores the current character index in the watermark string buffer
+	text_watermark.clear();
 
 	if ((show_text_watermark & SP_DX9_WATERMARK_DATE)
 		|| (show_text_watermark & SP_DX9_WATERMARK_TIME))
 	{
-		text_watermark[index++] = '[';
+		text_watermark.append("[");
 	}
 	
 	if (show_text_watermark & SP_DX9_WATERMARK_DATE)
 	{
-		// Insert current date into text watermark
-		generate_current_date(&text_watermark[index], false, SP_DATE_MMDDYYYY);
-		index += 10;
+		// Insert current date to text watermark
+		append_current_date_string(&text_watermark, false, SP_DATE_MMDDYYYY);
 		if (show_text_watermark & SP_DX9_WATERMARK_TIME)
 		{
-			text_watermark[index++] = ' ';
-			text_watermark[index++] = ' ';
+			text_watermark.append("  ");
 		}
 		else
 		{
-			text_watermark[index++] = ']';
-			text_watermark[index++] = ' ';
-			text_watermark[index++] = ' ';
+			text_watermark.append("]  ");
 		}
 	}
 
 	if (show_text_watermark & SP_DX9_WATERMARK_TIME)
 	{
-		// Insert current timestamp into text watermark
-		generate_current_timestamp(&text_watermark[index], false);
-		index += 8;
-		text_watermark[index++] = ']';
-		text_watermark[index++] = ' ';
-		text_watermark[index++] = ' ';
+		// Append current timestamp to text watermark
+		append_current_timestamp_string(&text_watermark, false);
+		text_watermark.append("]  ");
 	}
 
 	if (show_text_watermark & SP_DX9_WATERMARK_FPS)
 	{
-		
-
 		// Insert FPS counter into text watermark
-		text_watermark[index++] = '[';
+		text_watermark.append("[");
 
 		int current_fps = fps; // Get FPS
 
 		if (current_fps < 999)
 		{
-			strcpy(&text_watermark[index++], std::to_string(current_fps).c_str());
-			while (text_watermark[index] != '\0')
-			{
-				index++;
-			}
+			text_watermark.append(std::to_string(current_fps));
 		}
 		else
 		{
-			text_watermark[index++] = '9';
-			text_watermark[index++] = '9';
-			text_watermark[index++] = '9';
+			text_watermark.append("999");
 		}
 
-		text_watermark[index++] = ' ';
-		text_watermark[index++] = 'F';
-		text_watermark[index++] = 'P';
-		text_watermark[index++] = 'S';
-		text_watermark[index++] = ']';
-		text_watermark[index++] = ' ';
-		text_watermark[index++] = ' ';
+		text_watermark.append(" FPS]  ");
 	}
-
-	text_watermark[index] = '\0';
 
 	if (show_text_watermark & SP_DX9_WATERMARK_TITLE)
 	{
 		// Insert title into text watermark
-		strcpy(&text_watermark[index], _SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_);
+		text_watermark.append(_SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_);
 	}
 }
 

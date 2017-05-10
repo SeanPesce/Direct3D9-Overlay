@@ -11,7 +11,6 @@ myIDirect3D9*			gl_pmyIDirect3D9;
 spIDirect3DSwapChain9*	gl_pspIDirect3DSwapChain9;
 HINSTANCE				gl_hOriginalDll;
 HINSTANCE				gl_hThisInstance;
-HINSTANCE				dinput8_inst;
 #pragma data_seg ()
 
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -65,17 +64,17 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
 	
 	// Hooking IDirect3D Object from Original Library
 	typedef IDirect3D9 *(WINAPI* D3D9_Type)(UINT SDKVersion);
-	D3D9_Type D3DCreate9_fn = (D3D9_Type) GetProcAddress( gl_hOriginalDll, "Direct3DCreate9");
+	D3D9_Type D3DCreate9_func = (D3D9_Type) GetProcAddress( gl_hOriginalDll, "Direct3DCreate9");
     
     // Debug
-	if (!D3DCreate9_fn) 
+	if (!D3DCreate9_func) 
     {
         OutputDebugString("PROXYDLL: Pointer to original D3DCreate9 function not received ERROR ****\r\n");
         ::ExitProcess(0); // Exit the hard way
     }
 	
 	// Request pointer from Original Dll 
-	IDirect3D9 *pIDirect3D9_orig = D3DCreate9_fn(SDKVersion);
+	IDirect3D9 *pIDirect3D9_orig = D3DCreate9_func(SDKVersion);
 
 	// Create myIDirect3D9 object and store pointer to original object there.
 	// Note: The object will delete itself once the Ref count is zero (similar to COM objects)
@@ -96,7 +95,6 @@ void InitInstance(HANDLE hModule)
 	gl_pmyIDirect3D9			= NULL;
 	gl_pmyIDirect3DDevice9		= NULL;
 	gl_pspIDirect3DSwapChain9	= NULL;
-	dinput8_inst				= NULL;
 	
 	// Storing Instance handle into global variable
 	gl_hThisInstance = (HINSTANCE)  hModule;
@@ -124,23 +122,6 @@ void LoadOriginalDll(void)
 	}
 }
 
-// Load dinput8.dll
-void load_dinput8()
-{
-	char *dinput8_filename = "dinput8.dll";
-
-	if (!dinput8_inst)
-	{
-		dinput8_inst = LoadLibrary(dinput8_filename);
-		if (!dinput8_inst)
-		{
-			// Failed to load dinput8.dll
-			// Handle error
-		}
-	}
-
-}
-
 // Parses settings file (.ini) for intialization settings
 void InitSettings()
 {
@@ -159,12 +140,6 @@ void InitSettings()
 
 	// Get user preferences from settings file
 	get_user_preferences();
-
-	if (user_pref_load_dinput8_early)
-	{
-		// Load dinput8.dll early (normally d3d9.dll is loaded first)
-		load_dinput8();
-	}
 
 	// Load generic DLLs
 	generic_dll_count = load_generic_dlls_from_settings_file(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DLL_GENERIC_KEY_);
@@ -302,12 +277,6 @@ void get_user_preferences()
 
 	// Multicolor text feed enabled/disabled
 	user_pref_multicolor_feed_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_DEV_PREFS_, _SP_DS_OL_TXT_MULTICOLOR_FEED_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_MULTICOLOR_FEED_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
-
-	// Check if dinput8.dll should be loaded before d3d9.dll
-	user_pref_load_dinput8_early = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_DEV_PREFS_, _SP_DS_OL_LOAD_DINPUT8_EARLY_KEY_, _SP_DS_DEFAULT_VAL_OL_LOAD_DINPUT8_EARLY_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
-
-	// Some games might need frames to be counted from the Present() method instead of the normal EndScene() method to accurately calculate FPS
-	user_pref_use_alt_fps_counter = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_DEV_PREFS_, _SP_DS_OL_USE_ALT_FPS_COUNTER_KEY_, OL_TXT_DISABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
 	// PvP Watchdog overlay adjustment (Dark Souls)
 	user_pref_dspw_ol_offset = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DSPW_ADJUSTMENT_KEY_, OL_TXT_DISABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);

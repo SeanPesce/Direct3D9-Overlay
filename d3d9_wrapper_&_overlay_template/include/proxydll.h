@@ -120,8 +120,6 @@ bool user_pref_overlay_text_feed_enabled;
 bool user_pref_audio_feedback_enabled;
 bool user_pref_verbose_output_enabled;
 bool user_pref_multicolor_feed_enabled;
-bool user_pref_use_alt_fps_counter; // Some games might need frames to be counted from the Present() method instead of the normal EndScene() method to accurately calculate FPS
-bool user_pref_load_dinput8_early;
 int user_pref_overlay_text_size;
 DWORD user_pref_overlay_text_pos;
 int user_pref_overlay_text_style;
@@ -140,7 +138,6 @@ DWORD WINAPI init_mod_thread(LPVOID lpParam); // Determines whether mod is enabl
 void get_user_preferences(); // Reads in user preferences as specified in the settings file (.ini)
 HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section, const char *key, char *buffer, unsigned int buffer_size); // Loads a single DLL specified by the given settings file, section, and key parameters
 unsigned int load_generic_dlls_from_settings_file(const char *file_name, const char *section, const char *base_key); // Load as many generic DLLs (not wrappers) as are specified in the settings file (key numbers must be consecutive)
-void load_dinput8(); // Loads dinput8.dll
 int get_dspw_font_size(); // Reads the PvP Watchdog settings file (DSPWSteam.ini) to obtain the DSPW font size in case user wants to adjust this overlay to avoid clipping with the PvP Watchdog overlay
 
 

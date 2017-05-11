@@ -7,16 +7,21 @@
 // Main loop for the mod thread
 void mod_loop()
 {
-	initialize_mod();
+	initialize_mod(true);
 
 	while (mod_loop_enabled)
 	{
-		// Check if game window is active
-		// @TODO: This doesn't always detect the window as active (Example: Oblivion)
-		if ((GetForegroundWindow() == gl_pmyIDirect3DDevice9->focus_window || GetForegroundWindow() == gl_pmyIDirect3DDevice9->device_window
+		
+		if (mod_loop_paused)
+		{
+			initialize_mod(false);
+		}
+		else if (gl_pmyIDirect3DDevice9 != NULL && 
+			(GetForegroundWindow() == gl_pmyIDirect3DDevice9->focus_window || GetForegroundWindow() == gl_pmyIDirect3DDevice9->device_window // Check if game window is active	// @TODO: This doesn't always detect the window as active (Example: Oblivion)
 			|| GetActiveWindow() == gl_pmyIDirect3DDevice9->focus_window || GetActiveWindow() == gl_pmyIDirect3DDevice9->device_window
 			|| GetFocus() == gl_pmyIDirect3DDevice9->focus_window || GetFocus() == gl_pmyIDirect3DDevice9->device_window
-			/*|| IsWindowEnabled(gl_pmyIDirect3DDevice9->focus_window) || IsWindowEnabled(gl_pmyIDirect3DDevice9->device_window)*/)) {
+			/*|| IsWindowEnabled(gl_pmyIDirect3DDevice9->focus_window) || IsWindowEnabled(gl_pmyIDirect3DDevice9->device_window)*/))
+		{
 
 			get_async_keyboard_state(key_state); // Capture all current async key states
 
@@ -120,7 +125,7 @@ void mod_loop()
 			{
 				// Restore default overlay text size (defined in user preferences)
 				current_overlay_text_size = user_pref_overlay_text_size;
-				gl_pmyIDirect3DDevice9->SP_DX9_set_text_height(current_overlay_text_size);
+				gl_pmyIDirect3DDevice9->text_overlay_new_font_size = current_overlay_text_size;
 				if (user_pref_verbose_output_enabled)
 				{
 					print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_RESET_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
@@ -131,7 +136,7 @@ void mod_loop()
 			else if (gl_pmyIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_increase_overlay_text_size))
 			{
 				// Increase overlay text size
-				gl_pmyIDirect3DDevice9->SP_DX9_set_text_height(++current_overlay_text_size);
+				gl_pmyIDirect3DDevice9->text_overlay_new_font_size = ++current_overlay_text_size;
 				if (user_pref_verbose_output_enabled)
 				{
 					print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_INCREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
@@ -144,7 +149,7 @@ void mod_loop()
 				if (current_overlay_text_size > 1) // Check if current font size is already the smallest supported
 				{
 					// Decrease overlay text feed font size
-					gl_pmyIDirect3DDevice9->SP_DX9_set_text_height(--current_overlay_text_size);
+					gl_pmyIDirect3DDevice9->text_overlay_new_font_size = --current_overlay_text_size;
 					if (user_pref_verbose_output_enabled)
 					{
 						print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_DECREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
@@ -180,34 +185,42 @@ void mod_loop()
 		}
 		else
 		{
-			// Game window is not active
+			// Game window is not   
 			Sleep(100);
 		}
-
-		
 	}
 }
 
 // Initializes mod data and settings based on user preferences
-void initialize_mod()
+void initialize_mod(bool first_time_setup)
 {
-	while (gl_pmyIDirect3DDevice9 == NULL || gl_pmyIDirect3DDevice9->game_window == NULL /* || gl_pmyIDirect3DDevice9->focus_window == NULL || gl_pmyIDirect3DDevice9->device_window == NULL*/)
+	while (mod_loop_enabled && (mod_loop_paused || gl_pmyIDirect3DDevice9 == NULL || gl_pmyIDirect3DDevice9->game_window == NULL || !gl_pmyIDirect3DDevice9->initialized) /* || gl_pmyIDirect3DDevice9->focus_window == NULL || gl_pmyIDirect3DDevice9->device_window == NULL*/)
 	{
 		// Wait for the IDirect3DDevice9 wrapper object to be initialized
 		Sleep(500);
 	}
 
+	if (!mod_loop_enabled)
+	{
+		return;
+	}
+
 	// Enable/disable multicolor overlay text
 	gl_pmyIDirect3DDevice9->multicolor_overlay_text_feed_enabled = user_pref_multicolor_feed_enabled;
-
-	// Initialize test message text color to white (color changes every time the message is printed
-	test_message_color = 0;
 
 	// Set overlay text feed position, style, and font size
 	gl_pmyIDirect3DDevice9->text_overlay.text_format = user_pref_overlay_text_pos;
 	gl_pmyIDirect3DDevice9->text_overlay.text_style = user_pref_overlay_text_style;
-	gl_pmyIDirect3DDevice9->SP_DX9_set_text_height(user_pref_overlay_text_size);
-	current_overlay_text_size = user_pref_overlay_text_size;
+	if (first_time_setup)
+	{
+		gl_pmyIDirect3DDevice9->text_overlay_new_font_size = user_pref_overlay_text_size;
+		current_overlay_text_size = user_pref_overlay_text_size;
+		test_message_color = SP_DX9_TEXT_COLOR_WHITE; // Initialize test message text color to white (color changes every time the message is printed
+	}
+	else
+	{
+		gl_pmyIDirect3DDevice9->text_overlay_new_font_size = current_overlay_text_size;
+	}
 
 	// Enable/disable overlay text
 	gl_pmyIDirect3DDevice9->text_overlay.enabled = user_pref_overlay_text_feed_enabled;
@@ -215,10 +228,14 @@ void initialize_mod()
 	// Enable/disable overlay text watermark
 	gl_pmyIDirect3DDevice9->show_text_watermark = user_pref_show_text_watermark;
 
+	#ifdef D3D_DEBUG_INFO
+	print_ol_feed("DEBUG: Direct3D debugging is enabled", 0, false, SP_DX9_TEXT_COLOR_ORANGE);
+	#endif // D3D_DEBUG_INFO
+
 	print_ol_feed("--------------------------------------------------------", 0, false, SP_DX9_TEXT_COLOR_CYCLE_ALL);
 	
 	
-	if (user_pref_verbose_output_enabled)
+	if (user_pref_verbose_output_enabled && first_time_setup)
 	{
 		// Print whether a d3d9.dll wrapper was chained
 		extern std::string d3d9_dll_chain;

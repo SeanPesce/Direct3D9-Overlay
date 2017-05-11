@@ -90,11 +90,12 @@ int dspw_overlay_adjustment; // Used to adjust the overlay to avoid clipping wit
 
 // Mod-related variables
 extern SHORT key_state[256]; // Key state buffer to hold the states of all 256 virtual keys
+bool mod_loop_paused;
 bool mod_loop_enabled; // Controls whether the main loop for the mod is enabled/disabled
 
 // Function definitions
 void mod_loop();	// Main loop for the mod thread
-void initialize_mod(); // Initializes mod data and settings based on user preferences
+void initialize_mod(bool first_time_setup); // Initializes mod data and settings based on user preferences
 void next_overlay_text_position(DWORD current_position); // Cycles through the 9 overlay text feed position presets
 void next_overlay_text_style(int current_style); // Cycles through the overlay text styles (outlined, shadowed, or plain)
 void SP_beep(DWORD frequency, DWORD duration, bool wait); // Beeps at the specified frequency for a specified duration(in milliseconds) if audio feedback is enabled. If audio is disabled and wait==true, the thread is put to sleep for the specified duration instead.

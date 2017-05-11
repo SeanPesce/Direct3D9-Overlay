@@ -64,14 +64,14 @@ typedef struct SP_DX9_TEXT_OVERLAY_FEED_ENTRY {
 } SP_DX9_TEXT_OVERLAY_FEED_ENTRY;
 // Data structure for the overlay text feed:
 typedef struct SP_DX9_FULLSCREEN_TEXT_OVERLAY {
-	bool enabled;				// Enable/disable overlay text feed
+	bool enabled = false;		// Enable/disable overlay text feed
 	RECT text_plain_rect;		// Screenspace for positioning plain text
 	RECT text_shadow_rect[2];	// Screenspace for positioning shadowed text
 	RECT text_outline_rect[9];	// Screenspace for positioning outlined text
 	int text_shadow_x_offset;	// Horizontal offset (in pixels) for text shadow
 	int text_shadow_y_offset;	// Vertical offset (in pixels) for text shadow
 	unsigned int text_outline_thickness; // Text outline thickness (in pixels)
-	ID3DXFont *font;			// Font data structure which holds attributes for the overlay text feed font
+	ID3DXFont *font = NULL;			// Font data structure which holds attributes for the overlay text feed font
 	TCHAR font_name[32];		// Character array to hold the font family name
 	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY> feed; // List of messages in the overlay text feed
 	std::string feed_text[_SP_DX9_TEXT_COLOR_COUNT_]; // Array of strings to hold text (of each supported color) for text feed
@@ -87,6 +87,7 @@ class myIDirect3DDevice9 : public IDirect3DDevice9
 {
 public:
 	
+	bool initialized = false;
 	UINT id; // Adapter number
 	DWORD thread;
 	bool is_windowed; // Specifies whether the program is running in windowed or exclusive full-screen mode
@@ -102,7 +103,7 @@ public:
 	SP_DX9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for overlay text feed
 	bool overlay_rendered_this_frame = false;
 	bool overlay_needs_reset = true;
-	int fps; // Number of frames rendered in the last second
+	int fps = 0; // Number of frames rendered in the last second
 	unsigned int present_calls = 0; // Number of times Present() was called thus far in the current second (used to determine FPS)
 	unsigned int endscene_calls = 0; // Number of times EndScene() was called thus far in the current second (used to determine FPS)
 	unsigned int swap_chain_present_calls = 0;
@@ -112,7 +113,7 @@ public:
 	std::string text_watermark; // Text overlay info watermark string
 	bool multicolor_overlay_text_feed_enabled; // If disabled, all printed text is the color indicated by text_overlay.text_color
 	DWORD cycle_all_colors_current_rgb_vals[3]; // Current RGB values for text whose color cycles through the color spectrum
-	ID3DXFont* text_overlay_old_font; // Unused font from last call to SP_DX9_set_text_height(), which will be released when SP_DX9_set_text_height() is called again (temporarily stored to avoid race conditions)
+	int text_overlay_new_font_size = 0;
 
 	// ARGB values for the supported overlay text feed colors
 	D3DXCOLOR dx9_text_colors[_SP_DX9_TEXT_COLOR_COUNT_] =
@@ -255,8 +256,8 @@ public:
 	// End of original DX9 function definitions
 
 	// Public overlay function definitions:
-	void myIDirect3DDevice9::SP_DX9_set_text_height(int new_text_height); // Changes the font height of the overlay text feed
 	// NOTE: Overlay text feed currently does NOT support multi-line messages. Print each line as a separate message instead.
+	ULONG myIDirect3DDevice9::ForceRelease();
 	void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp); // Prints default-colored text to the overlay text feed
 	void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp, int text_color); // Prints text to the overlay text feed in the specified color
 	RECT *myIDirect3DDevice9::get_viewport_as_rect(RECT *rect); // Constructs a RECT struct from the device viewport
@@ -268,7 +269,8 @@ private:
 	IDirect3DDevice9 *m_pIDirect3DDevice9;
 
 	// Private overlay function definitions:
-	void myIDirect3DDevice9::SP_DX9_init_text_overlay(int text_height, unsigned int text_border_thickness, int text_shadow_x_offset, int text_shadow_y_offset, D3DXCOLOR text_color, D3DXCOLOR text_border_color, D3DXCOLOR text_shadow_color, DWORD text_format, int text_style); // Initializes overlay text feed data structure
+	void myIDirect3DDevice9::SP_DX9_set_text_height(IDirect3DDevice9 *device, int new_text_height); // Changes the font height of the overlay text feed
+	void myIDirect3DDevice9::SP_DX9_init_text_overlay(IDirect3DDevice9 *device, int text_height, unsigned int text_border_thickness, int text_shadow_x_offset, int text_shadow_y_offset, D3DXCOLOR text_color, D3DXCOLOR text_border_color, D3DXCOLOR text_shadow_color, DWORD text_format, int text_style); // Initializes overlay text feed data structure
 	void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed(); // Renders the overlay text feed (monochromatic)
 	void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed_multicolor(); // Renders the overlay text feed (multicolor)
 	void myIDirect3DDevice9::clean_text_overlay_feed(); // Removes expired messages from the overlay text feed

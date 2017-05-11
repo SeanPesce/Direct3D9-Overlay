@@ -104,7 +104,7 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Winmm.lib;d3dx9.lib;SP_IO.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Winmm.lib;d3dx9.lib;SP_IO.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
       <ModuleDefinitionFile>proxydll.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>

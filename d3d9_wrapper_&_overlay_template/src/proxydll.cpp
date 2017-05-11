@@ -22,6 +22,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
     switch (ul_reason_for_call)
 	{
 	    case DLL_PROCESS_ATTACH:
+			_SP_SP_D3D9_LOG_INIT_(_SP_D3D9_LOG_DEFAULT_FILE_); // Initialize log file(s)
 			InitInstance(hModule);
 			InitSettings();
 			if (!gl_hOriginalDll)
@@ -41,11 +42,14 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 			break;
 	    case DLL_PROCESS_DETACH:
 			mod_loop_enabled = false;
+			_SP_D3D9_LOG_EVENT_("Exit (Detached from process)\n\n");
 			ExitInstance();
 			break;
         case DLL_THREAD_ATTACH:
+			//_SP_D3D9_LOG_EVENT_("Thread %d start", GetCurrentThreadId());
 			break;
 	    case DLL_THREAD_DETACH:
+			//_SP_D3D9_LOG_EVENT_("Thread %d terminated", GetCurrentThreadId());
 			break;
 		default:
 			break;

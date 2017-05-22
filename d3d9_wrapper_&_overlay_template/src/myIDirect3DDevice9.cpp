@@ -100,11 +100,11 @@ myIDirect3DDevice9::myIDirect3DDevice9(UINT Adapter, IDirect3DDevice9* pOriginal
 	// Initialize overlay text feed
 	SP_DX9_init_text_overlay(pOriginal,
 		_SP_DEFAULT_TEXT_HEIGHT_,
-		_SP_DEFAULT_TEXT_BORDER_THICKNESS_,
+		_SP_DEFAULT_TEXT_OUTLINE_THICKNESS_,
 		_SP_DEFAULT_TEXT_SHADOW_X_OFFSET_,
 		_SP_DEFAULT_TEXT_SHADOW_Y_OFFSET_,
 		_SP_DEFAULT_TEXT_COLOR_,
-		_SP_DEFAULT_TEXT_BORDER_COLOR_,
+		_SP_DEFAULT_TEXT_OUTLINE_COLOR_,
 		_SP_DEFAULT_TEXT_SHADOW_COLOR_,
 		_SP_DEFAULT_TEXT_FORMAT_,
 		_SP_DEFAULT_TEXT_STYLE_);
@@ -1033,12 +1033,12 @@ void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed()
 			case SP_DX9_PLAIN_TEXT:
 				text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_plain_rect, text_overlay.text_format, text_overlay.text_color); // Draw text
 				break;
-			case SP_DX9_BORDERED_TEXT:
+			case SP_DX9_OUTLINED_TEXT:
 			default:
-				// Draw bordered text
+				// Draw outlined text
 				for (int r = 1; r <= 8; r++)
 				{
-					text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_border_color); // Draw text outline
+					text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_outline_color); // Draw text outline
 				}
 				text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, text_overlay.text_color); // Draw text
 				break;
@@ -1072,12 +1072,12 @@ void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed_multicolor()
 					text_overlay.font->DrawText(NULL, text_overlay.feed_text[c].c_str(), -1, &text_overlay.text_plain_rect, text_overlay.text_format, dx9_text_colors[c]); // Draw text
 				}
 				break;
-			case SP_DX9_BORDERED_TEXT:
+			case SP_DX9_OUTLINED_TEXT:
 			default:
 				// Draw outlined text
 				for (int r = 1; r <= 8 && text_overlay.font != NULL; r++)
 				{
-					text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_border_color); // Draw text outline
+					text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_outline_color); // Draw text outline
 				}
 				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
 				{
@@ -1098,7 +1098,7 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(IDirect3DDevice9 *device,
 	int shadow_x_offset,
 	int shadow_y_offset,
 	D3DXCOLOR text_color,
-	D3DXCOLOR text_border_color,
+	D3DXCOLOR text_outline_color,
 	D3DXCOLOR text_shadow_color,
 	DWORD text_format,
 	int text_style)
@@ -1135,7 +1135,7 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(IDirect3DDevice9 *device,
 
 	// Set text colors
 	text_overlay.text_color = text_color;
-	text_overlay.text_border_color = text_border_color;
+	text_overlay.text_outline_color = text_outline_color;
 	text_overlay.text_shadow_color = text_shadow_color;
 
 	// Set text style and format
@@ -1240,14 +1240,14 @@ void myIDirect3DDevice9::init_text_overlay_rects(RECT *window_rect)
 		text_overlay.text_shadow_rect[0].bottom + text_overlay.text_shadow_y_offset);
 
 
-	// Inititialize main bordered text rect
+	// Inititialize main outlined text rect
 	SetRect(&text_overlay.text_outline_rect[0],
 		window_rect->left + text_overlay.text_outline_thickness,
 		window_rect->top + text_overlay.text_outline_thickness + user_pref_dspw_ol_offset,
 		window_rect->right - text_overlay.text_outline_thickness,
 		window_rect->bottom - text_overlay.text_outline_thickness);
 
-	// Initialize text border rects:
+	// Initialize text outline rects:
 	//		Top left outline extrusion
 	SetRect(&text_overlay.text_outline_rect[1],
 		text_overlay.text_outline_rect[0].left - text_overlay.text_outline_thickness,
@@ -1461,10 +1461,10 @@ void myIDirect3DDevice9::build_text_overlay_feed_string()
 	// Erase text feed string from last-rendered frame
 	text_overlay.feed_full_text.clear();
 
-	if (show_text_watermark)
+	if (show_text_feed_info_bar)
 	{
-		update_overlay_text_watermark();
-		text_overlay.feed_full_text.append(text_watermark);
+		update_overlay_text_feed_info_string();
+		text_overlay.feed_full_text.append(text_feed_info_string);
 		text_overlay.feed_full_text.append("\n");
 	}
 
@@ -1499,12 +1499,12 @@ void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor()
 		if (iterator == text_overlay.feed.begin())
 		{
 			text_overlay.feed_full_text.clear(); // Erase text feed shadow/outline strings from last-rendered frame
-			if (show_text_watermark)
+			if (show_text_feed_info_bar)
 			{
 				text_overlay.feed_text[0].clear();
-				update_overlay_text_watermark();
-				text_overlay.feed_text[0].append(text_watermark).append("\n");
-				text_overlay.feed_full_text.append(text_watermark).append("\n");
+				update_overlay_text_feed_info_string();
+				text_overlay.feed_text[0].append(text_feed_info_string).append("\n");
+				text_overlay.feed_full_text.append(text_feed_info_string).append("\n");
 				for (int c = 1; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
 				{
 					text_overlay.feed_text[c].clear(); // Erase text feed strings from last-rendered frame
@@ -1546,61 +1546,61 @@ void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor()
 
 
 
-// Updates the various overlay text watermark attributes
-void myIDirect3DDevice9::update_overlay_text_watermark()
+// Updates the various overlay text feed info line attributes
+void myIDirect3DDevice9::update_overlay_text_feed_info_string()
 {
-	text_watermark.clear();
+	text_feed_info_string.clear();
 
-	if ((show_text_watermark & SP_DX9_WATERMARK_DATE)
-		|| (show_text_watermark & SP_DX9_WATERMARK_TIME))
+	if ((show_text_feed_info_bar & SP_DX9_INFO_BAR_DATE)
+		|| (show_text_feed_info_bar & SP_DX9_INFO_BAR_TIME))
 	{
-		text_watermark.append("[");
+		text_feed_info_string.append("[");
 	}
 	
-	if (show_text_watermark & SP_DX9_WATERMARK_DATE)
+	if (show_text_feed_info_bar & SP_DX9_INFO_BAR_DATE)
 	{
-		// Insert current date to text watermark
-		append_current_date_string(&text_watermark, false, SP_DATE_MMDDYYYY);
-		if (show_text_watermark & SP_DX9_WATERMARK_TIME)
+		// Insert current date to text feed info string
+		append_current_date_string(&text_feed_info_string, false, SP_DATE_MMDDYYYY);
+		if (show_text_feed_info_bar & SP_DX9_INFO_BAR_TIME)
 		{
-			text_watermark.append("  ");
+			text_feed_info_string.append("  ");
 		}
 		else
 		{
-			text_watermark.append("]  ");
+			text_feed_info_string.append("]  ");
 		}
 	}
 
-	if (show_text_watermark & SP_DX9_WATERMARK_TIME)
+	if (show_text_feed_info_bar & SP_DX9_INFO_BAR_TIME)
 	{
-		// Append current timestamp to text watermark
-		append_current_timestamp_string(&text_watermark, false);
-		text_watermark.append("]  ");
+		// Append current timestamp to text feed info string
+		append_current_timestamp_string(&text_feed_info_string, false);
+		text_feed_info_string.append("]  ");
 	}
 
-	if (show_text_watermark & SP_DX9_WATERMARK_FPS)
+	if (show_text_feed_info_bar & SP_DX9_INFO_BAR_FPS)
 	{
-		// Insert FPS counter into text watermark
-		text_watermark.append("[");
+		// Insert FPS counter into text feed info string
+		text_feed_info_string.append("[");
 
 		int current_fps = fps; // Get FPS
 
 		if (current_fps < 999)
 		{
-			text_watermark.append(std::to_string(current_fps));
+			text_feed_info_string.append(std::to_string(current_fps));
 		}
 		else
 		{
-			text_watermark.append("999");
+			text_feed_info_string.append("999");
 		}
 
-		text_watermark.append(" FPS]  ");
+		text_feed_info_string.append(" FPS]  ");
 	}
 
-	if (show_text_watermark & SP_DX9_WATERMARK_TITLE)
+	if (show_text_feed_info_bar & SP_DX9_INFO_BAR_TITLE)
 	{
-		// Insert title into text watermark
-		text_watermark.append(_SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_);
+		// Insert title into text feed info string
+		text_feed_info_string.append(_SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_);
 	}
 }
 

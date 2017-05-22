@@ -51,30 +51,30 @@ void mod_loop()
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (gl_pmyIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_toggle_info_watermark))
+			else if (gl_pmyIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_toggle_text_feed_info_bar))
 			{
-				// Toggle info watermark (date, time, FPS, etc)
-				if (!gl_pmyIDirect3DDevice9->show_text_watermark)
+				// Toggle info line (date, time, FPS, etc)
+				if (!gl_pmyIDirect3DDevice9->show_text_feed_info_bar)
 				{
-					if (user_pref_show_text_watermark)
+					if (user_pref_show_text_feed_info_bar)
 					{
-						gl_pmyIDirect3DDevice9->show_text_watermark = user_pref_show_text_watermark;
+						gl_pmyIDirect3DDevice9->show_text_feed_info_bar = user_pref_show_text_feed_info_bar;
 					}
 					else
 					{
-						gl_pmyIDirect3DDevice9->show_text_watermark = SP_DX9_WATERMARK_TITLE;
+						gl_pmyIDirect3DDevice9->show_text_feed_info_bar = SP_DX9_INFO_BAR_TITLE;
 					}
 					if (user_pref_verbose_output_enabled)
 					{
-						print_ol_feed(_SP_DS_OL_TXT_OL_TEXT_WATERMARK_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+						print_ol_feed(_SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 					}
 				}
 				else
 				{
-					gl_pmyIDirect3DDevice9->show_text_watermark = 0;
+					gl_pmyIDirect3DDevice9->show_text_feed_info_bar = 0;
 					if (user_pref_verbose_output_enabled)
 					{
-						print_ol_feed(_SP_DS_OL_TXT_OL_TEXT_WATERMARK_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+						print_ol_feed(_SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 					}
 				}
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
@@ -225,8 +225,8 @@ void initialize_mod(bool first_time_setup)
 	// Enable/disable overlay text
 	gl_pmyIDirect3DDevice9->text_overlay.enabled = user_pref_overlay_text_feed_enabled;
 
-	// Enable/disable overlay text watermark
-	gl_pmyIDirect3DDevice9->show_text_watermark = user_pref_show_text_watermark;
+	// Enable/disable text feed info line
+	gl_pmyIDirect3DDevice9->show_text_feed_info_bar = user_pref_show_text_feed_info_bar;
 
 	#ifdef D3D_DEBUG_INFO
 	print_ol_feed("DEBUG: Direct3D debugging is enabled", 0, false, SP_DX9_TEXT_COLOR_ORANGE);
@@ -359,7 +359,7 @@ void next_overlay_text_style(int current_style)
 {
 	switch (current_style)
 	{
-	case SP_DX9_BORDERED_TEXT:
+	case SP_DX9_OUTLINED_TEXT:
 		gl_pmyIDirect3DDevice9->text_overlay.text_style = SP_DX9_SHADOWED_TEXT;
 		if (user_pref_verbose_output_enabled)
 		{
@@ -375,7 +375,7 @@ void next_overlay_text_style(int current_style)
 		break;
 	case SP_DX9_PLAIN_TEXT:
 	default:
-		gl_pmyIDirect3DDevice9->text_overlay.text_style = SP_DX9_BORDERED_TEXT;
+		gl_pmyIDirect3DDevice9->text_overlay.text_style = SP_DX9_OUTLINED_TEXT;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);

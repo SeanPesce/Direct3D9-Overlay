@@ -31,8 +31,8 @@
 // Output
 #define _SP_DS_DEFAULT_BEEP_DURATION_ 100
 #define _SP_DS_OL_TXT_OL_ENABLED_MESSAGE_ "Overlay enabled"
-#define _SP_DS_OL_TXT_OL_TEXT_WATERMARK_ENABLED_MESSAGE_ "Info watermark enabled"
-#define _SP_DS_OL_TXT_OL_TEXT_WATERMARK_DISABLED_MESSAGE_ "Info watermark disabled"
+#define _SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_ENABLED_MESSAGE_ "Info bar enabled"
+#define _SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_DISABLED_MESSAGE_ "Info bar disabled"
 #define _SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_ "Text style changed to outlined"
 #define _SP_DS_OL_TXT_SHADOW_STYLE_MESSAGE_ "Text style changed to shadowed"
 #define _SP_DS_OL_TXT_PLAIN_STYLE_MESSAGE_ "Text style changed to plain"
@@ -69,7 +69,7 @@ extern unsigned int hotkey_increase_overlay_text_size;
 extern unsigned int hotkey_decrease_overlay_text_size;
 extern unsigned int hotkey_reset_overlay_text_size;
 extern unsigned int hotkey_toggle_multicolor_feed;
-extern unsigned int hotkey_toggle_info_watermark;
+extern unsigned int hotkey_toggle_text_feed_info_bar;
 extern bool user_pref_overlay_text_feed_enabled;
 extern bool user_pref_audio_feedback_enabled;
 extern bool user_pref_verbose_output_enabled;
@@ -77,7 +77,7 @@ extern bool user_pref_multicolor_feed_enabled;
 extern int user_pref_overlay_text_size;
 extern DWORD user_pref_overlay_text_pos;
 extern int user_pref_overlay_text_style;
-extern int user_pref_show_text_watermark;
+extern int user_pref_show_text_feed_info_bar;
 // Dark Souls PvP Watchdog Settings
 extern int dspw_pref_font_size;
 extern int user_pref_dspw_ol_offset;

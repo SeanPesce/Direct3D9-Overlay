@@ -36,7 +36,7 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 #define _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_ "ToggleOverlay"
 #define _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_ "ChangeOverlayTextPosition"
 #define _SP_DS_HOTKEY_NEXT_OL_TXT_STYLE_KEY_ "ChangeOverlayTextStyle"
-#define _SP_DS_HOTKEY_TOGGLE_TEXT_WATERMARK_KEY_ "ToggleInfoWatermark"
+#define _SP_DS_HOTKEY_TOGGLE_TEXT_FEED_INFO_BAR_KEY_ "ToggleInfoBar"
 //	User preferences section keys
 #define _SP_DS_OL_TXT_ENABLED_KEY_ "EnableOverlay"
 #define _SP_DS_OL_TXT_SIZE_KEY_ "OverlayTextSize"
@@ -58,8 +58,6 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 //	Developer preferences section keys
 #define _SP_DS_OL_TXT_VERBOSE_OUTPUT_ENABLED_KEY_ "EnableVerboseOutput"
 #define _SP_DS_OL_TXT_MULTICOLOR_FEED_ENABLED_KEY_ "EnableMultiColorTextFeed"
-#define _SP_DS_OL_USE_ALT_FPS_COUNTER_KEY_ "UseAltFPSCounter"
-#define _SP_DS_OL_LOAD_DINPUT8_EARLY_KEY_ "PreLoadDinput8DLL"
 
 // Enumerator whose values specify whether a toggleable setting is enabled or disabled:
 enum SP_OL_TXT_ENABLED_ENUM {
@@ -86,10 +84,9 @@ const char *SP_OL_TXT_STYLE_VALS[3] = { "OUTLINE", "SHADOW", "PLAIN" }; // If sp
 #define _SP_DS_DEFAULT_VAL_OL_TXT_AUDIO_ENABLED_ OL_TXT_DISABLED
 #define _SP_DS_DEFAULT_VAL_OL_TXT_VERBOSE_OUTPUT_ENABLED_ OL_TXT_DISABLED
 #define _SP_DS_DEFAULT_VAL_OL_TXT_MULTICOLOR_FEED_ENABLED_ OL_TXT_ENABLED
-#define _SP_DS_DEFAULT_VAL_OL_LOAD_DINPUT8_EARLY_ OL_TXT_DISABLED
 #define _SP_DS_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_HCENTER]
 #define _SP_DS_DEFAULT_VAL_OL_TXT_VERTICAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_BOTTOM]
-#define _SP_DS_DEFAULT_VAL_OL_TXT_STYLE_ SP_OL_TXT_STYLE_VALS[SP_DX9_BORDERED_TEXT]
+#define _SP_DS_DEFAULT_VAL_OL_TXT_STYLE_ SP_OL_TXT_STYLE_VALS[SP_DX9_OUTLINED_TEXT]
 
 
 //////////////////////// VARIABLES & DATA ////////////////////////
@@ -114,7 +111,7 @@ unsigned int hotkey_increase_overlay_text_size;
 unsigned int hotkey_decrease_overlay_text_size;
 unsigned int hotkey_reset_overlay_text_size;
 unsigned int hotkey_toggle_multicolor_feed;
-unsigned int hotkey_toggle_info_watermark;
+unsigned int hotkey_toggle_text_feed_info_bar;
 // User preferences
 bool user_pref_overlay_text_feed_enabled;
 bool user_pref_audio_feedback_enabled;
@@ -123,7 +120,7 @@ bool user_pref_multicolor_feed_enabled;
 int user_pref_overlay_text_size;
 DWORD user_pref_overlay_text_pos;
 int user_pref_overlay_text_style;
-int user_pref_show_text_watermark;
+int user_pref_show_text_feed_info_bar;
 // Dark Souls PvP Watchdog Settings
 // (These values will be used to adjust the overlay to avoid clipping with the DSPW overlay)
 int dspw_pref_font_size;

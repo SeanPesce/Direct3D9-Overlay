@@ -7,11 +7,11 @@
 
 #include <Windows.h>
 #include "SP_IO.hpp"
-#include "spIDirect3DDevice9.h"
+#include "SpIDirect3DDevice9.h"
 
 // Macro to determine if a hotkey is enabled and currently being pressed
 #define hotkey_is_down(hotkey) (hotkey != 0 && (key_state[hotkey] & _SP_KEY_DOWN_))
-#define print_ol_feed gl_pspIDirect3DDevice9->print_to_overlay_feed
+#define print_ol_feed gl_pSpIDirect3DDevice9->print_to_overlay_feed
 // Overlay text feed position presets
 #define _SP_TEXT_TOP_LEFT_ (DT_NOCLIP | DT_TOP | DT_LEFT)
 #define _SP_TEXT_TOP_CENTER_ (DT_NOCLIP | DT_TOP | DT_CENTER)
@@ -83,7 +83,7 @@ extern int dspw_pref_font_size;
 extern int user_pref_dspw_ol_offset;
 
 // Overlay-related variables
-extern spIDirect3DDevice9* gl_pspIDirect3DDevice9; // Pointer to the IDirect3DDevice9 wrapper that contains the overlay
+extern SpIDirect3DDevice9* gl_pSpIDirect3DDevice9; // Pointer to the IDirect3DDevice9 wrapper that contains the overlay
 int current_overlay_text_size;
 int test_message_color;
 int dspw_overlay_adjustment; // Used to adjust the overlay to avoid clipping with the PvP Watchdog overlay

@@ -5,16 +5,16 @@
 #ifndef _SP_IDIRECT3D_SWAP_CHAIN_H_
 	#define _SP_IDIRECT3D_SWAP_CHAIN_H_
 
-//#include "spIDirect3DDevice9.h"
+//#include "SpIDirect3DDevice9.h"
 
 
-class spIDirect3DSwapChain9 : public IDirect3DSwapChain9
+class SpIDirect3DSwapChain9 : public IDirect3DSwapChain9
 {
 public:
 	IDirect3DSwapChain9 *m_pD3D9_swap_chain;
-	spIDirect3DSwapChain9(IDirect3DSwapChain9 **ppIDirect3DSwapChain9, spIDirect3DDevice9 *device);
+	SpIDirect3DSwapChain9(IDirect3DSwapChain9 **ppIDirect3DSwapChain9, SpIDirect3DDevice9 *device);
 
-	spIDirect3DDevice9 *device; // Device that owns this swap chain
+	SpIDirect3DDevice9 *device; // Device that owns this swap chain
 	unsigned int *present_calls; // Number of times Present() was called thus far in the current second
 	bool *overlay_rendered_this_frame; // Indicates whether the current frame has been presented
 

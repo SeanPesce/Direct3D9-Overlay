@@ -2,13 +2,13 @@
 
 #pragma once
 
-#include "spIDirect3DDevice9.h"
+#include "SpIDirect3DDevice9.h"
 
-class spIDirect3D9 : public IDirect3D9
+class SpIDirect3D9 : public IDirect3D9
 {
 public:
-    spIDirect3D9(IDirect3D9 *pOriginal);
-    virtual ~spIDirect3D9(void);
+    SpIDirect3D9(IDirect3D9 *pOriginal);
+    virtual ~SpIDirect3D9(void);
 
     // The original DX9 function definitions
 	HRESULT  __stdcall QueryInterface(REFIID riid, void** ppvObj);

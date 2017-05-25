@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 
-spIDirect3DSwapChain9::spIDirect3DSwapChain9(IDirect3DSwapChain9 **ppIDirect3DSwapChain9, spIDirect3DDevice9 *device)
+SpIDirect3DSwapChain9::SpIDirect3DSwapChain9(IDirect3DSwapChain9 **ppIDirect3DSwapChain9, SpIDirect3DDevice9 *device)
 {
 	m_pD3D9_swap_chain = *ppIDirect3DSwapChain9;
 	this->device = device;
@@ -12,13 +12,13 @@ spIDirect3DSwapChain9::spIDirect3DSwapChain9(IDirect3DSwapChain9 **ppIDirect3DSw
 }
 
 
-ULONG spIDirect3DSwapChain9::AddRef()
+ULONG SpIDirect3DSwapChain9::AddRef()
 {
 	return m_pD3D9_swap_chain->AddRef();
 }
 
 
-HRESULT spIDirect3DSwapChain9::QueryInterface(REFIID riid, void **ppvObject)
+HRESULT SpIDirect3DSwapChain9::QueryInterface(REFIID riid, void **ppvObject)
 {
 	// Check if original dll can provide interface, then send this address
 	*ppvObject = NULL;
@@ -34,16 +34,16 @@ HRESULT spIDirect3DSwapChain9::QueryInterface(REFIID riid, void **ppvObject)
 }
 
 
-ULONG spIDirect3DSwapChain9::Release()
+ULONG SpIDirect3DSwapChain9::Release()
 {
-	extern spIDirect3DSwapChain9 *gl_pspIDirect3DSwapChain9;
+	extern SpIDirect3DSwapChain9 *gl_pSpIDirect3DSwapChain9;
 
 	ULONG count = m_pD3D9_swap_chain->Release();
 
 	if (count == 0)
 	{
 		//m_pD3D9_swap_chain = NULL;
-		gl_pspIDirect3DSwapChain9 = NULL;
+		gl_pSpIDirect3DSwapChain9 = NULL;
 		delete this;
 	}
 
@@ -51,13 +51,13 @@ ULONG spIDirect3DSwapChain9::Release()
 }
 
 
-HRESULT spIDirect3DSwapChain9::GetBackBuffer(UINT BackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9 **ppBackBuffer)
+HRESULT SpIDirect3DSwapChain9::GetBackBuffer(UINT BackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9 **ppBackBuffer)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pD3D9_swap_chain->GetBackBuffer(BackBuffer, Type, ppBackBuffer));
 }
 
 
-HRESULT spIDirect3DSwapChain9::GetDevice(IDirect3DDevice9 **ppDevice)
+HRESULT SpIDirect3DSwapChain9::GetDevice(IDirect3DDevice9 **ppDevice)
 {
 	HRESULT hres = m_pD3D9_swap_chain->GetDevice(ppDevice);
 
@@ -72,31 +72,31 @@ HRESULT spIDirect3DSwapChain9::GetDevice(IDirect3DDevice9 **ppDevice)
 }
 
 
-HRESULT spIDirect3DSwapChain9::GetDisplayMode(D3DDISPLAYMODE *pMode)
+HRESULT SpIDirect3DSwapChain9::GetDisplayMode(D3DDISPLAYMODE *pMode)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pD3D9_swap_chain->GetDisplayMode(pMode));
 }
 
 
-HRESULT spIDirect3DSwapChain9::GetFrontBufferData(IDirect3DSurface9 *pDestSurface)
+HRESULT SpIDirect3DSwapChain9::GetFrontBufferData(IDirect3DSurface9 *pDestSurface)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pD3D9_swap_chain->GetFrontBufferData(pDestSurface));
 }
 
 
-HRESULT spIDirect3DSwapChain9::GetPresentParameters(D3DPRESENT_PARAMETERS *pPresentationParameters)
+HRESULT SpIDirect3DSwapChain9::GetPresentParameters(D3DPRESENT_PARAMETERS *pPresentationParameters)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pD3D9_swap_chain->GetPresentParameters(pPresentationParameters));
 }
 
 
-HRESULT spIDirect3DSwapChain9::GetRasterStatus(D3DRASTER_STATUS *pRasterStatus)
+HRESULT SpIDirect3DSwapChain9::GetRasterStatus(D3DRASTER_STATUS *pRasterStatus)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pD3D9_swap_chain->GetRasterStatus(pRasterStatus));
 }
 
 
-HRESULT spIDirect3DSwapChain9::Present(const RECT *pSourceRect, const RECT *pDestRect, HWND hDestWindowOverride, const RGNDATA *pDirtyRegion, DWORD dwFlags)
+HRESULT SpIDirect3DSwapChain9::Present(const RECT *pSourceRect, const RECT *pDestRect, HWND hDestWindowOverride, const RGNDATA *pDirtyRegion, DWORD dwFlags)
 {
 	// Draw overlay before calling the real Present() method:
 	IDirect3DDevice9 *real_device = NULL;

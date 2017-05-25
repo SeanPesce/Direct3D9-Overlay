@@ -9,7 +9,7 @@
 #include <d3dx9core.h>
 
 // Forward declaration
-class SpIDirect3DSwapChain9; // Wrapper class for IDirect3DSwapChain9
+class SpD3D9SwapChain; // Wrapper class for IDirect3DSwapChain9
 
 // Default overlay text attributes
 #define _SP_DEFAULT_TEXT_HEIGHT_ 28
@@ -83,7 +83,7 @@ typedef struct SP_DX9_FULLSCREEN_TEXT_OVERLAY {
 	D3DXCOLOR text_shadow_color; // Text shadow color
 } SP_DX9_FULLSCREEN_TEXT_OVERLAY;
 
-class SpIDirect3DDevice9 : public IDirect3DDevice9
+class SpD3D9Device : public IDirect3DDevice9
 {
 public:
 	
@@ -130,8 +130,8 @@ public:
 		D3DXCOLOR(0xFF000000)				// Starting color when cycling all colors
 	};
 
-	SpIDirect3DDevice9(UINT Adapter, IDirect3DDevice9* pOriginal, HWND new_focus_window, D3DPRESENT_PARAMETERS *present_params); // Constructor
-	virtual ~SpIDirect3DDevice9(void);
+	SpD3D9Device(UINT Adapter, IDirect3DDevice9* pOriginal, HWND new_focus_window, D3DPRESENT_PARAMETERS *present_params); // Constructor
+	virtual ~SpD3D9Device(void);
 
 	// Original DX9 function definitions:
 	HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObj);
@@ -257,31 +257,31 @@ public:
 
 	// Public overlay function definitions:
 	// NOTE: Overlay text feed currently does NOT support multi-line messages. Print each line as a separate message instead.
-	ULONG SpIDirect3DDevice9::ForceRelease();
-	void SpIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp); // Prints default-colored text to the overlay text feed
-	void SpIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp, int text_color); // Prints text to the overlay text feed in the specified color
-	RECT *SpIDirect3DDevice9::get_viewport_as_rect(RECT *rect); // Constructs a RECT struct from the device viewport
-	RECT *SpIDirect3DDevice9::get_viewport_as_rect(RECT *rect, D3DVIEWPORT9 *viewport); // Constructs a RECT struct from the device viewport (and stores the viewport)
-	void SpIDirect3DDevice9::print_debug_data(unsigned long long duration, bool show_timestamp); // Prints various game window data to the overlay text feed
-	void SpIDirect3DDevice9::draw_overlay(IDirect3DDevice9 *device, IDirect3DSwapChain9 *swap_chain);
+	ULONG SpD3D9Device::ForceRelease();
+	void SpD3D9Device::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp); // Prints default-colored text to the overlay text feed
+	void SpD3D9Device::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp, int text_color); // Prints text to the overlay text feed in the specified color
+	RECT *SpD3D9Device::get_viewport_as_rect(RECT *rect); // Constructs a RECT struct from the device viewport
+	RECT *SpD3D9Device::get_viewport_as_rect(RECT *rect, D3DVIEWPORT9 *viewport); // Constructs a RECT struct from the device viewport (and stores the viewport)
+	void SpD3D9Device::print_debug_data(unsigned long long duration, bool show_timestamp); // Prints various game window data to the overlay text feed
+	void SpD3D9Device::draw_overlay(IDirect3DDevice9 *device, IDirect3DSwapChain9 *swap_chain);
 
 private:
 	IDirect3DDevice9 *m_pIDirect3DDevice9;
 
 	// Private overlay function definitions:
-	void SpIDirect3DDevice9::SP_DX9_set_text_height(IDirect3DDevice9 *device, int new_text_height); // Changes the font height of the overlay text feed
-	void SpIDirect3DDevice9::SP_DX9_init_text_overlay(IDirect3DDevice9 *device, int text_height, unsigned int text_outline_thickness, int text_shadow_x_offset, int text_shadow_y_offset, D3DXCOLOR text_color, D3DXCOLOR text_outline_color, D3DXCOLOR text_shadow_color, DWORD text_format, int text_style); // Initializes overlay text feed data structure
-	void SpIDirect3DDevice9::SP_DX9_draw_overlay_text_feed(); // Renders the overlay text feed (monochromatic)
-	void SpIDirect3DDevice9::SP_DX9_draw_overlay_text_feed_multicolor(); // Renders the overlay text feed (multicolor)
-	void SpIDirect3DDevice9::clean_text_overlay_feed(); // Removes expired messages from the overlay text feed
-	void SpIDirect3DDevice9::build_text_overlay_feed_string(); // Constructs the overlay text feed from the current list of messages (monochromatic)
-	void SpIDirect3DDevice9::build_text_overlay_feed_string_multicolor(); // Constructs the overlay text feed from the current list of messages (multicolor)
-	void SpIDirect3DDevice9::cycle_text_colors(); // Calculates the next ARGB color value for text whose color cycles through all colors
-	void SpIDirect3DDevice9::init_text_overlay_rects(); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
-	void SpIDirect3DDevice9::init_text_overlay_rects(RECT *new_rect); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
-	void SpIDirect3DDevice9::update_overlay_text_feed_info_string(); // Updates the various text feed info line attributes
-	void SpIDirect3DDevice9::update_overlay_parameters();
-	void SpIDirect3DDevice9::create_overlay_state_block(); // Creates a suitable state block for drawing the overlay
+	void SpD3D9Device::SP_DX9_set_text_height(IDirect3DDevice9 *device, int new_text_height); // Changes the font height of the overlay text feed
+	void SpD3D9Device::SP_DX9_init_text_overlay(IDirect3DDevice9 *device, int text_height, unsigned int text_outline_thickness, int text_shadow_x_offset, int text_shadow_y_offset, D3DXCOLOR text_color, D3DXCOLOR text_outline_color, D3DXCOLOR text_shadow_color, DWORD text_format, int text_style); // Initializes overlay text feed data structure
+	void SpD3D9Device::SP_DX9_draw_overlay_text_feed(); // Renders the overlay text feed (monochromatic)
+	void SpD3D9Device::SP_DX9_draw_overlay_text_feed_multicolor(); // Renders the overlay text feed (multicolor)
+	void SpD3D9Device::clean_text_overlay_feed(); // Removes expired messages from the overlay text feed
+	void SpD3D9Device::build_text_overlay_feed_string(); // Constructs the overlay text feed from the current list of messages (monochromatic)
+	void SpD3D9Device::build_text_overlay_feed_string_multicolor(); // Constructs the overlay text feed from the current list of messages (multicolor)
+	void SpD3D9Device::cycle_text_colors(); // Calculates the next ARGB color value for text whose color cycles through all colors
+	void SpD3D9Device::init_text_overlay_rects(); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
+	void SpD3D9Device::init_text_overlay_rects(RECT *new_rect); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
+	void SpD3D9Device::update_overlay_text_feed_info_string(); // Updates the various text feed info line attributes
+	void SpD3D9Device::update_overlay_parameters();
+	void SpD3D9Device::create_overlay_state_block(); // Creates a suitable state block for drawing the overlay
 };
 
 void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime); // (Called once per second) Records the number of frames that were rendered in the last second

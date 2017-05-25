@@ -16,11 +16,11 @@ void mod_loop()
 		{
 			initialize_mod(false);
 		}
-		else if (gl_pSpIDirect3DDevice9 != NULL && 
-			(GetForegroundWindow() == gl_pSpIDirect3DDevice9->focus_window || GetForegroundWindow() == gl_pSpIDirect3DDevice9->device_window // Check if game window is active	// @TODO: This doesn't always detect the window as active (Example: Oblivion)
-			|| GetActiveWindow() == gl_pSpIDirect3DDevice9->focus_window || GetActiveWindow() == gl_pSpIDirect3DDevice9->device_window
-			|| GetFocus() == gl_pSpIDirect3DDevice9->focus_window || GetFocus() == gl_pSpIDirect3DDevice9->device_window
-			/*|| IsWindowEnabled(gl_pSpIDirect3DDevice9->focus_window) || IsWindowEnabled(gl_pSpIDirect3DDevice9->device_window)*/))
+		else if (gl_pSpD3D9Device != NULL && 
+			(GetForegroundWindow() == gl_pSpD3D9Device->focus_window || GetForegroundWindow() == gl_pSpD3D9Device->device_window // Check if game window is active	// @TODO: This doesn't always detect the window as active (Example: Oblivion)
+			|| GetActiveWindow() == gl_pSpD3D9Device->focus_window || GetActiveWindow() == gl_pSpD3D9Device->device_window
+			|| GetFocus() == gl_pSpD3D9Device->focus_window || GetFocus() == gl_pSpD3D9Device->device_window
+			/*|| IsWindowEnabled(gl_pSpD3D9Device->focus_window) || IsWindowEnabled(gl_pSpD3D9Device->device_window)*/))
 		{
 
 			get_async_keyboard_state(key_state); // Capture all current async key states
@@ -28,8 +28,8 @@ void mod_loop()
 			if (hotkey_is_down(hotkey_toggle_overlay_text_feed))
 			{
 				// Toggle overlay text feed
-				gl_pSpIDirect3DDevice9->text_overlay.enabled = !gl_pSpIDirect3DDevice9->text_overlay.enabled;
-				if (gl_pSpIDirect3DDevice9->text_overlay.enabled && user_pref_verbose_output_enabled)
+				gl_pSpD3D9Device->text_overlay.enabled = !gl_pSpD3D9Device->text_overlay.enabled;
+				if (gl_pSpD3D9Device->text_overlay.enabled && user_pref_verbose_output_enabled)
 				{
 					print_ol_feed(_SP_DS_OL_TXT_OL_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 				}
@@ -51,18 +51,18 @@ void mod_loop()
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (gl_pSpIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_toggle_text_feed_info_bar))
+			else if (gl_pSpD3D9Device->text_overlay.enabled && hotkey_is_down(hotkey_toggle_text_feed_info_bar))
 			{
 				// Toggle info line (date, time, FPS, etc)
-				if (!gl_pSpIDirect3DDevice9->show_text_feed_info_bar)
+				if (!gl_pSpD3D9Device->show_text_feed_info_bar)
 				{
 					if (user_pref_show_text_feed_info_bar)
 					{
-						gl_pSpIDirect3DDevice9->show_text_feed_info_bar = user_pref_show_text_feed_info_bar;
+						gl_pSpD3D9Device->show_text_feed_info_bar = user_pref_show_text_feed_info_bar;
 					}
 					else
 					{
-						gl_pSpIDirect3DDevice9->show_text_feed_info_bar = SP_DX9_INFO_BAR_TITLE;
+						gl_pSpD3D9Device->show_text_feed_info_bar = SP_DX9_INFO_BAR_TITLE;
 					}
 					if (user_pref_verbose_output_enabled)
 					{
@@ -71,7 +71,7 @@ void mod_loop()
 				}
 				else
 				{
-					gl_pSpIDirect3DDevice9->show_text_feed_info_bar = 0;
+					gl_pSpD3D9Device->show_text_feed_info_bar = 0;
 					if (user_pref_verbose_output_enabled)
 					{
 						print_ol_feed(_SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
@@ -79,19 +79,19 @@ void mod_loop()
 				}
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (gl_pSpIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_next_overlay_text_pos))
+			else if (gl_pSpD3D9Device->text_overlay.enabled && hotkey_is_down(hotkey_next_overlay_text_pos))
 			{
 				// Change to next overlay text feed position preset
-				next_overlay_text_position(gl_pSpIDirect3DDevice9->text_overlay.text_format);
+				next_overlay_text_position(gl_pSpD3D9Device->text_overlay.text_format);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (gl_pSpIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_next_overlay_text_style))
+			else if (gl_pSpD3D9Device->text_overlay.enabled && hotkey_is_down(hotkey_next_overlay_text_style))
 			{
 				// Change to next overlay text style
-				next_overlay_text_style(gl_pSpIDirect3DDevice9->text_overlay.text_style);
+				next_overlay_text_style(gl_pSpD3D9Device->text_overlay.text_style);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (gl_pSpIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_toggle_verbose_output))
+			else if (gl_pSpD3D9Device->text_overlay.enabled && hotkey_is_down(hotkey_toggle_verbose_output))
 			{
 				// Toggle verbose text output
 				user_pref_verbose_output_enabled = !user_pref_verbose_output_enabled;
@@ -106,11 +106,11 @@ void mod_loop()
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (gl_pSpIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_toggle_multicolor_feed))
+			else if (gl_pSpD3D9Device->text_overlay.enabled && hotkey_is_down(hotkey_toggle_multicolor_feed))
 			{
 				// Toggle multicolor text feed
-				gl_pSpIDirect3DDevice9->multicolor_overlay_text_feed_enabled = !gl_pSpIDirect3DDevice9->multicolor_overlay_text_feed_enabled;
-				if (user_pref_verbose_output_enabled && gl_pSpIDirect3DDevice9->multicolor_overlay_text_feed_enabled)
+				gl_pSpD3D9Device->multicolor_overlay_text_feed_enabled = !gl_pSpD3D9Device->multicolor_overlay_text_feed_enabled;
+				if (user_pref_verbose_output_enabled && gl_pSpD3D9Device->multicolor_overlay_text_feed_enabled)
 				{
 					print_ol_feed(_SP_DS_OL_TXT_MULTICOLOR_FEED_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 				}
@@ -121,11 +121,11 @@ void mod_loop()
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (gl_pSpIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_reset_overlay_text_size))
+			else if (gl_pSpD3D9Device->text_overlay.enabled && hotkey_is_down(hotkey_reset_overlay_text_size))
 			{
 				// Restore default overlay text size (defined in user preferences)
 				current_overlay_text_size = user_pref_overlay_text_size;
-				gl_pSpIDirect3DDevice9->text_overlay_new_font_size = current_overlay_text_size;
+				gl_pSpD3D9Device->text_overlay_new_font_size = current_overlay_text_size;
 				if (user_pref_verbose_output_enabled)
 				{
 					print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_RESET_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
@@ -133,10 +133,10 @@ void mod_loop()
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (gl_pSpIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_increase_overlay_text_size))
+			else if (gl_pSpD3D9Device->text_overlay.enabled && hotkey_is_down(hotkey_increase_overlay_text_size))
 			{
 				// Increase overlay text size
-				gl_pSpIDirect3DDevice9->text_overlay_new_font_size = ++current_overlay_text_size;
+				gl_pSpD3D9Device->text_overlay_new_font_size = ++current_overlay_text_size;
 				if (user_pref_verbose_output_enabled)
 				{
 					print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_INCREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
@@ -144,12 +144,12 @@ void mod_loop()
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (gl_pSpIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_decrease_overlay_text_size))
+			else if (gl_pSpD3D9Device->text_overlay.enabled && hotkey_is_down(hotkey_decrease_overlay_text_size))
 			{
 				if (current_overlay_text_size > 1) // Check if current font size is already the smallest supported
 				{
 					// Decrease overlay text feed font size
-					gl_pSpIDirect3DDevice9->text_overlay_new_font_size = --current_overlay_text_size;
+					gl_pSpD3D9Device->text_overlay_new_font_size = --current_overlay_text_size;
 					if (user_pref_verbose_output_enabled)
 					{
 						print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_DECREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
@@ -163,7 +163,7 @@ void mod_loop()
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (gl_pSpIDirect3DDevice9->text_overlay.enabled && hotkey_is_down(hotkey_print_overlay_test_message))
+			else if (gl_pSpD3D9Device->text_overlay.enabled && hotkey_is_down(hotkey_print_overlay_test_message))
 			{
 				// Print test message to text overlay feed
 				print_ol_feed(_SP_DS_OL_TXT_TEST_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, test_message_color);
@@ -194,7 +194,7 @@ void mod_loop()
 // Initializes mod data and settings based on user preferences
 void initialize_mod(bool first_time_setup)
 {
-	while (mod_loop_enabled && (mod_loop_paused || gl_pSpIDirect3DDevice9 == NULL || gl_pSpIDirect3DDevice9->game_window == NULL || !gl_pSpIDirect3DDevice9->initialized) /* || gl_pSpIDirect3DDevice9->focus_window == NULL || gl_pSpIDirect3DDevice9->device_window == NULL*/)
+	while (mod_loop_enabled && (mod_loop_paused || gl_pSpD3D9Device == NULL || gl_pSpD3D9Device->game_window == NULL || !gl_pSpD3D9Device->initialized) /* || gl_pSpD3D9Device->focus_window == NULL || gl_pSpD3D9Device->device_window == NULL*/)
 	{
 		// Wait for the IDirect3DDevice9 wrapper object to be initialized
 		Sleep(500);
@@ -206,27 +206,27 @@ void initialize_mod(bool first_time_setup)
 	}
 
 	// Enable/disable multicolor overlay text
-	gl_pSpIDirect3DDevice9->multicolor_overlay_text_feed_enabled = user_pref_multicolor_feed_enabled;
+	gl_pSpD3D9Device->multicolor_overlay_text_feed_enabled = user_pref_multicolor_feed_enabled;
 
 	// Set overlay text feed position, style, and font size
-	gl_pSpIDirect3DDevice9->text_overlay.text_format = user_pref_overlay_text_pos;
-	gl_pSpIDirect3DDevice9->text_overlay.text_style = user_pref_overlay_text_style;
+	gl_pSpD3D9Device->text_overlay.text_format = user_pref_overlay_text_pos;
+	gl_pSpD3D9Device->text_overlay.text_style = user_pref_overlay_text_style;
 	if (first_time_setup)
 	{
-		gl_pSpIDirect3DDevice9->text_overlay_new_font_size = user_pref_overlay_text_size;
+		gl_pSpD3D9Device->text_overlay_new_font_size = user_pref_overlay_text_size;
 		current_overlay_text_size = user_pref_overlay_text_size;
 		test_message_color = SP_DX9_TEXT_COLOR_WHITE; // Initialize test message text color to white (color changes every time the message is printed
 	}
 	else
 	{
-		gl_pSpIDirect3DDevice9->text_overlay_new_font_size = current_overlay_text_size;
+		gl_pSpD3D9Device->text_overlay_new_font_size = current_overlay_text_size;
 	}
 
 	// Enable/disable overlay text
-	gl_pSpIDirect3DDevice9->text_overlay.enabled = user_pref_overlay_text_feed_enabled;
+	gl_pSpD3D9Device->text_overlay.enabled = user_pref_overlay_text_feed_enabled;
 
 	// Enable/disable text feed info line
-	gl_pSpIDirect3DDevice9->show_text_feed_info_bar = user_pref_show_text_feed_info_bar;
+	gl_pSpD3D9Device->show_text_feed_info_bar = user_pref_show_text_feed_info_bar;
 
 	#ifdef D3D_DEBUG_INFO
 	print_ol_feed("DEBUG: Direct3D debugging is enabled", 0, false, SP_DX9_TEXT_COLOR_ORANGE);
@@ -287,56 +287,56 @@ void next_overlay_text_position(DWORD current_position)
 	switch (current_position)
 	{
 	case _SP_TEXT_TOP_LEFT_:
-		gl_pSpIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_TOP_CENTER_;
+		gl_pSpD3D9Device->text_overlay.text_format = _SP_TEXT_TOP_CENTER_;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_TOP_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		break;
 	case _SP_TEXT_TOP_CENTER_:
-		gl_pSpIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_TOP_RIGHT_;
+		gl_pSpD3D9Device->text_overlay.text_format = _SP_TEXT_TOP_RIGHT_;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_TOP_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		break;
 	case _SP_TEXT_TOP_RIGHT_:
-		gl_pSpIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_CENTER_LEFT_;
+		gl_pSpD3D9Device->text_overlay.text_format = _SP_TEXT_CENTER_LEFT_;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_MID_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		break;
 	case _SP_TEXT_CENTER_LEFT_:
-		gl_pSpIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_CENTER_CENTER_;
+		gl_pSpD3D9Device->text_overlay.text_format = _SP_TEXT_CENTER_CENTER_;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_MID_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		break;
 	case _SP_TEXT_CENTER_CENTER_:
-		gl_pSpIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_CENTER_RIGHT_;
+		gl_pSpD3D9Device->text_overlay.text_format = _SP_TEXT_CENTER_RIGHT_;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_MID_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		break;
 	case _SP_TEXT_CENTER_RIGHT_:
-		gl_pSpIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_BOTTOM_LEFT_;
+		gl_pSpD3D9Device->text_overlay.text_format = _SP_TEXT_BOTTOM_LEFT_;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_BOTTOM_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		break;
 	case _SP_TEXT_BOTTOM_LEFT_:
-		gl_pSpIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_BOTTOM_CENTER_;
+		gl_pSpD3D9Device->text_overlay.text_format = _SP_TEXT_BOTTOM_CENTER_;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_BOTTOM_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		break;
 	case _SP_TEXT_BOTTOM_CENTER_:
-		gl_pSpIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_BOTTOM_RIGHT_;
+		gl_pSpD3D9Device->text_overlay.text_format = _SP_TEXT_BOTTOM_RIGHT_;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_BOTTOM_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
@@ -344,7 +344,7 @@ void next_overlay_text_position(DWORD current_position)
 		break;
 	case _SP_TEXT_BOTTOM_RIGHT_:
 	default:
-		gl_pSpIDirect3DDevice9->text_overlay.text_format = _SP_TEXT_TOP_LEFT_;
+		gl_pSpD3D9Device->text_overlay.text_format = _SP_TEXT_TOP_LEFT_;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_TOP_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
@@ -360,14 +360,14 @@ void next_overlay_text_style(int current_style)
 	switch (current_style)
 	{
 	case SP_DX9_OUTLINED_TEXT:
-		gl_pSpIDirect3DDevice9->text_overlay.text_style = SP_DX9_SHADOWED_TEXT;
+		gl_pSpD3D9Device->text_overlay.text_style = SP_DX9_SHADOWED_TEXT;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_SHADOW_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		break;
 	case SP_DX9_SHADOWED_TEXT:
-		gl_pSpIDirect3DDevice9->text_overlay.text_style = SP_DX9_PLAIN_TEXT;
+		gl_pSpD3D9Device->text_overlay.text_style = SP_DX9_PLAIN_TEXT;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_PLAIN_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
@@ -375,7 +375,7 @@ void next_overlay_text_style(int current_style)
 		break;
 	case SP_DX9_PLAIN_TEXT:
 	default:
-		gl_pSpIDirect3DDevice9->text_overlay.text_style = SP_DX9_OUTLINED_TEXT;
+		gl_pSpD3D9Device->text_overlay.text_style = SP_DX9_OUTLINED_TEXT;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);

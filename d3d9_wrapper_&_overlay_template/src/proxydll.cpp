@@ -6,11 +6,11 @@
 
 // Global variables
 #pragma data_seg (".d3d9_shared")
-SpIDirect3DDevice9*		gl_pSpIDirect3DDevice9;
-SpIDirect3D9*			gl_pSpIDirect3D9;
-SpIDirect3DSwapChain9*	gl_pSpIDirect3DSwapChain9;
-HINSTANCE				gl_hOriginalDll;
-HINSTANCE				gl_hThisInstance;
+SpD3D9Device*		gl_pSpD3D9Device;
+SpD3D9Interface*	gl_pSpD3D9Interface;
+SpD3D9SwapChain*	gl_pSpD3D9SwapChain;
+HINSTANCE			gl_hOriginalDll;
+HINSTANCE			gl_hThisInstance;
 #pragma data_seg ()
 
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -80,12 +80,12 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
 	// Request pointer from Original Dll 
 	IDirect3D9 *pIDirect3D9_orig = D3DCreate9_func(SDKVersion);
 
-	// Create SpIDirect3D9 object and store pointer to original object there.
+	// Create SpD3D9Interface object and store pointer to original object there.
 	// Note: The object will delete itself once the Ref count is zero (similar to COM objects)
-	gl_pSpIDirect3D9 = new SpIDirect3D9(pIDirect3D9_orig);
+	gl_pSpD3D9Interface = new SpD3D9Interface(pIDirect3D9_orig);
 
 	// Return pointer to hooking Object instead of the real one
-	return (gl_pSpIDirect3D9);
+	return (gl_pSpD3D9Interface);
 }
 
 void InitInstance(HANDLE hModule) 
@@ -94,11 +94,11 @@ void InitInstance(HANDLE hModule)
 	
 	// Initialization
 	generic_dll_count = 0;
-	gl_hOriginalDll				= NULL;
-	gl_hThisInstance			= NULL;
-	gl_pSpIDirect3D9			= NULL;
-	gl_pSpIDirect3DDevice9		= NULL;
-	gl_pSpIDirect3DSwapChain9	= NULL;
+	gl_hOriginalDll		= NULL;
+	gl_hThisInstance	= NULL;
+	gl_pSpD3D9Interface	= NULL;
+	gl_pSpD3D9Device	= NULL;
+	gl_pSpD3D9SwapChain	= NULL;
 	
 	// Storing Instance handle into global variable
 	gl_hThisInstance = (HINSTANCE)  hModule;

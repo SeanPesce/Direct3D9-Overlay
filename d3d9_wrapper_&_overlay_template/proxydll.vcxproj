@@ -145,19 +145,19 @@
     <None Include="proxydll.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\SpIDirect3D9.h" />
-    <ClInclude Include="include\SpIDirect3DDevice9.h" />
+    <ClInclude Include="include\SpD3D9Interface.h" />
+    <ClInclude Include="include\SpD3D9Device.h" />
     <ClInclude Include="include\proxydll.h" />
-    <ClInclude Include="include\SpIDirect3DSwapChain9.h" />
+    <ClInclude Include="include\SpD3D9SwapChain.h" />
     <ClInclude Include="include\SP_D3D9_Mod_Template.h" />
     <ClInclude Include="include\SP_IO.hpp" />
     <ClInclude Include="include\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\SpIDirect3D9.cpp" />
-    <ClCompile Include="src\SpIDirect3DDevice9.cpp" />
+    <ClCompile Include="src\SpD3D9Interface.cpp" />
+    <ClCompile Include="src\SpD3D9Device.cpp" />
     <ClCompile Include="src\proxydll.cpp" />
-    <ClCompile Include="src\SpIDirect3DSwapChain9.cpp" />
+    <ClCompile Include="src\SpD3D9SwapChain.cpp" />
     <ClCompile Include="src\SP_D3D9_Mod_Template.cpp" />
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -32,13 +32,13 @@
     <ClInclude Include="include\SP_D3D9_Mod_Template.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpIDirect3D9.h">
+    <ClInclude Include="include\SpD3D9SwapChain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpIDirect3DDevice9.h">
+    <ClInclude Include="include\SpD3D9Device.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpIDirect3DSwapChain9.h">
+    <ClInclude Include="include\SpD3D9Interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -52,13 +52,13 @@
     <ClCompile Include="src\SP_D3D9_Mod_Template.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\SpIDirect3D9.cpp">
+    <ClCompile Include="src\SpD3D9SwapChain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\SpIDirect3DDevice9.cpp">
+    <ClCompile Include="src\SpD3D9Device.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\SpIDirect3DSwapChain9.cpp">
+    <ClCompile Include="src\SpD3D9Interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

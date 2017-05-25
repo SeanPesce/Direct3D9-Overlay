@@ -12,8 +12,8 @@
 #include <algorithm>
 #include "d3d9.h"
 #include "SP_IO.hpp"
-#include "myIDirect3D9.h"
-#include "myIDirect3DDevice9.h"
+#include "spIDirect3D9.h"
+#include "spIDirect3DDevice9.h"
 #include "spIDirect3DSwapChain9.h"
 
 // Standard lifetime (in milliseconds) of an overlay text feed message

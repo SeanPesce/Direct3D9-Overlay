@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 
-spIDirect3DSwapChain9::spIDirect3DSwapChain9(IDirect3DSwapChain9 **ppIDirect3DSwapChain9, myIDirect3DDevice9 *device)
+spIDirect3DSwapChain9::spIDirect3DSwapChain9(IDirect3DSwapChain9 **ppIDirect3DSwapChain9, spIDirect3DDevice9 *device)
 {
 	m_pD3D9_swap_chain = *ppIDirect3DSwapChain9;
 	this->device = device;

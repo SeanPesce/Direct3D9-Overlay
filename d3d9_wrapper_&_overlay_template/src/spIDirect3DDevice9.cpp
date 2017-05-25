@@ -4,7 +4,7 @@
 #include "stdafx.h"
 
 
-myIDirect3DDevice9::myIDirect3DDevice9(UINT Adapter, IDirect3DDevice9* pOriginal, HWND new_focus_window, D3DPRESENT_PARAMETERS *present_params)
+spIDirect3DDevice9::spIDirect3DDevice9(UINT Adapter, IDirect3DDevice9* pOriginal, HWND new_focus_window, D3DPRESENT_PARAMETERS *present_params)
 {
 	m_pIDirect3DDevice9 = pOriginal; // Store the pointer to original object
 	
@@ -118,11 +118,11 @@ myIDirect3DDevice9::myIDirect3DDevice9(UINT Adapter, IDirect3DDevice9* pOriginal
 	}
 }
 
-myIDirect3DDevice9::~myIDirect3DDevice9(void)
+spIDirect3DDevice9::~spIDirect3DDevice9(void)
 {
 }
 
-HRESULT myIDirect3DDevice9::QueryInterface(REFIID riid, void** ppvObj)
+HRESULT spIDirect3DDevice9::QueryInterface(REFIID riid, void** ppvObj)
 {
 	// Check if original dll can provide interface, then send this address
 	*ppvObj = NULL;
@@ -137,12 +137,12 @@ HRESULT myIDirect3DDevice9::QueryInterface(REFIID riid, void** ppvObj)
 	return hres;
 }
 
-ULONG myIDirect3DDevice9::AddRef(void)
+ULONG spIDirect3DDevice9::AddRef(void)
 {
 	return(m_pIDirect3DDevice9->AddRef());
 }
 
-ULONG myIDirect3DDevice9::Release(void)
+ULONG spIDirect3DDevice9::Release(void)
 {
 	// ATTENTION: This is a booby-trap! Watch out!
 	// If we create our own sprites, surfaces, etc. (thus increasing the ref counter
@@ -150,7 +150,7 @@ ULONG myIDirect3DDevice9::Release(void)
 	// original Release() function.
 
 	// Global vars
-	extern myIDirect3DDevice9 *gl_pmyIDirect3DDevice9;
+	extern spIDirect3DDevice9 *gl_pspIDirect3DDevice9;
 	extern spIDirect3DSwapChain9 *gl_pspIDirect3DSwapChain9;
 
 	// Call original function
@@ -169,11 +169,11 @@ ULONG myIDirect3DDevice9::Release(void)
 		overlay_state_block = NULL;
 
 
-		/*if (gl_pmyIDirect3DDevice9->text_overlay.font != NULL)
+		/*if (gl_pspIDirect3DDevice9->text_overlay.font != NULL)
 		{
-			gl_pmyIDirect3DDevice9->text_overlay.font->Release()
+			gl_pspIDirect3DDevice9->text_overlay.font->Release()
 		}*/
-		gl_pmyIDirect3DDevice9->text_overlay.font = NULL;
+		gl_pspIDirect3DDevice9->text_overlay.font = NULL;
 
 
 		if (gl_pspIDirect3DSwapChain9 != NULL)
@@ -185,14 +185,14 @@ ULONG myIDirect3DDevice9::Release(void)
 
 		// Delete device wrapper
 		m_pIDirect3DDevice9 = NULL;
-		gl_pmyIDirect3DDevice9 = NULL;
+		gl_pspIDirect3DDevice9 = NULL;
 		delete(this);  // Destructor will be called automatically
 	}
 	
 	return (count);
 }
 
-ULONG myIDirect3DDevice9::ForceRelease()
+ULONG spIDirect3DDevice9::ForceRelease()
 {
 	// ATTENTION: This is a booby-trap! Watch out!
 	// If we create our own sprites, surfaces, etc. (thus increasing the ref counter
@@ -200,13 +200,13 @@ ULONG myIDirect3DDevice9::ForceRelease()
 	// original Release() function.
 
 	// Global vars
-	extern myIDirect3DDevice9 *gl_pmyIDirect3DDevice9;
+	extern spIDirect3DDevice9 *gl_pspIDirect3DDevice9;
 	extern spIDirect3DSwapChain9 *gl_pspIDirect3DSwapChain9;
 
 	KillTimer(NULL, fps_timer_id); // Disable the FPS count timer
 
 	// Release overlay resources
-	if (gl_pmyIDirect3DDevice9 != NULL && overlay_state_block != NULL)
+	if (gl_pspIDirect3DDevice9 != NULL && overlay_state_block != NULL)
 	{
 		overlay_state_block->Release();
 	}
@@ -214,13 +214,13 @@ ULONG myIDirect3DDevice9::ForceRelease()
 
 
 	// Release overlay resources to avoid memory leaks
-	/*if (gl_pmyIDirect3DDevice9 != NULL && gl_pmyIDirect3DDevice9->text_overlay.font != NULL)
+	/*if (gl_pspIDirect3DDevice9 != NULL && gl_pspIDirect3DDevice9->text_overlay.font != NULL)
 	{
 		_SP_D3D9_LOG_EVENT_("Attempting to release font in thread %d", GetCurrentThreadId());
-		//gl_pmyIDirect3DDevice9->text_overlay.font->Release();
-		_SP_D3D9_LOG_EVENT_("Font released; ref count=%u", gl_pmyIDirect3DDevice9->text_overlay.font->Release());
+		//gl_pspIDirect3DDevice9->text_overlay.font->Release();
+		_SP_D3D9_LOG_EVENT_("Font released; ref count=%u", gl_pspIDirect3DDevice9->text_overlay.font->Release());
 	}*/
-	gl_pmyIDirect3DDevice9->text_overlay.font = NULL;
+	gl_pspIDirect3DDevice9->text_overlay.font = NULL;
 
 
 	ULONG count = 1;
@@ -241,14 +241,14 @@ ULONG myIDirect3DDevice9::ForceRelease()
 
 	// Delete device wrapper
 	m_pIDirect3DDevice9 = NULL;
-	gl_pmyIDirect3DDevice9 = NULL;
+	gl_pspIDirect3DDevice9 = NULL;
 	delete(this);  // Destructor will be called automatically
 
 	return (count);
 }
 
 
-HRESULT myIDirect3DDevice9::TestCooperativeLevel(void)
+HRESULT spIDirect3DDevice9::TestCooperativeLevel(void)
 {
 	HRESULT hres = m_pIDirect3DDevice9->TestCooperativeLevel();
 
@@ -260,57 +260,57 @@ HRESULT myIDirect3DDevice9::TestCooperativeLevel(void)
 	return hres;
 }
 
-UINT myIDirect3DDevice9::GetAvailableTextureMem(void)
+UINT spIDirect3DDevice9::GetAvailableTextureMem(void)
 {
 	return(m_pIDirect3DDevice9->GetAvailableTextureMem());
 }
 
-HRESULT myIDirect3DDevice9::EvictManagedResources(void)
+HRESULT spIDirect3DDevice9::EvictManagedResources(void)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->EvictManagedResources());
 }
 
-HRESULT myIDirect3DDevice9::GetDirect3D(IDirect3D9** ppD3D9)
+HRESULT spIDirect3DDevice9::GetDirect3D(IDirect3D9** ppD3D9)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetDirect3D(ppD3D9));
 }
 
-HRESULT myIDirect3DDevice9::GetDeviceCaps(D3DCAPS9* pCaps)
+HRESULT spIDirect3DDevice9::GetDeviceCaps(D3DCAPS9* pCaps)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetDeviceCaps(pCaps));
 }
 
-HRESULT myIDirect3DDevice9::GetDisplayMode(UINT iSwapChain, D3DDISPLAYMODE* pMode)
+HRESULT spIDirect3DDevice9::GetDisplayMode(UINT iSwapChain, D3DDISPLAYMODE* pMode)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetDisplayMode(iSwapChain, pMode));
 }
 
-HRESULT myIDirect3DDevice9::GetCreationParameters(D3DDEVICE_CREATION_PARAMETERS *pParameters)
+HRESULT spIDirect3DDevice9::GetCreationParameters(D3DDEVICE_CREATION_PARAMETERS *pParameters)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetCreationParameters(pParameters));
 }
 
-HRESULT myIDirect3DDevice9::SetCursorProperties(UINT XHotSpot, UINT YHotSpot, IDirect3DSurface9* pCursorBitmap)
+HRESULT spIDirect3DDevice9::SetCursorProperties(UINT XHotSpot, UINT YHotSpot, IDirect3DSurface9* pCursorBitmap)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetCursorProperties(XHotSpot, YHotSpot, pCursorBitmap));
 }
 
-void    myIDirect3DDevice9::SetCursorPosition(int X, int Y, DWORD Flags)
+void    spIDirect3DDevice9::SetCursorPosition(int X, int Y, DWORD Flags)
 {
 	return(m_pIDirect3DDevice9->SetCursorPosition(X, Y, Flags));
 }
 
-BOOL    myIDirect3DDevice9::ShowCursor(BOOL bShow)
+BOOL    spIDirect3DDevice9::ShowCursor(BOOL bShow)
 {
 	return(m_pIDirect3DDevice9->ShowCursor(bShow));
 }
 
-HRESULT myIDirect3DDevice9::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DSwapChain9** pSwapChain)
+HRESULT spIDirect3DDevice9::CreateAdditionalSwapChain(D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DSwapChain9** pSwapChain)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateAdditionalSwapChain(pPresentationParameters, pSwapChain));
 }
 
-HRESULT myIDirect3DDevice9::GetSwapChain(UINT iSwapChain, IDirect3DSwapChain9** pSwapChain)
+HRESULT spIDirect3DDevice9::GetSwapChain(UINT iSwapChain, IDirect3DSwapChain9** pSwapChain)
 {
 	extern spIDirect3DSwapChain9 *gl_pspIDirect3DSwapChain9;
 
@@ -337,12 +337,12 @@ HRESULT myIDirect3DDevice9::GetSwapChain(UINT iSwapChain, IDirect3DSwapChain9** 
 	return hres;
 }
 
-UINT    myIDirect3DDevice9::GetNumberOfSwapChains(void)
+UINT    spIDirect3DDevice9::GetNumberOfSwapChains(void)
 {
 	return(m_pIDirect3DDevice9->GetNumberOfSwapChains());
 }
 
-HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
+HRESULT spIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
 	_SP_D3D9_LOG_EVENT_("Entering %s (thread %d)", __FUNCTION__, GetCurrentThreadId());
 
@@ -457,7 +457,7 @@ HRESULT myIDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters
 	return hres;
 }
 
-HRESULT myIDirect3DDevice9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion)
+HRESULT spIDirect3DDevice9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion)
 {
 	// Draw overlay before presenting frame
 	draw_overlay(m_pIDirect3DDevice9, NULL);
@@ -469,119 +469,119 @@ HRESULT myIDirect3DDevice9::Present(CONST RECT* pSourceRect, CONST RECT* pDestRe
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion));
 }
 
-HRESULT myIDirect3DDevice9::GetBackBuffer(UINT iSwapChain, UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer)
+HRESULT spIDirect3DDevice9::GetBackBuffer(UINT iSwapChain, UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9** ppBackBuffer)
 {
 	get_back_buffer_calls++;
 
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetBackBuffer(iSwapChain, iBackBuffer, Type, ppBackBuffer));
 }
 
-HRESULT myIDirect3DDevice9::GetRasterStatus(UINT iSwapChain, D3DRASTER_STATUS* pRasterStatus)
+HRESULT spIDirect3DDevice9::GetRasterStatus(UINT iSwapChain, D3DRASTER_STATUS* pRasterStatus)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetRasterStatus(iSwapChain, pRasterStatus));
 }
 
-HRESULT myIDirect3DDevice9::SetDialogBoxMode(BOOL bEnableDialogs)
+HRESULT spIDirect3DDevice9::SetDialogBoxMode(BOOL bEnableDialogs)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetDialogBoxMode(bEnableDialogs));
 }
 
-void    myIDirect3DDevice9::SetGammaRamp(UINT iSwapChain, DWORD Flags, CONST D3DGAMMARAMP* pRamp)
+void    spIDirect3DDevice9::SetGammaRamp(UINT iSwapChain, DWORD Flags, CONST D3DGAMMARAMP* pRamp)
 {
 	return(m_pIDirect3DDevice9->SetGammaRamp(iSwapChain, Flags, pRamp));
 }
 
-void    myIDirect3DDevice9::GetGammaRamp(UINT iSwapChain, D3DGAMMARAMP* pRamp)
+void    spIDirect3DDevice9::GetGammaRamp(UINT iSwapChain, D3DGAMMARAMP* pRamp)
 {
 	return(m_pIDirect3DDevice9->GetGammaRamp(iSwapChain, pRamp));
 }
 
-HRESULT myIDirect3DDevice9::CreateTexture(UINT Width, UINT Height, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DTexture9** ppTexture, HANDLE* pSharedHandle)
+HRESULT spIDirect3DDevice9::CreateTexture(UINT Width, UINT Height, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DTexture9** ppTexture, HANDLE* pSharedHandle)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle));
 }
 
-HRESULT myIDirect3DDevice9::CreateVolumeTexture(UINT Width, UINT Height, UINT Depth, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DVolumeTexture9** ppVolumeTexture, HANDLE* pSharedHandle)
+HRESULT spIDirect3DDevice9::CreateVolumeTexture(UINT Width, UINT Height, UINT Depth, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DVolumeTexture9** ppVolumeTexture, HANDLE* pSharedHandle)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, ppVolumeTexture, pSharedHandle));
 }
 
-HRESULT myIDirect3DDevice9::CreateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9** ppCubeTexture, HANDLE* pSharedHandle)
+HRESULT spIDirect3DDevice9::CreateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9** ppCubeTexture, HANDLE* pSharedHandle)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, ppCubeTexture, pSharedHandle));
 }
 
-HRESULT myIDirect3DDevice9::CreateVertexBuffer(UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool, IDirect3DVertexBuffer9** ppVertexBuffer, HANDLE* pSharedHandle)
+HRESULT spIDirect3DDevice9::CreateVertexBuffer(UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool, IDirect3DVertexBuffer9** ppVertexBuffer, HANDLE* pSharedHandle)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateVertexBuffer(Length, Usage, FVF, Pool, ppVertexBuffer, pSharedHandle));
 }
 
-HRESULT myIDirect3DDevice9::CreateIndexBuffer(UINT Length, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DIndexBuffer9** ppIndexBuffer, HANDLE* pSharedHandle)
+HRESULT spIDirect3DDevice9::CreateIndexBuffer(UINT Length, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DIndexBuffer9** ppIndexBuffer, HANDLE* pSharedHandle)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateIndexBuffer(Length, Usage, Format, Pool, ppIndexBuffer, pSharedHandle));
 }
 
-HRESULT myIDirect3DDevice9::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Lockable, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
+HRESULT spIDirect3DDevice9::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Lockable, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle));
 }
 
-HRESULT myIDirect3DDevice9::CreateDepthStencilSurface(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Discard, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
+HRESULT spIDirect3DDevice9::CreateDepthStencilSurface(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Discard, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, ppSurface, pSharedHandle));
 }
 
-HRESULT myIDirect3DDevice9::UpdateSurface(IDirect3DSurface9* pSourceSurface, CONST RECT* pSourceRect, IDirect3DSurface9* pDestinationSurface, CONST POINT* pDestPoint)
+HRESULT spIDirect3DDevice9::UpdateSurface(IDirect3DSurface9* pSourceSurface, CONST RECT* pSourceRect, IDirect3DSurface9* pDestinationSurface, CONST POINT* pDestPoint)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->UpdateSurface(pSourceSurface, pSourceRect, pDestinationSurface, pDestPoint));
 }
 
-HRESULT myIDirect3DDevice9::UpdateTexture(IDirect3DBaseTexture9* pSourceTexture, IDirect3DBaseTexture9* pDestinationTexture)
+HRESULT spIDirect3DDevice9::UpdateTexture(IDirect3DBaseTexture9* pSourceTexture, IDirect3DBaseTexture9* pDestinationTexture)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->UpdateTexture(pSourceTexture, pDestinationTexture));
 }
 
-HRESULT myIDirect3DDevice9::GetRenderTargetData(IDirect3DSurface9* pRenderTarget, IDirect3DSurface9* pDestSurface)
+HRESULT spIDirect3DDevice9::GetRenderTargetData(IDirect3DSurface9* pRenderTarget, IDirect3DSurface9* pDestSurface)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetRenderTargetData(pRenderTarget, pDestSurface));
 }
 
-HRESULT myIDirect3DDevice9::GetFrontBufferData(UINT iSwapChain, IDirect3DSurface9* pDestSurface)
+HRESULT spIDirect3DDevice9::GetFrontBufferData(UINT iSwapChain, IDirect3DSurface9* pDestSurface)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetFrontBufferData(iSwapChain, pDestSurface));
 }
 
-HRESULT myIDirect3DDevice9::StretchRect(IDirect3DSurface9* pSourceSurface, CONST RECT* pSourceRect, IDirect3DSurface9* pDestSurface, CONST RECT* pDestRect, D3DTEXTUREFILTERTYPE Filter)
+HRESULT spIDirect3DDevice9::StretchRect(IDirect3DSurface9* pSourceSurface, CONST RECT* pSourceRect, IDirect3DSurface9* pDestSurface, CONST RECT* pDestRect, D3DTEXTUREFILTERTYPE Filter)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->StretchRect(pSourceSurface, pSourceRect, pDestSurface, pDestRect, Filter));
 }
 
-HRESULT myIDirect3DDevice9::ColorFill(IDirect3DSurface9* pSurface, CONST RECT* pRect, D3DCOLOR color)
+HRESULT spIDirect3DDevice9::ColorFill(IDirect3DSurface9* pSurface, CONST RECT* pRect, D3DCOLOR color)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->ColorFill(pSurface, pRect, color));
 }
 
-HRESULT myIDirect3DDevice9::CreateOffscreenPlainSurface(UINT Width, UINT Height, D3DFORMAT Format, D3DPOOL Pool, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
+HRESULT spIDirect3DDevice9::CreateOffscreenPlainSurface(UINT Width, UINT Height, D3DFORMAT Format, D3DPOOL Pool, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateOffscreenPlainSurface(Width, Height, Format, Pool, ppSurface, pSharedHandle));
 }
 
-HRESULT myIDirect3DDevice9::SetRenderTarget(DWORD RenderTargetIndex, IDirect3DSurface9* pRenderTarget)
+HRESULT spIDirect3DDevice9::SetRenderTarget(DWORD RenderTargetIndex, IDirect3DSurface9* pRenderTarget)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetRenderTarget(RenderTargetIndex, pRenderTarget));
 }
 
-HRESULT myIDirect3DDevice9::GetRenderTarget(DWORD RenderTargetIndex, IDirect3DSurface9** ppRenderTarget)
+HRESULT spIDirect3DDevice9::GetRenderTarget(DWORD RenderTargetIndex, IDirect3DSurface9** ppRenderTarget)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetRenderTarget(RenderTargetIndex, ppRenderTarget));
 }
 
-HRESULT myIDirect3DDevice9::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
+HRESULT spIDirect3DDevice9::SetDepthStencilSurface(IDirect3DSurface9* pNewZStencil)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetDepthStencilSurface(pNewZStencil));
 }
 
-HRESULT myIDirect3DDevice9::GetDepthStencilSurface(IDirect3DSurface9** ppZStencilSurface)
+HRESULT spIDirect3DDevice9::GetDepthStencilSurface(IDirect3DSurface9** ppZStencilSurface)
 {
 	HRESULT hres = m_pIDirect3DDevice9->GetDepthStencilSurface(ppZStencilSurface);
 
@@ -593,13 +593,13 @@ HRESULT myIDirect3DDevice9::GetDepthStencilSurface(IDirect3DSurface9** ppZStenci
 	return hres;
 }
 
-HRESULT myIDirect3DDevice9::BeginScene(void)
+HRESULT spIDirect3DDevice9::BeginScene(void)
 {
 	in_scene = true;
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->BeginScene());
 }
 
-HRESULT myIDirect3DDevice9::EndScene(void)
+HRESULT spIDirect3DDevice9::EndScene(void)
 {
 	// Draw overlay before the scene is shown to the user:
 
@@ -632,382 +632,382 @@ HRESULT myIDirect3DDevice9::EndScene(void)
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->EndScene());
 }
 
-HRESULT myIDirect3DDevice9::Clear(DWORD Count, CONST D3DRECT* pRects, DWORD Flags, D3DCOLOR Color, float Z, DWORD Stencil)
+HRESULT spIDirect3DDevice9::Clear(DWORD Count, CONST D3DRECT* pRects, DWORD Flags, D3DCOLOR Color, float Z, DWORD Stencil)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->Clear(Count, pRects, Flags, Color, Z, Stencil));
 }
 
-HRESULT myIDirect3DDevice9::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
+HRESULT spIDirect3DDevice9::SetTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetTransform(State, pMatrix));
 }
 
-HRESULT myIDirect3DDevice9::GetTransform(D3DTRANSFORMSTATETYPE State, D3DMATRIX* pMatrix)
+HRESULT spIDirect3DDevice9::GetTransform(D3DTRANSFORMSTATETYPE State, D3DMATRIX* pMatrix)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetTransform(State, pMatrix));
 }
 
-HRESULT myIDirect3DDevice9::MultiplyTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
+HRESULT spIDirect3DDevice9::MultiplyTransform(D3DTRANSFORMSTATETYPE State, CONST D3DMATRIX* pMatrix)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->MultiplyTransform(State, pMatrix));
 }
 
-HRESULT myIDirect3DDevice9::SetViewport(CONST D3DVIEWPORT9* pViewport)
+HRESULT spIDirect3DDevice9::SetViewport(CONST D3DVIEWPORT9* pViewport)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetViewport(pViewport));
 }
 
-HRESULT myIDirect3DDevice9::GetViewport(D3DVIEWPORT9* pViewport)
+HRESULT spIDirect3DDevice9::GetViewport(D3DVIEWPORT9* pViewport)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetViewport(pViewport));
 }
 
-HRESULT myIDirect3DDevice9::SetMaterial(CONST D3DMATERIAL9* pMaterial)
+HRESULT spIDirect3DDevice9::SetMaterial(CONST D3DMATERIAL9* pMaterial)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetMaterial(pMaterial));
 }
 
-HRESULT myIDirect3DDevice9::GetMaterial(D3DMATERIAL9* pMaterial)
+HRESULT spIDirect3DDevice9::GetMaterial(D3DMATERIAL9* pMaterial)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetMaterial(pMaterial));
 }
 
-HRESULT myIDirect3DDevice9::SetLight(DWORD Index, CONST D3DLIGHT9* pLight)
+HRESULT spIDirect3DDevice9::SetLight(DWORD Index, CONST D3DLIGHT9* pLight)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetLight(Index, pLight));
 }
 
-HRESULT myIDirect3DDevice9::GetLight(DWORD Index, D3DLIGHT9* pLight)
+HRESULT spIDirect3DDevice9::GetLight(DWORD Index, D3DLIGHT9* pLight)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetLight(Index, pLight));
 }
 
-HRESULT myIDirect3DDevice9::LightEnable(DWORD Index, BOOL Enable)
+HRESULT spIDirect3DDevice9::LightEnable(DWORD Index, BOOL Enable)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->LightEnable(Index, Enable));
 }
 
-HRESULT myIDirect3DDevice9::GetLightEnable(DWORD Index, BOOL* pEnable)
+HRESULT spIDirect3DDevice9::GetLightEnable(DWORD Index, BOOL* pEnable)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetLightEnable(Index, pEnable));
 }
 
-HRESULT myIDirect3DDevice9::SetClipPlane(DWORD Index, CONST float* pPlane)
+HRESULT spIDirect3DDevice9::SetClipPlane(DWORD Index, CONST float* pPlane)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetClipPlane(Index, pPlane));
 }
 
-HRESULT myIDirect3DDevice9::GetClipPlane(DWORD Index, float* pPlane)
+HRESULT spIDirect3DDevice9::GetClipPlane(DWORD Index, float* pPlane)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetClipPlane(Index, pPlane));
 }
 
-HRESULT myIDirect3DDevice9::SetRenderState(D3DRENDERSTATETYPE State, DWORD Value)
+HRESULT spIDirect3DDevice9::SetRenderState(D3DRENDERSTATETYPE State, DWORD Value)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetRenderState(State, Value));
 }
 
-HRESULT myIDirect3DDevice9::GetRenderState(D3DRENDERSTATETYPE State, DWORD* pValue)
+HRESULT spIDirect3DDevice9::GetRenderState(D3DRENDERSTATETYPE State, DWORD* pValue)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetRenderState(State, pValue));
 }
 
-HRESULT myIDirect3DDevice9::CreateStateBlock(D3DSTATEBLOCKTYPE Type, IDirect3DStateBlock9** ppSB)
+HRESULT spIDirect3DDevice9::CreateStateBlock(D3DSTATEBLOCKTYPE Type, IDirect3DStateBlock9** ppSB)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateStateBlock(Type, ppSB));
 }
 
-HRESULT myIDirect3DDevice9::BeginStateBlock(void)
+HRESULT spIDirect3DDevice9::BeginStateBlock(void)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->BeginStateBlock());
 }
 
-HRESULT myIDirect3DDevice9::EndStateBlock(IDirect3DStateBlock9** ppSB)
+HRESULT spIDirect3DDevice9::EndStateBlock(IDirect3DStateBlock9** ppSB)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->EndStateBlock(ppSB));
 }
 
-HRESULT myIDirect3DDevice9::SetClipStatus(CONST D3DCLIPSTATUS9* pClipStatus)
+HRESULT spIDirect3DDevice9::SetClipStatus(CONST D3DCLIPSTATUS9* pClipStatus)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetClipStatus(pClipStatus));
 }
 
-HRESULT myIDirect3DDevice9::GetClipStatus(D3DCLIPSTATUS9* pClipStatus)
+HRESULT spIDirect3DDevice9::GetClipStatus(D3DCLIPSTATUS9* pClipStatus)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetClipStatus(pClipStatus));
 }
 
-HRESULT myIDirect3DDevice9::GetTexture(DWORD Stage, IDirect3DBaseTexture9** ppTexture)
+HRESULT spIDirect3DDevice9::GetTexture(DWORD Stage, IDirect3DBaseTexture9** ppTexture)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetTexture(Stage, ppTexture));
 }
 
-HRESULT myIDirect3DDevice9::SetTexture(DWORD Stage, IDirect3DBaseTexture9* pTexture)
+HRESULT spIDirect3DDevice9::SetTexture(DWORD Stage, IDirect3DBaseTexture9* pTexture)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetTexture(Stage, pTexture));
 }
 
-HRESULT myIDirect3DDevice9::GetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD* pValue)
+HRESULT spIDirect3DDevice9::GetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD* pValue)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetTextureStageState(Stage, Type, pValue));
 }
 
-HRESULT myIDirect3DDevice9::SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value)
+HRESULT spIDirect3DDevice9::SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetTextureStageState(Stage, Type, Value));
 }
 
-HRESULT myIDirect3DDevice9::GetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD* pValue)
+HRESULT spIDirect3DDevice9::GetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD* pValue)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetSamplerState(Sampler, Type, pValue));
 }
 
-HRESULT myIDirect3DDevice9::SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
+HRESULT spIDirect3DDevice9::SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetSamplerState(Sampler, Type, Value));
 }
 
-HRESULT myIDirect3DDevice9::ValidateDevice(DWORD* pNumPasses)
+HRESULT spIDirect3DDevice9::ValidateDevice(DWORD* pNumPasses)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->ValidateDevice(pNumPasses));
 }
 
-HRESULT myIDirect3DDevice9::SetPaletteEntries(UINT PaletteNumber, CONST PALETTEENTRY* pEntries)
+HRESULT spIDirect3DDevice9::SetPaletteEntries(UINT PaletteNumber, CONST PALETTEENTRY* pEntries)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetPaletteEntries(PaletteNumber, pEntries));
 }
 
-HRESULT myIDirect3DDevice9::GetPaletteEntries(UINT PaletteNumber, PALETTEENTRY* pEntries)
+HRESULT spIDirect3DDevice9::GetPaletteEntries(UINT PaletteNumber, PALETTEENTRY* pEntries)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetPaletteEntries(PaletteNumber, pEntries));
 }
 
-HRESULT myIDirect3DDevice9::SetCurrentTexturePalette(UINT PaletteNumber)
+HRESULT spIDirect3DDevice9::SetCurrentTexturePalette(UINT PaletteNumber)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetCurrentTexturePalette(PaletteNumber));
 }
 
-HRESULT myIDirect3DDevice9::GetCurrentTexturePalette(UINT *PaletteNumber)
+HRESULT spIDirect3DDevice9::GetCurrentTexturePalette(UINT *PaletteNumber)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetCurrentTexturePalette(PaletteNumber));
 }
 
-HRESULT myIDirect3DDevice9::SetScissorRect(CONST RECT* pRect)
+HRESULT spIDirect3DDevice9::SetScissorRect(CONST RECT* pRect)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetScissorRect(pRect));
 }
 
-HRESULT myIDirect3DDevice9::GetScissorRect(RECT* pRect)
+HRESULT spIDirect3DDevice9::GetScissorRect(RECT* pRect)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetScissorRect(pRect));
 }
 
-HRESULT myIDirect3DDevice9::SetSoftwareVertexProcessing(BOOL bSoftware)
+HRESULT spIDirect3DDevice9::SetSoftwareVertexProcessing(BOOL bSoftware)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetSoftwareVertexProcessing(bSoftware));
 }
 
-BOOL    myIDirect3DDevice9::GetSoftwareVertexProcessing(void)
+BOOL    spIDirect3DDevice9::GetSoftwareVertexProcessing(void)
 {
 	return(m_pIDirect3DDevice9->GetSoftwareVertexProcessing());
 }
 
-HRESULT myIDirect3DDevice9::SetNPatchMode(float nSegments)
+HRESULT spIDirect3DDevice9::SetNPatchMode(float nSegments)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetNPatchMode(nSegments));
 }
 
-float   myIDirect3DDevice9::GetNPatchMode(void)
+float   spIDirect3DDevice9::GetNPatchMode(void)
 {
 	return(m_pIDirect3DDevice9->GetNPatchMode());
 }
 
-HRESULT myIDirect3DDevice9::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType, UINT StartVertex, UINT PrimitiveCount)
+HRESULT spIDirect3DDevice9::DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType, UINT StartVertex, UINT PrimitiveCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->DrawPrimitive(PrimitiveType, StartVertex, PrimitiveCount));
 }
 
-HRESULT myIDirect3DDevice9::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType, INT BaseVertexIndex, UINT MinVertexIndex, UINT NumVertices, UINT startIndex, UINT primCount)
+HRESULT spIDirect3DDevice9::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType, INT BaseVertexIndex, UINT MinVertexIndex, UINT NumVertices, UINT startIndex, UINT primCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->DrawIndexedPrimitive(PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount));
 }
 
-HRESULT myIDirect3DDevice9::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount, CONST void* pVertexStreamZeroData, UINT VertexStreamZeroStride)
+HRESULT spIDirect3DDevice9::DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount, CONST void* pVertexStreamZeroData, UINT VertexStreamZeroStride)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->DrawPrimitiveUP(PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride));
 }
 
-HRESULT myIDirect3DDevice9::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType, UINT MinVertexIndex, UINT NumVertices, UINT PrimitiveCount, CONST void* pIndexData, D3DFORMAT IndexDataFormat, CONST void* pVertexStreamZeroData, UINT VertexStreamZeroStride)
+HRESULT spIDirect3DDevice9::DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType, UINT MinVertexIndex, UINT NumVertices, UINT PrimitiveCount, CONST void* pIndexData, D3DFORMAT IndexDataFormat, CONST void* pVertexStreamZeroData, UINT VertexStreamZeroStride)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->DrawIndexedPrimitiveUP(PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride));
 }
 
-HRESULT myIDirect3DDevice9::ProcessVertices(UINT SrcStartIndex, UINT DestIndex, UINT VertexCount, IDirect3DVertexBuffer9* pDestBuffer, IDirect3DVertexDeclaration9* pVertexDecl, DWORD Flags)
+HRESULT spIDirect3DDevice9::ProcessVertices(UINT SrcStartIndex, UINT DestIndex, UINT VertexCount, IDirect3DVertexBuffer9* pDestBuffer, IDirect3DVertexDeclaration9* pVertexDecl, DWORD Flags)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->ProcessVertices(SrcStartIndex, DestIndex, VertexCount, pDestBuffer, pVertexDecl, Flags));
 }
 
-HRESULT myIDirect3DDevice9::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* pVertexElements, IDirect3DVertexDeclaration9** ppDecl)
+HRESULT spIDirect3DDevice9::CreateVertexDeclaration(CONST D3DVERTEXELEMENT9* pVertexElements, IDirect3DVertexDeclaration9** ppDecl)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateVertexDeclaration(pVertexElements, ppDecl));
 }
 
-HRESULT myIDirect3DDevice9::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)
+HRESULT spIDirect3DDevice9::SetVertexDeclaration(IDirect3DVertexDeclaration9* pDecl)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetVertexDeclaration(pDecl));
 }
 
-HRESULT myIDirect3DDevice9::GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl)
+HRESULT spIDirect3DDevice9::GetVertexDeclaration(IDirect3DVertexDeclaration9** ppDecl)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetVertexDeclaration(ppDecl));
 }
 
-HRESULT myIDirect3DDevice9::SetFVF(DWORD FVF)
+HRESULT spIDirect3DDevice9::SetFVF(DWORD FVF)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetFVF(FVF));
 }
 
-HRESULT myIDirect3DDevice9::GetFVF(DWORD* pFVF)
+HRESULT spIDirect3DDevice9::GetFVF(DWORD* pFVF)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetFVF(pFVF));
 }
 
-HRESULT myIDirect3DDevice9::CreateVertexShader(CONST DWORD* pFunction, IDirect3DVertexShader9** ppShader)
+HRESULT spIDirect3DDevice9::CreateVertexShader(CONST DWORD* pFunction, IDirect3DVertexShader9** ppShader)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateVertexShader(pFunction, ppShader));
 }
 
-HRESULT myIDirect3DDevice9::SetVertexShader(IDirect3DVertexShader9* pShader)
+HRESULT spIDirect3DDevice9::SetVertexShader(IDirect3DVertexShader9* pShader)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetVertexShader(pShader));
 }
 
-HRESULT myIDirect3DDevice9::GetVertexShader(IDirect3DVertexShader9** ppShader)
+HRESULT spIDirect3DDevice9::GetVertexShader(IDirect3DVertexShader9** ppShader)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetVertexShader(ppShader));
 }
 
-HRESULT myIDirect3DDevice9::SetVertexShaderConstantF(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
+HRESULT spIDirect3DDevice9::SetVertexShaderConstantF(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount));
 }
 
-HRESULT myIDirect3DDevice9::GetVertexShaderConstantF(UINT StartRegister, float* pConstantData, UINT Vector4fCount)
+HRESULT spIDirect3DDevice9::GetVertexShaderConstantF(UINT StartRegister, float* pConstantData, UINT Vector4fCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetVertexShaderConstantF(StartRegister, pConstantData, Vector4fCount));
 }
 
-HRESULT myIDirect3DDevice9::SetVertexShaderConstantI(UINT StartRegister, CONST int* pConstantData, UINT Vector4iCount)
+HRESULT spIDirect3DDevice9::SetVertexShaderConstantI(UINT StartRegister, CONST int* pConstantData, UINT Vector4iCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetVertexShaderConstantI(StartRegister, pConstantData, Vector4iCount));
 }
 
-HRESULT myIDirect3DDevice9::GetVertexShaderConstantI(UINT StartRegister, int* pConstantData, UINT Vector4iCount)
+HRESULT spIDirect3DDevice9::GetVertexShaderConstantI(UINT StartRegister, int* pConstantData, UINT Vector4iCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetVertexShaderConstantI(StartRegister, pConstantData, Vector4iCount));
 }
 
-HRESULT myIDirect3DDevice9::SetVertexShaderConstantB(UINT StartRegister, CONST BOOL* pConstantData, UINT  BoolCount)
+HRESULT spIDirect3DDevice9::SetVertexShaderConstantB(UINT StartRegister, CONST BOOL* pConstantData, UINT  BoolCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetVertexShaderConstantB(StartRegister, pConstantData, BoolCount));
 }
 
-HRESULT myIDirect3DDevice9::GetVertexShaderConstantB(UINT StartRegister, BOOL* pConstantData, UINT BoolCount)
+HRESULT spIDirect3DDevice9::GetVertexShaderConstantB(UINT StartRegister, BOOL* pConstantData, UINT BoolCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetVertexShaderConstantB(StartRegister, pConstantData, BoolCount));
 }
 
-HRESULT myIDirect3DDevice9::SetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9* pStreamData, UINT OffsetInBytes, UINT Stride)
+HRESULT spIDirect3DDevice9::SetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9* pStreamData, UINT OffsetInBytes, UINT Stride)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetStreamSource(StreamNumber, pStreamData, OffsetInBytes, Stride));
 }
 
-HRESULT myIDirect3DDevice9::GetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9** ppStreamData, UINT* OffsetInBytes, UINT* pStride)
+HRESULT spIDirect3DDevice9::GetStreamSource(UINT StreamNumber, IDirect3DVertexBuffer9** ppStreamData, UINT* OffsetInBytes, UINT* pStride)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetStreamSource(StreamNumber, ppStreamData, OffsetInBytes, pStride));
 }
 
-HRESULT myIDirect3DDevice9::SetStreamSourceFreq(UINT StreamNumber, UINT Divider)
+HRESULT spIDirect3DDevice9::SetStreamSourceFreq(UINT StreamNumber, UINT Divider)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetStreamSourceFreq(StreamNumber, Divider));
 }
 
-HRESULT myIDirect3DDevice9::GetStreamSourceFreq(UINT StreamNumber, UINT* Divider)
+HRESULT spIDirect3DDevice9::GetStreamSourceFreq(UINT StreamNumber, UINT* Divider)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetStreamSourceFreq(StreamNumber, Divider));
 }
 
-HRESULT myIDirect3DDevice9::SetIndices(IDirect3DIndexBuffer9* pIndexData)
+HRESULT spIDirect3DDevice9::SetIndices(IDirect3DIndexBuffer9* pIndexData)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetIndices(pIndexData));
 }
 
-HRESULT myIDirect3DDevice9::GetIndices(IDirect3DIndexBuffer9** ppIndexData)
+HRESULT spIDirect3DDevice9::GetIndices(IDirect3DIndexBuffer9** ppIndexData)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetIndices(ppIndexData));
 }
 
-HRESULT myIDirect3DDevice9::CreatePixelShader(CONST DWORD* pFunction, IDirect3DPixelShader9** ppShader)
+HRESULT spIDirect3DDevice9::CreatePixelShader(CONST DWORD* pFunction, IDirect3DPixelShader9** ppShader)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreatePixelShader(pFunction, ppShader));
 }
 
-HRESULT myIDirect3DDevice9::SetPixelShader(IDirect3DPixelShader9* pShader)
+HRESULT spIDirect3DDevice9::SetPixelShader(IDirect3DPixelShader9* pShader)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetPixelShader(pShader));
 }
 
-HRESULT myIDirect3DDevice9::GetPixelShader(IDirect3DPixelShader9** ppShader)
+HRESULT spIDirect3DDevice9::GetPixelShader(IDirect3DPixelShader9** ppShader)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetPixelShader(ppShader));
 }
 
-HRESULT myIDirect3DDevice9::SetPixelShaderConstantF(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
+HRESULT spIDirect3DDevice9::SetPixelShaderConstantF(UINT StartRegister, CONST float* pConstantData, UINT Vector4fCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetPixelShaderConstantF(StartRegister, pConstantData, Vector4fCount));
 }
 
-HRESULT myIDirect3DDevice9::GetPixelShaderConstantF(UINT StartRegister, float* pConstantData, UINT Vector4fCount)
+HRESULT spIDirect3DDevice9::GetPixelShaderConstantF(UINT StartRegister, float* pConstantData, UINT Vector4fCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetPixelShaderConstantF(StartRegister, pConstantData, Vector4fCount));
 }
 
-HRESULT myIDirect3DDevice9::SetPixelShaderConstantI(UINT StartRegister, CONST int* pConstantData, UINT Vector4iCount)
+HRESULT spIDirect3DDevice9::SetPixelShaderConstantI(UINT StartRegister, CONST int* pConstantData, UINT Vector4iCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetPixelShaderConstantI(StartRegister, pConstantData, Vector4iCount));
 }
 
-HRESULT myIDirect3DDevice9::GetPixelShaderConstantI(UINT StartRegister, int* pConstantData, UINT Vector4iCount)
+HRESULT spIDirect3DDevice9::GetPixelShaderConstantI(UINT StartRegister, int* pConstantData, UINT Vector4iCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetPixelShaderConstantI(StartRegister, pConstantData, Vector4iCount));
 }
 
-HRESULT myIDirect3DDevice9::SetPixelShaderConstantB(UINT StartRegister, CONST BOOL* pConstantData, UINT  BoolCount)
+HRESULT spIDirect3DDevice9::SetPixelShaderConstantB(UINT StartRegister, CONST BOOL* pConstantData, UINT  BoolCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->SetPixelShaderConstantB(StartRegister, pConstantData, BoolCount));
 }
 
-HRESULT myIDirect3DDevice9::GetPixelShaderConstantB(UINT StartRegister, BOOL* pConstantData, UINT BoolCount)
+HRESULT spIDirect3DDevice9::GetPixelShaderConstantB(UINT StartRegister, BOOL* pConstantData, UINT BoolCount)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->GetPixelShaderConstantB(StartRegister, pConstantData, BoolCount));
 }
 
-HRESULT myIDirect3DDevice9::DrawRectPatch(UINT Handle, CONST float* pNumSegs, CONST D3DRECTPATCH_INFO* pRectPatchInfo)
+HRESULT spIDirect3DDevice9::DrawRectPatch(UINT Handle, CONST float* pNumSegs, CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->DrawRectPatch(Handle, pNumSegs, pRectPatchInfo));
 }
 
-HRESULT myIDirect3DDevice9::DrawTriPatch(UINT Handle, CONST float* pNumSegs, CONST D3DTRIPATCH_INFO* pTriPatchInfo)
+HRESULT spIDirect3DDevice9::DrawTriPatch(UINT Handle, CONST float* pNumSegs, CONST D3DTRIPATCH_INFO* pTriPatchInfo)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->DrawTriPatch(Handle, pNumSegs, pTriPatchInfo));
 }
 
-HRESULT myIDirect3DDevice9::DeletePatch(UINT Handle)
+HRESULT spIDirect3DDevice9::DeletePatch(UINT Handle)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->DeletePatch(Handle));
 }
 
-HRESULT myIDirect3DDevice9::CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** ppQuery)
+HRESULT spIDirect3DDevice9::CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** ppQuery)
 {
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->CreateQuery(Type, ppQuery));
 }
@@ -1019,7 +1019,7 @@ HRESULT myIDirect3DDevice9::CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** ppQ
 
 
 // Renders the overlay text feed (monochromatic)
-void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed()
+void spIDirect3DDevice9::SP_DX9_draw_overlay_text_feed()
 {
 	if (!overlay_rendered_this_frame)
 	{
@@ -1050,7 +1050,7 @@ void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed()
 
 
 // Renders the overlay text feed (multicolor)
-void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed_multicolor()
+void spIDirect3DDevice9::SP_DX9_draw_overlay_text_feed_multicolor()
 {
 	if (!overlay_rendered_this_frame)
 	{
@@ -1092,7 +1092,7 @@ void myIDirect3DDevice9::SP_DX9_draw_overlay_text_feed_multicolor()
 
 
 // Initializes overlay text feed data structure
-void myIDirect3DDevice9::SP_DX9_init_text_overlay(IDirect3DDevice9 *device,
+void spIDirect3DDevice9::SP_DX9_init_text_overlay(IDirect3DDevice9 *device,
 	int text_height,
 	unsigned int outline_thickness,
 	int shadow_x_offset,
@@ -1176,13 +1176,13 @@ void myIDirect3DDevice9::SP_DX9_init_text_overlay(IDirect3DDevice9 *device,
 
 
 // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
-void myIDirect3DDevice9::init_text_overlay_rects()
+void spIDirect3DDevice9::init_text_overlay_rects()
 {
 	init_text_overlay_rects(game_window_rect);
 }
 
 // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
-void myIDirect3DDevice9::init_text_overlay_rects(RECT *window_rect)
+void spIDirect3DDevice9::init_text_overlay_rects(RECT *window_rect)
 {
 	extern int user_pref_dspw_ol_offset; // Used to adjust the overlay to avoid clipping with the DSPW overlay
 
@@ -1301,7 +1301,7 @@ void myIDirect3DDevice9::init_text_overlay_rects(RECT *window_rect)
 
 
 // Changes the font height of the overlay text feed
-void myIDirect3DDevice9::SP_DX9_set_text_height(IDirect3DDevice9 *device, int new_text_height)
+void spIDirect3DDevice9::SP_DX9_set_text_height(IDirect3DDevice9 *device, int new_text_height)
 {
 	// Store the current font attributes
 	D3DXFONT_DESC font_desc;
@@ -1347,7 +1347,7 @@ void myIDirect3DDevice9::SP_DX9_set_text_height(IDirect3DDevice9 *device, int ne
 // Adds a message to the text overlay feed; the message expires in a number of
 //	milliseconds denoted by the duration parameter.
 // NOTE: Overlay text feed currently does NOT support multi-line messages. Print each line as a separate message instead.
-void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp, int text_color)
+void spIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp, int text_color)
 {
 	// Overlay must be temporarily disabled to avoid race conditions because this function can be called from other threads
 	bool reenable_overlay;
@@ -1422,7 +1422,7 @@ void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned lon
 // Adds a message to the text overlay feed; the message expires in a number of
 //	milliseconds denoted by the duration parameter. (Monochromatic)
 // NOTE: Overlay text feed currently does NOT support multi-line messages. Print each line as a separate message instead.
-void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp)
+void spIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp)
 {
 	// Call overloaded function with default text color specified
 	print_to_overlay_feed(message, duration, include_timestamp, 0);
@@ -1431,7 +1431,7 @@ void myIDirect3DDevice9::print_to_overlay_feed(const char *message, unsigned lon
 
 
 // Removes expired messages from the overlay text feed
-void myIDirect3DDevice9::clean_text_overlay_feed()
+void spIDirect3DDevice9::clean_text_overlay_feed()
 {
 	// Get current time (in milliseconds since epoch)
 	unsigned long long ms_since_epoch = std::chrono::system_clock::now().time_since_epoch() /
@@ -1456,7 +1456,7 @@ void myIDirect3DDevice9::clean_text_overlay_feed()
 
 
 // Constructs the overlay text feed from the current list of messages (monochromatic)
-void myIDirect3DDevice9::build_text_overlay_feed_string()
+void spIDirect3DDevice9::build_text_overlay_feed_string()
 {
 	// Erase text feed string from last-rendered frame
 	text_overlay.feed_full_text.clear();
@@ -1490,7 +1490,7 @@ void myIDirect3DDevice9::build_text_overlay_feed_string()
 
 
 // Constructs the overlay text feed from the current list of messages (multicolor)
-void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor()
+void spIDirect3DDevice9::build_text_overlay_feed_string_multicolor()
 {
 	// Iterate through overlay text feed message list for each color
 	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator;
@@ -1547,7 +1547,7 @@ void myIDirect3DDevice9::build_text_overlay_feed_string_multicolor()
 
 
 // Updates the various overlay text feed info line attributes
-void myIDirect3DDevice9::update_overlay_text_feed_info_string()
+void spIDirect3DDevice9::update_overlay_text_feed_info_string()
 {
 	text_feed_info_string.clear();
 
@@ -1608,34 +1608,34 @@ void myIDirect3DDevice9::update_overlay_text_feed_info_string()
 // (Called once per second) Records the number of frames that were rendered in the last second.
 void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 {
-	extern myIDirect3DDevice9 *gl_pmyIDirect3DDevice9;
+	extern spIDirect3DDevice9 *gl_pspIDirect3DDevice9;
 
-	if (gl_pmyIDirect3DDevice9->present_calls >= gl_pmyIDirect3DDevice9->swap_chain_present_calls)
+	if (gl_pspIDirect3DDevice9->present_calls >= gl_pspIDirect3DDevice9->swap_chain_present_calls)
 	{
 		// Program uses IDirect3DDevice9::Present() to render frames
-		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->present_calls; // Store the number of frames that were rendered in the last second
+		gl_pspIDirect3DDevice9->fps = gl_pspIDirect3DDevice9->present_calls; // Store the number of frames that were rendered in the last second
 	}
 	else
 	{
 		// Program uses IDirect3DSwapChain9::Present() to render frames
-		gl_pmyIDirect3DDevice9->fps = gl_pmyIDirect3DDevice9->swap_chain_present_calls; // Store the number of frames that were rendered in the last second
+		gl_pspIDirect3DDevice9->fps = gl_pspIDirect3DDevice9->swap_chain_present_calls; // Store the number of frames that were rendered in the last second
 	}
 
 	// Reset call counters
-	gl_pmyIDirect3DDevice9->present_calls = 0;
-	gl_pmyIDirect3DDevice9->swap_chain_present_calls = 0;
-	gl_pmyIDirect3DDevice9->endscene_calls = 0;
-	gl_pmyIDirect3DDevice9->get_back_buffer_calls = 0;
+	gl_pspIDirect3DDevice9->present_calls = 0;
+	gl_pspIDirect3DDevice9->swap_chain_present_calls = 0;
+	gl_pspIDirect3DDevice9->endscene_calls = 0;
+	gl_pspIDirect3DDevice9->get_back_buffer_calls = 0;
 
 	// Restart timer
-	if (!(gl_pmyIDirect3DDevice9->fps_timer_id = SetTimer(NULL, idEvent, 1000, &update_fps)))
+	if (!(gl_pspIDirect3DDevice9->fps_timer_id = SetTimer(NULL, idEvent, 1000, &update_fps)))
 	{
 		// Handle error
 	}
 }
 
 // Prints various game window data to the overlay text feed
-void myIDirect3DDevice9::print_debug_data(unsigned long long duration, bool show_timestamp)
+void spIDirect3DDevice9::print_debug_data(unsigned long long duration, bool show_timestamp)
 {
 	std::string str;
 	if (is_windowed)
@@ -1708,7 +1708,7 @@ void myIDirect3DDevice9::print_debug_data(unsigned long long duration, bool show
 
 
 // Calculates the next ARGB color value for text whose color cycles through all colors
-void myIDirect3DDevice9::cycle_text_colors()
+void spIDirect3DDevice9::cycle_text_colors()
 {
 	if (cycle_all_colors_current_rgb_vals[0] == 0x00FF0000 && cycle_all_colors_current_rgb_vals[1] != 0x0000FF00 && cycle_all_colors_current_rgb_vals[2] == 0x00000000)
 	{
@@ -1766,7 +1766,7 @@ void rect_to_string(RECT *rect, const char *rect_name, std::string *str)
 }
 
 // Constructs a RECT struct from the device viewport
-RECT *myIDirect3DDevice9::get_viewport_as_rect(RECT *rect)
+RECT *spIDirect3DDevice9::get_viewport_as_rect(RECT *rect)
 {
 	D3DVIEWPORT9 viewport;
 	HRESULT hres = GetViewport(&viewport);
@@ -1782,7 +1782,7 @@ RECT *myIDirect3DDevice9::get_viewport_as_rect(RECT *rect)
 }
 
 // Constructs a RECT struct from the device viewport (and stores the viewport)
-RECT *myIDirect3DDevice9::get_viewport_as_rect(RECT *rect, D3DVIEWPORT9 *viewport)
+RECT *spIDirect3DDevice9::get_viewport_as_rect(RECT *rect, D3DVIEWPORT9 *viewport)
 {
 	HRESULT hres = GetViewport(viewport);
 
@@ -1796,7 +1796,7 @@ RECT *myIDirect3DDevice9::get_viewport_as_rect(RECT *rect, D3DVIEWPORT9 *viewpor
 	return rect;
 }
 
-void myIDirect3DDevice9::update_overlay_parameters()
+void spIDirect3DDevice9::update_overlay_parameters()
 {
 	// Store the device window attributes
 	if (device_window != NULL)
@@ -1835,7 +1835,7 @@ void myIDirect3DDevice9::update_overlay_parameters()
 // Creates a suitable state block for drawing the overlay.
 //	This method was created with the help of the Mumble source code, found here:
 //		https://github.com/mumble-voip/mumble/blob/master/overlay/d3d9.cpp
-void myIDirect3DDevice9::create_overlay_state_block()
+void spIDirect3DDevice9::create_overlay_state_block()
 {
 	HRESULT hres;
 
@@ -1901,7 +1901,7 @@ void myIDirect3DDevice9::create_overlay_state_block()
 // Draws the overlay.
 //	This method was created with the help of the Mumble source code, found here:
 //		https://github.com/mumble-voip/mumble/blob/master/overlay/d3d9.cpp
-void myIDirect3DDevice9::draw_overlay(IDirect3DDevice9 *device, IDirect3DSwapChain9 *swap_chain)
+void spIDirect3DDevice9::draw_overlay(IDirect3DDevice9 *device, IDirect3DSwapChain9 *swap_chain)
 {
 	if (!text_overlay.enabled)
 	{

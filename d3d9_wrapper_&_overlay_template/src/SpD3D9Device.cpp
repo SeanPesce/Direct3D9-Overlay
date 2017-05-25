@@ -98,7 +98,7 @@ SpD3D9Device::SpD3D9Device(UINT Adapter, IDirect3DDevice9* pOriginal, HWND new_f
 	}
 
 	// Initialize overlay text feed
-	SP_DX9_init_text_overlay(pOriginal,
+	SP_D3D9_init_text_overlay(pOriginal,
 		_SP_DEFAULT_TEXT_HEIGHT_,
 		_SP_DEFAULT_TEXT_OUTLINE_THICKNESS_,
 		_SP_DEFAULT_TEXT_SHADOW_X_OFFSET_,
@@ -331,7 +331,7 @@ HRESULT SpD3D9Device::GetSwapChain(UINT iSwapChain, IDirect3DSwapChain9** pSwapC
 	else if (iSwapChain != 0)
 	{
 		_SP_D3D9_LOG_EVENT_("WARNING: Multiple swap chains not supported (GetSwapChain called with index %u)", iSwapChain);
-		print_to_overlay_feed(std::string("WARNING: Multiple swap chains not supported (GetSwapChain called with index ").append(std::to_string(iSwapChain)).append(")").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, SP_DX9_TEXT_COLOR_RED);
+		print_to_overlay_feed(std::string("WARNING: Multiple swap chains not supported (GetSwapChain called with index ").append(std::to_string(iSwapChain)).append(")").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, SP_D3D9_TEXT_COLOR_RED);
 	}
 
 	return hres;
@@ -1019,21 +1019,21 @@ HRESULT SpD3D9Device::CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** ppQuery)
 
 
 // Renders the overlay text feed (monochromatic)
-void SpD3D9Device::SP_DX9_draw_overlay_text_feed()
+void SpD3D9Device::SP_D3D9_draw_overlay_text_feed()
 {
 	if (!overlay_rendered_this_frame)
 	{
 		build_text_overlay_feed_string(); // Build text feed string
 
 		switch (text_overlay.text_style) {
-			case SP_DX9_SHADOWED_TEXT:
+			case SP_D3D9_SHADOWED_TEXT:
 				text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color); // Draw text shadow
 				text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, text_overlay.text_color); // Draw text
 				break;
-			case SP_DX9_PLAIN_TEXT:
+			case SP_D3D9_PLAIN_TEXT:
 				text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_plain_rect, text_overlay.text_format, text_overlay.text_color); // Draw text
 				break;
-			case SP_DX9_OUTLINED_TEXT:
+			case SP_D3D9_OUTLINED_TEXT:
 			default:
 				// Draw outlined text
 				for (int r = 1; r <= 8; r++)
@@ -1050,7 +1050,7 @@ void SpD3D9Device::SP_DX9_draw_overlay_text_feed()
 
 
 // Renders the overlay text feed (multicolor)
-void SpD3D9Device::SP_DX9_draw_overlay_text_feed_multicolor()
+void SpD3D9Device::SP_D3D9_draw_overlay_text_feed_multicolor()
 {
 	if (!overlay_rendered_this_frame)
 	{
@@ -1059,29 +1059,29 @@ void SpD3D9Device::SP_DX9_draw_overlay_text_feed_multicolor()
 		build_text_overlay_feed_string_multicolor(); // Build text feed string
 
 		switch (text_overlay.text_style) {
-			case SP_DX9_SHADOWED_TEXT:
+			case SP_D3D9_SHADOWED_TEXT:
 				text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_shadow_rect[1], text_overlay.text_format, text_overlay.text_shadow_color); // Draw text shadow
-				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				for (int c = 0; c < _SP_D3D9_TEXT_COLOR_COUNT_; c++)
 				{
-					text_overlay.font->DrawText(NULL, text_overlay.feed_text[c].c_str(), -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, dx9_text_colors[c]); // Draw text
+					text_overlay.font->DrawText(NULL, text_overlay.feed_text[c].c_str(), -1, &text_overlay.text_shadow_rect[0], text_overlay.text_format, d3dx_text_colors[c]); // Draw text
 				}
 				break;
-			case SP_DX9_PLAIN_TEXT:
-				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+			case SP_D3D9_PLAIN_TEXT:
+				for (int c = 0; c < _SP_D3D9_TEXT_COLOR_COUNT_; c++)
 				{
-					text_overlay.font->DrawText(NULL, text_overlay.feed_text[c].c_str(), -1, &text_overlay.text_plain_rect, text_overlay.text_format, dx9_text_colors[c]); // Draw text
+					text_overlay.font->DrawText(NULL, text_overlay.feed_text[c].c_str(), -1, &text_overlay.text_plain_rect, text_overlay.text_format, d3dx_text_colors[c]); // Draw text
 				}
 				break;
-			case SP_DX9_OUTLINED_TEXT:
+			case SP_D3D9_OUTLINED_TEXT:
 			default:
 				// Draw outlined text
 				for (int r = 1; r <= 8 && text_overlay.font != NULL; r++)
 				{
 					text_overlay.font->DrawText(NULL, text_overlay.feed_full_text.c_str(), -1, &text_overlay.text_outline_rect[r], text_overlay.text_format, text_overlay.text_outline_color); // Draw text outline
 				}
-				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				for (int c = 0; c < _SP_D3D9_TEXT_COLOR_COUNT_; c++)
 				{
-					text_overlay.font->DrawText(NULL, text_overlay.feed_text[c].c_str(), -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, dx9_text_colors[c]); // Draw text
+					text_overlay.font->DrawText(NULL, text_overlay.feed_text[c].c_str(), -1, &text_overlay.text_outline_rect[0], text_overlay.text_format, d3dx_text_colors[c]); // Draw text
 				}
 				break;
 		}
@@ -1092,7 +1092,7 @@ void SpD3D9Device::SP_DX9_draw_overlay_text_feed_multicolor()
 
 
 // Initializes overlay text feed data structure
-void SpD3D9Device::SP_DX9_init_text_overlay(IDirect3DDevice9 *device,
+void SpD3D9Device::SP_D3D9_init_text_overlay(IDirect3DDevice9 *device,
 	int text_height,
 	unsigned int outline_thickness,
 	int shadow_x_offset,
@@ -1159,7 +1159,7 @@ void SpD3D9Device::SP_DX9_init_text_overlay(IDirect3DDevice9 *device,
 	init_text_overlay_rects();
 
 	// Initialize all colored text feed strings to empty strings
-	for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+	for (int c = 0; c < _SP_D3D9_TEXT_COLOR_COUNT_; c++)
 	{
 		text_overlay.feed_text[c] = "";
 	}
@@ -1301,7 +1301,7 @@ void SpD3D9Device::init_text_overlay_rects(RECT *window_rect)
 
 
 // Changes the font height of the overlay text feed
-void SpD3D9Device::SP_DX9_set_text_height(IDirect3DDevice9 *device, int new_text_height)
+void SpD3D9Device::SP_D3D9_set_text_height(IDirect3DDevice9 *device, int new_text_height)
 {
 	// Store the current font attributes
 	D3DXFONT_DESC font_desc;
@@ -1368,7 +1368,7 @@ void SpD3D9Device::print_to_overlay_feed(const char *message, unsigned long long
 										std::chrono::milliseconds(1);
 
 	// Create new overlay text feed message data structure
-	SP_DX9_TEXT_OVERLAY_FEED_ENTRY new_message;
+	SP_D3D9_TEXT_OVERLAY_FEED_ENTRY new_message;
 	// Store the new message in the text feed message structure
 	new_message.message.append(message);
 
@@ -1384,7 +1384,7 @@ void SpD3D9Device::print_to_overlay_feed(const char *message, unsigned long long
 	}
 
 	// Set the text color for the message
-	if (text_color < _SP_DX9_TEXT_COLOR_COUNT_ && text_color >= 0)
+	if (text_color < _SP_D3D9_TEXT_COLOR_COUNT_ && text_color >= 0)
 	{
 		new_message.text_color = text_color;
 	}
@@ -1438,7 +1438,7 @@ void SpD3D9Device::clean_text_overlay_feed()
 										std::chrono::milliseconds(1);
 
 	// Iterate through overlay text feed message list
-	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator = text_overlay.feed.begin();
+	std::list<SP_D3D9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator = text_overlay.feed.begin();
 	while (iterator != text_overlay.feed.end())
 	{
 		if ((*iterator).expire_time != 0 && ms_since_epoch >= (*iterator).expire_time)
@@ -1469,7 +1469,7 @@ void SpD3D9Device::build_text_overlay_feed_string()
 	}
 
 	// Iterate through overlay text feed message list
-	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator;
+	std::list<SP_D3D9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator;
 	for (iterator = text_overlay.feed.begin(); iterator != text_overlay.feed.end(); iterator++)
 	{
 		if (iterator != text_overlay.feed.begin())
@@ -1493,7 +1493,7 @@ void SpD3D9Device::build_text_overlay_feed_string()
 void SpD3D9Device::build_text_overlay_feed_string_multicolor()
 {
 	// Iterate through overlay text feed message list for each color
-	std::list<SP_DX9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator;
+	std::list<SP_D3D9_TEXT_OVERLAY_FEED_ENTRY>::const_iterator iterator;
 	for (iterator = text_overlay.feed.begin(); iterator != text_overlay.feed.end(); iterator++)
 	{
 		if (iterator == text_overlay.feed.begin())
@@ -1505,7 +1505,7 @@ void SpD3D9Device::build_text_overlay_feed_string_multicolor()
 				update_overlay_text_feed_info_string();
 				text_overlay.feed_text[0].append(text_feed_info_string).append("\n");
 				text_overlay.feed_full_text.append(text_feed_info_string).append("\n");
-				for (int c = 1; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				for (int c = 1; c < _SP_D3D9_TEXT_COLOR_COUNT_; c++)
 				{
 					text_overlay.feed_text[c].clear(); // Erase text feed strings from last-rendered frame
 					text_overlay.feed_text[c].append(" \r\n");
@@ -1513,14 +1513,14 @@ void SpD3D9Device::build_text_overlay_feed_string_multicolor()
 			}
 			else
 			{
-				for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+				for (int c = 0; c < _SP_D3D9_TEXT_COLOR_COUNT_; c++)
 				{
 					text_overlay.feed_text[c].clear(); // Erase text feed strings from last-rendered frame
 				}
 			}
 		}
 
-		for (int c = 0; c < _SP_DX9_TEXT_COLOR_COUNT_; c++)
+		for (int c = 0; c < _SP_D3D9_TEXT_COLOR_COUNT_; c++)
 		{
 			if (c == (*iterator).text_color)
 			{
@@ -1551,17 +1551,17 @@ void SpD3D9Device::update_overlay_text_feed_info_string()
 {
 	text_feed_info_string.clear();
 
-	if ((show_text_feed_info_bar & SP_DX9_INFO_BAR_DATE)
-		|| (show_text_feed_info_bar & SP_DX9_INFO_BAR_TIME))
+	if ((show_text_feed_info_bar & SP_D3D9_INFO_BAR_DATE)
+		|| (show_text_feed_info_bar & SP_D3D9_INFO_BAR_TIME))
 	{
 		text_feed_info_string.append("[");
 	}
 	
-	if (show_text_feed_info_bar & SP_DX9_INFO_BAR_DATE)
+	if (show_text_feed_info_bar & SP_D3D9_INFO_BAR_DATE)
 	{
 		// Insert current date to text feed info string
 		append_current_date_string(&text_feed_info_string, false, SP_DATE_MMDDYYYY);
-		if (show_text_feed_info_bar & SP_DX9_INFO_BAR_TIME)
+		if (show_text_feed_info_bar & SP_D3D9_INFO_BAR_TIME)
 		{
 			text_feed_info_string.append("  ");
 		}
@@ -1571,14 +1571,14 @@ void SpD3D9Device::update_overlay_text_feed_info_string()
 		}
 	}
 
-	if (show_text_feed_info_bar & SP_DX9_INFO_BAR_TIME)
+	if (show_text_feed_info_bar & SP_D3D9_INFO_BAR_TIME)
 	{
 		// Append current timestamp to text feed info string
 		append_current_timestamp_string(&text_feed_info_string, false);
 		text_feed_info_string.append("]  ");
 	}
 
-	if (show_text_feed_info_bar & SP_DX9_INFO_BAR_FPS)
+	if (show_text_feed_info_bar & SP_D3D9_INFO_BAR_FPS)
 	{
 		// Insert FPS counter into text feed info string
 		text_feed_info_string.append("[");
@@ -1597,7 +1597,7 @@ void SpD3D9Device::update_overlay_text_feed_info_string()
 		text_feed_info_string.append(" FPS]  ");
 	}
 
-	if (show_text_feed_info_bar & SP_DX9_INFO_BAR_TITLE)
+	if (show_text_feed_info_bar & SP_D3D9_INFO_BAR_TITLE)
 	{
 		// Insert title into text feed info string
 		text_feed_info_string.append(_SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_);
@@ -1754,7 +1754,7 @@ void SpD3D9Device::cycle_text_colors()
 	{
 		cycle_all_colors_current_rgb_vals[2]--;
 	}
-	dx9_text_colors[SP_DX9_TEXT_COLOR_CYCLE_ALL] = D3DXCOLOR(0xFF000000 + cycle_all_colors_current_rgb_vals[0] + cycle_all_colors_current_rgb_vals[1] + cycle_all_colors_current_rgb_vals[2]);
+	d3dx_text_colors[SP_D3D9_TEXT_COLOR_CYCLE_ALL] = D3DXCOLOR(0xFF000000 + cycle_all_colors_current_rgb_vals[0] + cycle_all_colors_current_rgb_vals[1] + cycle_all_colors_current_rgb_vals[2]);
 }
 
 
@@ -1910,7 +1910,7 @@ void SpD3D9Device::draw_overlay(IDirect3DDevice9 *device, IDirect3DSwapChain9 *s
 
 	if (text_overlay_new_font_size)
 	{
-		SP_DX9_set_text_height(device, text_overlay_new_font_size);
+		SP_D3D9_set_text_height(device, text_overlay_new_font_size);
 	}
 
 	HRESULT hres = NULL;
@@ -1974,11 +1974,11 @@ void SpD3D9Device::draw_overlay(IDirect3DDevice9 *device, IDirect3DSwapChain9 *s
 	//	Draw text feed
 	if (multicolor_overlay_text_feed_enabled)
 	{
-		SP_DX9_draw_overlay_text_feed_multicolor();
+		SP_D3D9_draw_overlay_text_feed_multicolor();
 	}
 	else
 	{
-		SP_DX9_draw_overlay_text_feed();
+		SP_D3D9_draw_overlay_text_feed();
 	}
 
 	_SP_D3D9_CHECK_FAILED_(device->EndScene()); // Finished drawing the overlay

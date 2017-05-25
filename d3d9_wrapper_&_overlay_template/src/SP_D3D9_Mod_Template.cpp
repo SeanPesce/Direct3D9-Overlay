@@ -62,7 +62,7 @@ void mod_loop()
 					}
 					else
 					{
-						gl_pSpD3D9Device->show_text_feed_info_bar = SP_DX9_INFO_BAR_TITLE;
+						gl_pSpD3D9Device->show_text_feed_info_bar = SP_D3D9_INFO_BAR_TITLE;
 					}
 					if (user_pref_verbose_output_enabled)
 					{
@@ -158,7 +158,7 @@ void mod_loop()
 				else if (user_pref_verbose_output_enabled)
 				{
 					// Current overlay text feed font size is already the smallest supported; can't decrease it
-					print_ol_feed(_SP_DS_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, SP_DX9_TEXT_COLOR_YELLOW);
+					print_ol_feed(_SP_DS_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, SP_D3D9_TEXT_COLOR_YELLOW);
 				}
 				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
 				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
@@ -167,7 +167,7 @@ void mod_loop()
 			{
 				// Print test message to text overlay feed
 				print_ol_feed(_SP_DS_OL_TXT_TEST_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, test_message_color);
-				if (test_message_color >= 0 && test_message_color < _SP_DX9_TEXT_COLOR_COUNT_-1)
+				if (test_message_color >= 0 && test_message_color < _SP_D3D9_TEXT_COLOR_COUNT_-1)
 				{
 					test_message_color++; // Get the next text color
 				}
@@ -215,7 +215,7 @@ void initialize_mod(bool first_time_setup)
 	{
 		gl_pSpD3D9Device->text_overlay_new_font_size = user_pref_overlay_text_size;
 		current_overlay_text_size = user_pref_overlay_text_size;
-		test_message_color = SP_DX9_TEXT_COLOR_WHITE; // Initialize test message text color to white (color changes every time the message is printed
+		test_message_color = SP_D3D9_TEXT_COLOR_WHITE; // Initialize test message text color to white (color changes every time the message is printed
 	}
 	else
 	{
@@ -229,10 +229,10 @@ void initialize_mod(bool first_time_setup)
 	gl_pSpD3D9Device->show_text_feed_info_bar = user_pref_show_text_feed_info_bar;
 
 	#ifdef D3D_DEBUG_INFO
-	print_ol_feed("DEBUG: Direct3D debugging is enabled", 0, false, SP_DX9_TEXT_COLOR_ORANGE);
+	print_ol_feed("DEBUG: Direct3D debugging is enabled", 0, false, SP_D3D9_TEXT_COLOR_ORANGE);
 	#endif // D3D_DEBUG_INFO
 
-	print_ol_feed("--------------------------------------------------------", 0, false, SP_DX9_TEXT_COLOR_CYCLE_ALL);
+	print_ol_feed("--------------------------------------------------------", 0, false, SP_D3D9_TEXT_COLOR_CYCLE_ALL);
 	
 	
 	if (user_pref_verbose_output_enabled && first_time_setup)
@@ -244,39 +244,39 @@ void initialize_mod(bool first_time_setup)
 		{
 			if (!d3d9_dll_chain_failed)
 			{
-				print_ol_feed(std::string("DEBUG: \"").append(d3d9_dll_chain).append("\" successfully loaded as Direct3D 9 wrapper").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+				print_ol_feed(std::string("DEBUG: \"").append(d3d9_dll_chain).append("\" successfully loaded as Direct3D 9 wrapper").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9_TEXT_COLOR_BLUE);
 			}
 			else
 			{
-				print_ol_feed(std::string("DEBUG: Failed to load \"").append(d3d9_dll_chain).append("\" as Direct3D 9 wrapper").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+				print_ol_feed(std::string("DEBUG: Failed to load \"").append(d3d9_dll_chain).append("\" as Direct3D 9 wrapper").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9_TEXT_COLOR_BLUE);
 			}
 		}
 		else
 		{
-			print_ol_feed("DEBUG: No Direct3D 9 DLL chain specified", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+			print_ol_feed("DEBUG: No Direct3D 9 DLL chain specified", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9_TEXT_COLOR_BLUE);
 		}
 		// Print number of generic DLLs that were loaded at runtime
 		extern unsigned int generic_dll_count;
 		if (generic_dll_count == 1)
 		{
-			print_ol_feed("DEBUG: 1 generic DLL loaded at runtime", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+			print_ol_feed("DEBUG: 1 generic DLL loaded at runtime", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9_TEXT_COLOR_BLUE);
 		}
 		else if (generic_dll_count)
 		{
-			print_ol_feed(std::string("DEBUG: ").append(std::to_string(generic_dll_count)).append(" generic DLLs loaded at runtime").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+			print_ol_feed(std::string("DEBUG: ").append(std::to_string(generic_dll_count)).append(" generic DLLs loaded at runtime").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9_TEXT_COLOR_BLUE);
 		}
 		else
 		{
-			print_ol_feed("DEBUG: No generic DLLs were loaded at runtime", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+			print_ol_feed("DEBUG: No generic DLLs were loaded at runtime", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9_TEXT_COLOR_BLUE);
 		}
 		// Print the PvP Watchdog font size, if DSPWSteam.ini was found
 		if (dspw_pref_font_size)
 		{
-			print_ol_feed(std::string("DEBUG: PvP Watchdog overlay font size = ").append(std::to_string(dspw_pref_font_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+			print_ol_feed(std::string("DEBUG: PvP Watchdog overlay font size = ").append(std::to_string(dspw_pref_font_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9_TEXT_COLOR_BLUE);
 		}
 		else
 		{
-			print_ol_feed("DEBUG: PvP Watchdog overlay font size not found (assuming zero)", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_DX9_TEXT_COLOR_BLUE);
+			print_ol_feed("DEBUG: PvP Watchdog overlay font size not found (assuming zero)", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9_TEXT_COLOR_BLUE);
 		}
 	}
 }
@@ -359,23 +359,23 @@ void next_overlay_text_style(int current_style)
 {
 	switch (current_style)
 	{
-	case SP_DX9_OUTLINED_TEXT:
-		gl_pSpD3D9Device->text_overlay.text_style = SP_DX9_SHADOWED_TEXT;
+	case SP_D3D9_OUTLINED_TEXT:
+		gl_pSpD3D9Device->text_overlay.text_style = SP_D3D9_SHADOWED_TEXT;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_SHADOW_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		break;
-	case SP_DX9_SHADOWED_TEXT:
-		gl_pSpD3D9Device->text_overlay.text_style = SP_DX9_PLAIN_TEXT;
+	case SP_D3D9_SHADOWED_TEXT:
+		gl_pSpD3D9Device->text_overlay.text_style = SP_D3D9_PLAIN_TEXT;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_PLAIN_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		break;
-	case SP_DX9_PLAIN_TEXT:
+	case SP_D3D9_PLAIN_TEXT:
 	default:
-		gl_pSpD3D9Device->text_overlay.text_style = SP_DX9_OUTLINED_TEXT;
+		gl_pSpD3D9Device->text_overlay.text_style = SP_D3D9_OUTLINED_TEXT;
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(_SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);

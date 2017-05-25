@@ -18,7 +18,7 @@ public:
 	unsigned int *present_calls; // Number of times Present() was called thus far in the current second
 	bool *overlay_rendered_this_frame; // Indicates whether the current frame has been presented
 
-	// Original DX9 function definitions
+	// Original D3D9 function definitions
 	ULONG	__stdcall AddRef();
 	HRESULT	__stdcall QueryInterface(REFIID riid, void **ppvObject);
 	ULONG	__stdcall Release();
@@ -29,7 +29,7 @@ public:
 	HRESULT	__stdcall GetPresentParameters(D3DPRESENT_PARAMETERS *pPresentationParameters);
 	HRESULT	__stdcall GetRasterStatus(D3DRASTER_STATUS *pRasterStatus);
 	HRESULT	__stdcall Present(const RECT *pSourceRect, const RECT *pDestRect, HWND hDestWindowOverride, const RGNDATA *pDirtyRegion, DWORD dwFlags);
-	// End of original DX9 function definitions
+	// End of original D3D9 function definitions
 };
 
 #endif // _SP_IDIRECT3D_SWAP_CHAIN_H_

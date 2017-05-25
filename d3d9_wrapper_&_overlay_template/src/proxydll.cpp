@@ -288,8 +288,8 @@ void get_user_preferences()
 	// FPS counter enabled/disabled
 	if ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLE_FPS_KEY_, OL_TXT_ENABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED)
 	{
-		user_pref_show_text_feed_info_bar = SP_DX9_INFO_BAR_TITLE;
-		user_pref_show_text_feed_info_bar += SP_DX9_INFO_BAR_FPS;
+		user_pref_show_text_feed_info_bar = SP_D3D9_INFO_BAR_TITLE;
+		user_pref_show_text_feed_info_bar += SP_D3D9_INFO_BAR_FPS;
 	}
 	else
 	{
@@ -299,15 +299,15 @@ void get_user_preferences()
 	// Display date enabled/disabled
 	if ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLE_DATE_KEY_, OL_TXT_ENABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED)
 	{
-		user_pref_show_text_feed_info_bar |= SP_DX9_INFO_BAR_TITLE;
-		user_pref_show_text_feed_info_bar += SP_DX9_INFO_BAR_DATE;
+		user_pref_show_text_feed_info_bar |= SP_D3D9_INFO_BAR_TITLE;
+		user_pref_show_text_feed_info_bar += SP_D3D9_INFO_BAR_DATE;
 	}
 
 	// Display time enabled/disabled
 	if ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLE_TIME_KEY_, OL_TXT_ENABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED)
 	{
-		user_pref_show_text_feed_info_bar |= SP_DX9_INFO_BAR_TITLE;
-		user_pref_show_text_feed_info_bar += SP_DX9_INFO_BAR_TIME;
+		user_pref_show_text_feed_info_bar |= SP_D3D9_INFO_BAR_TITLE;
+		user_pref_show_text_feed_info_bar += SP_D3D9_INFO_BAR_TIME;
 	}
 
 	// Overlay text size
@@ -364,20 +364,20 @@ void get_user_preferences()
 	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_STYLE_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_STYLE_, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
 	setting_value = settings_buffer;
 	std::transform(setting_value.begin(), setting_value.end(), setting_value.begin(), ::toupper);
-	if (strcmp(setting_value.c_str(), SP_OL_TXT_STYLE_VALS[SP_DX9_SHADOWED_TEXT]) == 0)
+	if (strcmp(setting_value.c_str(), SP_OL_TXT_STYLE_VALS[SP_D3D9_SHADOWED_TEXT]) == 0)
 	{
 		// Overlay text style will be shadowed
-		user_pref_overlay_text_style = SP_DX9_SHADOWED_TEXT;
+		user_pref_overlay_text_style = SP_D3D9_SHADOWED_TEXT;
 	}
-	else if (strcmp(setting_value.c_str(), SP_OL_TXT_STYLE_VALS[SP_DX9_PLAIN_TEXT]) == 0)
+	else if (strcmp(setting_value.c_str(), SP_OL_TXT_STYLE_VALS[SP_D3D9_PLAIN_TEXT]) == 0)
 	{
 		// Overlay text style will be plain
-		user_pref_overlay_text_style = SP_DX9_PLAIN_TEXT;
+		user_pref_overlay_text_style = SP_D3D9_PLAIN_TEXT;
 	}
 	else
 	{
 		// Overlay text style will be outlined
-		user_pref_overlay_text_style = SP_DX9_OUTLINED_TEXT;
+		user_pref_overlay_text_style = SP_D3D9_OUTLINED_TEXT;
 	}
 
 	// Get DSPW font size in case user wants to adjust this overlay to avoid clipping with the PvP Watchdog overlay

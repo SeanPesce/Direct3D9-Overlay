@@ -7,130 +7,23 @@
 #include <list>
 #include <string>
 #include <d3dx9core.h>
+#include "SpD3D9.h"
 
 // Forward declaration
 class SpD3D9SwapChain; // Wrapper class for IDirect3DSwapChain9
 
-// Default overlay text attributes
-#define _SP_DEFAULT_TEXT_HEIGHT_ 28
-#define _SP_DEFAULT_TEXT_SHADOW_X_OFFSET_ 2
-#define _SP_DEFAULT_TEXT_SHADOW_Y_OFFSET_ 2
-#define _SP_DEFAULT_TEXT_OUTLINE_THICKNESS_ 2
-#define _SP_DEFAULT_TEXT_COLOR_INDEX_ SP_D3D9_TEXT_COLOR_WHITE
-#define _SP_DEFAULT_TEXT_COLOR_ D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f)
-#define _SP_DEFAULT_TEXT_OUTLINE_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f)
-#define _SP_DEFAULT_TEXT_SHADOW_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f)
-#define _SP_DEFAULT_TEXT_FORMAT_ (DT_NOCLIP | DT_TOP | DT_CENTER)
-#define _SP_DEFAULT_TEXT_STYLE_ SP_D3D9_OUTLINED_TEXT
-#define _SP_DEFAULT_TEXT_FONT_ "Arial"
-// Total number of supported overlay text feed colors in multicolor mode
-#define _SP_D3D9_TEXT_COLOR_COUNT_ 10
-// Default overlay text feed title
-#define _SP_DEFAULT_OVERLAY_TEXT_FEED_TITLE_ "Direct3D Overlay by Sean Pesce"
-
-// Enumerator whose values denote the supported overlay text styles (outlined, shadowed, or plain)
-enum SP_D3D9_TEXT_OVERLAY_STYLES {
-	SP_D3D9_OUTLINED_TEXT,
-	SP_D3D9_SHADOWED_TEXT,
-	SP_D3D9_PLAIN_TEXT
-};
-// Enumerator whose values denote the supported overlay text feed colors in multicolor mode
-enum SP_D3D9_TEXT_OVERLAY_COLORS_ENUM {
-	SP_D3D9_TEXT_COLOR_WHITE,
-	SP_D3D9_TEXT_COLOR_RED,
-	SP_D3D9_TEXT_COLOR_ORANGE,
-	SP_D3D9_TEXT_COLOR_YELLOW,
-	SP_D3D9_TEXT_COLOR_GREEN,
-	SP_D3D9_TEXT_COLOR_CYAN,
-	SP_D3D9_TEXT_COLOR_BLUE,
-	SP_D3D9_TEXT_COLOR_PURPLE,
-	SP_D3D9_TEXT_COLOR_PINK,
-	SP_D3D9_TEXT_COLOR_CYCLE_ALL
-};
-// Enumerator whose values denote whether to display the various text feed info line attributes
-enum SP_D3D9_TEXT_OVERLAY_INFO_BAR_ENUM {
-	SP_D3D9_INFO_BAR_TITLE = 1,
-	SP_D3D9_INFO_BAR_DATE = 2,
-	SP_D3D9_INFO_BAR_TIME = 4,
-	SP_D3D9_INFO_BAR_FPS = 8
-};
-// Data structure for a single message entry in the overlay text feed:
-typedef struct SP_D3D9_TEXT_OVERLAY_FEED_ENTRY {
-	std::string message = std::string("");	// Message
-	unsigned long long expire_time;			// Time at which the message expires
-	bool show_timestamp;					// Enable/disable prepending a timestamp to the message
-	char timestamp[12];						// Char buffer for timestamp
-	unsigned int text_color;				// Text color
-} SP_D3D9_TEXT_OVERLAY_FEED_ENTRY;
-// Data structure for the overlay text feed:
-typedef struct SP_D3D9_FULLSCREEN_TEXT_OVERLAY {
-	bool enabled = false;		// Enable/disable overlay text feed
-	RECT text_plain_rect;		// Screenspace for positioning plain text
-	RECT text_shadow_rect[2];	// Screenspace for positioning shadowed text
-	RECT text_outline_rect[9];	// Screenspace for positioning outlined text
-	int text_shadow_x_offset;	// Horizontal offset (in pixels) for text shadow
-	int text_shadow_y_offset;	// Vertical offset (in pixels) for text shadow
-	unsigned int text_outline_thickness; // Text outline thickness (in pixels)
-	ID3DXFont *font = NULL;			// Font data structure which holds attributes for the overlay text feed font
-	TCHAR font_name[32];		// Character array to hold the font family name
-	std::list<SP_D3D9_TEXT_OVERLAY_FEED_ENTRY> feed; // List of messages in the overlay text feed
-	std::string feed_text[_SP_D3D9_TEXT_COLOR_COUNT_]; // Array of strings to hold text (of each supported color) for text feed
-	std::string feed_full_text;	// String to hold the feed text as a single string (used when multicolor is disabled, or for shadow/outline when multicolor is enabled)
-	DWORD text_format;			// Determines horizontal and vertical positioning of text on screen
-	int text_style;				// Overlay text style (Outlined, shadowed, or plain)
-	D3DXCOLOR text_color;		// Default text color (only color if multicolor mode is disabled)
-	D3DXCOLOR text_outline_color; // Text outline color
-	D3DXCOLOR text_shadow_color; // Text shadow color
-} SP_D3D9_FULLSCREEN_TEXT_OVERLAY;
-
 class SpD3D9Device : public IDirect3DDevice9
 {
 public:
+	IDirect3DDevice9 *m_pIDirect3DDevice9 = NULL;
+	SpD3D9Overlay *overlay = NULL;
 	
-	bool initialized = false;
-	UINT id; // Adapter number
-	DWORD thread;
-	bool is_windowed; // Specifies whether the program is running in windowed or exclusive full-screen mode
-	bool in_scene = false; // Indicates whether the program is currently between a BeginScene() and EndScene() call
-	HWND *game_window = NULL; // Main game window (should be pointer to focus_window or device_window)
-	RECT *game_window_rect = NULL;
-	HWND focus_window = NULL; // Game focus window
-	RECT focus_window_rect;
-	HWND device_window = NULL; // Game device window
-	RECT device_window_rect;
-	RECT back_buffer_rect;
-	IDirect3DStateBlock9 *overlay_state_block = NULL; // State block applied before drawing overlay
-	SP_D3D9_FULLSCREEN_TEXT_OVERLAY text_overlay; // Data structure for overlay text feed
-	bool overlay_rendered_this_frame = false;
-	bool overlay_needs_reset = true;
-	int fps = 0; // Number of frames rendered in the last second
 	unsigned int present_calls = 0; // Number of times Present() was called thus far in the current second (used to determine FPS)
 	unsigned int endscene_calls = 0; // Number of times EndScene() was called thus far in the current second (used to determine FPS)
 	unsigned int swap_chain_present_calls = 0;
 	unsigned int get_back_buffer_calls = 0; // Number of times GetBackBuffer() was called thus far in the current second
-	UINT_PTR fps_timer_id; // ID of the timer used to update FPS values every second
-	int show_text_feed_info_bar; // Denotes whether to display the various overlay info bar attributes
-	std::string text_feed_info_string; // Text overlay info bar string
-	bool multicolor_overlay_text_feed_enabled; // If disabled, all printed text is the color indicated by text_overlay.text_color
-	DWORD cycle_all_colors_current_rgb_vals[3]; // Current RGB values for text whose color cycles through the color spectrum
-	int text_overlay_new_font_size = 0;
 
-	// ARGB values for the supported overlay text feed colors
-	D3DXCOLOR d3dx_text_colors[_SP_D3D9_TEXT_COLOR_COUNT_] =
-	{
-		D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f),	// White
-		D3DXCOLOR(0xFFF44E42),				// Red
-		D3DXCOLOR(0xFFF4BC42),				// Orange
-		D3DXCOLOR(0xFFEEF442),				// Yellow
-		D3DXCOLOR(0xFF42F450),				// Green
-		D3DXCOLOR(0xFF42D4F4),				// Cyan
-		D3DXCOLOR(0xFF4286F4),				// Blue
-		D3DXCOLOR(0xFFBC42F4),				// Purple
-		D3DXCOLOR(0xFFF442EB),				// Pink
-		D3DXCOLOR(0xFF000000)				// Starting color when cycling all colors
-	};
-
-	SpD3D9Device(UINT Adapter, IDirect3DDevice9* pOriginal, HWND new_focus_window, D3DPRESENT_PARAMETERS *present_params); // Constructor
+	SpD3D9Device(SpD3D9Interface *d3d_interface, IDirect3DDevice9* pOriginal, HWND new_focus_window, D3DPRESENT_PARAMETERS *present_params); // Constructor
 	virtual ~SpD3D9Device(void);
 
 	// Original D3D9 function definitions:
@@ -258,31 +151,7 @@ public:
 	// Public overlay function definitions:
 	// NOTE: Overlay text feed currently does NOT support multi-line messages. Print each line as a separate message instead.
 	ULONG SpD3D9Device::ForceRelease();
-	void SpD3D9Device::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp); // Prints default-colored text to the overlay text feed
-	void SpD3D9Device::print_to_overlay_feed(const char *message, unsigned long long duration, bool include_timestamp, int text_color); // Prints text to the overlay text feed in the specified color
-	RECT *SpD3D9Device::get_viewport_as_rect(RECT *rect); // Constructs a RECT struct from the device viewport
-	RECT *SpD3D9Device::get_viewport_as_rect(RECT *rect, D3DVIEWPORT9 *viewport); // Constructs a RECT struct from the device viewport (and stores the viewport)
-	void SpD3D9Device::print_debug_data(unsigned long long duration, bool show_timestamp); // Prints various game window data to the overlay text feed
-	void SpD3D9Device::draw_overlay(IDirect3DDevice9 *device, IDirect3DSwapChain9 *swap_chain);
 
 private:
-	IDirect3DDevice9 *m_pIDirect3DDevice9;
 
-	// Private overlay function definitions:
-	void SpD3D9Device::SP_D3D9_set_text_height(IDirect3DDevice9 *device, int new_text_height); // Changes the font height of the overlay text feed
-	void SpD3D9Device::SP_D3D9_init_text_overlay(IDirect3DDevice9 *device, int text_height, unsigned int text_outline_thickness, int text_shadow_x_offset, int text_shadow_y_offset, D3DXCOLOR text_color, D3DXCOLOR text_outline_color, D3DXCOLOR text_shadow_color, DWORD text_format, int text_style); // Initializes overlay text feed data structure
-	void SpD3D9Device::SP_D3D9_draw_overlay_text_feed(); // Renders the overlay text feed (monochromatic)
-	void SpD3D9Device::SP_D3D9_draw_overlay_text_feed_multicolor(); // Renders the overlay text feed (multicolor)
-	void SpD3D9Device::clean_text_overlay_feed(); // Removes expired messages from the overlay text feed
-	void SpD3D9Device::build_text_overlay_feed_string(); // Constructs the overlay text feed from the current list of messages (monochromatic)
-	void SpD3D9Device::build_text_overlay_feed_string_multicolor(); // Constructs the overlay text feed from the current list of messages (multicolor)
-	void SpD3D9Device::cycle_text_colors(); // Calculates the next ARGB color value for text whose color cycles through all colors
-	void SpD3D9Device::init_text_overlay_rects(); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
-	void SpD3D9Device::init_text_overlay_rects(RECT *new_rect); // Initializes the RECT structures that denote the usable screenspace for the overlay text feed
-	void SpD3D9Device::update_overlay_text_feed_info_string(); // Updates the various text feed info line attributes
-	void SpD3D9Device::update_overlay_parameters();
-	void SpD3D9Device::create_overlay_state_block(); // Creates a suitable state block for drawing the overlay
 };
-
-void CALLBACK update_fps(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime); // (Called once per second) Records the number of frames that were rendered in the last second
-void rect_to_string(RECT *rect, const char *rect_name, std::string *str); // Constructs a string describing the specified RECT struct and stores it in the given std::string

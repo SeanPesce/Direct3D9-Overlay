@@ -11,7 +11,7 @@
 
 // Macro to determine if a hotkey is enabled and currently being pressed
 #define hotkey_is_down(hotkey) (hotkey != 0 && (key_state[hotkey] & _SP_KEY_DOWN_))
-#define print_ol_feed gl_pSpD3D9Device->print_to_overlay_feed
+#define print_ol_feed gl_pSpD3D9Device->overlay->text_feed->print
 // Overlay text feed position presets
 #define _SP_TEXT_TOP_LEFT_ (DT_NOCLIP | DT_TOP | DT_LEFT)
 #define _SP_TEXT_TOP_CENTER_ (DT_NOCLIP | DT_TOP | DT_CENTER)
@@ -68,15 +68,13 @@ extern unsigned int hotkey_toggle_verbose_output;
 extern unsigned int hotkey_increase_overlay_text_size;
 extern unsigned int hotkey_decrease_overlay_text_size;
 extern unsigned int hotkey_reset_overlay_text_size;
-extern unsigned int hotkey_toggle_multicolor_feed;
 extern unsigned int hotkey_toggle_text_feed_info_bar;
 extern bool user_pref_overlay_text_feed_enabled;
 extern bool user_pref_audio_feedback_enabled;
 extern bool user_pref_verbose_output_enabled;
-extern bool user_pref_multicolor_feed_enabled;
 extern int user_pref_overlay_text_size;
 extern DWORD user_pref_overlay_text_pos;
-extern int user_pref_overlay_text_style;
+extern SP_D3D9O_TEXT_FEED_STYLE_ENUM user_pref_overlay_text_style;
 extern int user_pref_show_text_feed_info_bar;
 // Dark Souls PvP Watchdog Settings
 extern int dspw_pref_font_size;
@@ -85,7 +83,7 @@ extern int user_pref_dspw_ol_offset;
 // Overlay-related variables
 extern SpD3D9Device* gl_pSpD3D9Device; // Pointer to the IDirect3DDevice9 wrapper that contains the overlay
 int current_overlay_text_size;
-int test_message_color;
+SP_D3D9O_TEXT_COLOR_ENUM test_message_color;
 int dspw_overlay_adjustment; // Used to adjust the overlay to avoid clipping with the PvP Watchdog overlay
 
 // Mod-related variables

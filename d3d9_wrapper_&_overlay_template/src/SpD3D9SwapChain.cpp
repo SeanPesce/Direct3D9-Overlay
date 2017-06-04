@@ -7,7 +7,6 @@ SpD3D9SwapChain::SpD3D9SwapChain(IDirect3DSwapChain9 **ppIDirect3DSwapChain9, Sp
 	m_pD3D9_swap_chain = *ppIDirect3DSwapChain9;
 	this->device = device;
 	present_calls = &(device->swap_chain_present_calls);
-	overlay_rendered_this_frame = &(device->overlay_rendered_this_frame);
 	*ppIDirect3DSwapChain9 = this;
 }
 
@@ -105,7 +104,7 @@ HRESULT SpD3D9SwapChain::Present(const RECT *pSourceRect, const RECT *pDestRect,
 	
 	if (real_device != NULL)
 	{
-		device->draw_overlay(real_device, m_pD3D9_swap_chain); // Draw overlay
+		device->overlay->draw(m_pD3D9_swap_chain); // Draw overlay
 		device->Release();
 		real_device = NULL;
 	}
@@ -113,6 +112,5 @@ HRESULT SpD3D9SwapChain::Present(const RECT *pSourceRect, const RECT *pDestRect,
 
 	(*present_calls)++;
 	HRESULT hres = m_pD3D9_swap_chain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
-	(*overlay_rendered_this_frame) = false;
 	return hres;
 }

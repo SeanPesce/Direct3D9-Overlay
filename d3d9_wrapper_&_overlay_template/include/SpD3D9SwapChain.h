@@ -16,7 +16,6 @@ public:
 
 	SpD3D9Device *device; // Device that owns this swap chain
 	unsigned int *present_calls; // Number of times Present() was called thus far in the current second
-	bool *overlay_rendered_this_frame; // Indicates whether the current frame has been presented
 
 	// Original D3D9 function definitions
 	ULONG	__stdcall AddRef();

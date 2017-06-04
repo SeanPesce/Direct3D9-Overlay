@@ -145,10 +145,13 @@
     <None Include="proxydll.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\SpD3D9.h" />
     <ClInclude Include="include\SpD3D9Interface.h" />
     <ClInclude Include="include\SpD3D9Device.h" />
     <ClInclude Include="include\proxydll.h" />
+    <ClInclude Include="include\SpD3D9Overlay.h" />
     <ClInclude Include="include\SpD3D9SwapChain.h" />
+    <ClInclude Include="include\SpD3D9OTextFeed.h" />
     <ClInclude Include="include\SP_D3D9_Mod_Template.h" />
     <ClInclude Include="include\SP_IO.hpp" />
     <ClInclude Include="include\stdafx.h" />
@@ -157,6 +160,8 @@
     <ClCompile Include="src\SpD3D9Interface.cpp" />
     <ClCompile Include="src\SpD3D9Device.cpp" />
     <ClCompile Include="src\proxydll.cpp" />
+    <ClCompile Include="src\SpD3D9OTextFeed.cpp" />
+    <ClCompile Include="src\SpD3D9Overlay.cpp" />
     <ClCompile Include="src\SpD3D9SwapChain.cpp" />
     <ClCompile Include="src\SP_D3D9_Mod_Template.cpp" />
     <ClCompile Include="src\stdafx.cpp">

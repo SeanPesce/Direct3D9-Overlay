@@ -164,7 +164,7 @@ HRESULT __stdcall SpD3D9Interface::CreateDevice(UINT Adapter,D3DDEVTYPE DeviceTy
 
 	// Create our own Device object and store it in global pointer
 	// Note: The object will delete itself once Ref count is zero (similar to COM objects)
-	gl_pSpD3D9Device = new SpD3D9Device(Adapter, *ppReturnedDeviceInterface, hFocusWindow, pPresentationParameters);
+	gl_pSpD3D9Device = new SpD3D9Device(this, *ppReturnedDeviceInterface, hFocusWindow, pPresentationParameters);
 
 	// Store our pointer (the fake one) for returning it to the calling progam
 	*ppReturnedDeviceInterface = gl_pSpD3D9Device;

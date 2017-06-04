@@ -54,10 +54,8 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 #define _SP_DS_HOTKEY_INCREASE_TXT_SIZE_KEY_ "IncreaseTextSize"
 #define _SP_DS_HOTKEY_DECREASE_TXT_SIZE_KEY_ "DecreaseTextSize"
 #define _SP_DS_HOTKEY_RESET_TXT_SIZE_KEY_ "ResetTextSize"
-#define _SP_DS_HOTKEY_TOGGLE_MULTICOLOR_FEED_KEY_ "ToggleMultiColorFeed"
 //	Developer preferences section keys
 #define _SP_DS_OL_TXT_VERBOSE_OUTPUT_ENABLED_KEY_ "EnableVerboseOutput"
-#define _SP_DS_OL_TXT_MULTICOLOR_FEED_ENABLED_KEY_ "EnableMultiColorTextFeed"
 
 // Enumerator whose values specify whether a toggleable setting is enabled or disabled:
 enum SP_OL_TXT_ENABLED_ENUM {
@@ -83,10 +81,9 @@ const char *SP_OL_TXT_STYLE_VALS[3] = { "OUTLINE", "SHADOW", "PLAIN" }; // If sp
 #define _SP_DS_DEFAULT_VAL_OL_TXT_ENABLED_ OL_TXT_ENABLED
 #define _SP_DS_DEFAULT_VAL_OL_TXT_AUDIO_ENABLED_ OL_TXT_DISABLED
 #define _SP_DS_DEFAULT_VAL_OL_TXT_VERBOSE_OUTPUT_ENABLED_ OL_TXT_DISABLED
-#define _SP_DS_DEFAULT_VAL_OL_TXT_MULTICOLOR_FEED_ENABLED_ OL_TXT_ENABLED
 #define _SP_DS_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_HCENTER]
 #define _SP_DS_DEFAULT_VAL_OL_TXT_VERTICAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_BOTTOM]
-#define _SP_DS_DEFAULT_VAL_OL_TXT_STYLE_ SP_OL_TXT_STYLE_VALS[SP_D3D9_OUTLINED_TEXT]
+#define _SP_DS_DEFAULT_VAL_OL_TXT_STYLE_ SP_OL_TXT_STYLE_VALS[SP_D3D9O_OUTLINED_TEXT]
 
 
 //////////////////////// VARIABLES & DATA ////////////////////////
@@ -110,16 +107,14 @@ unsigned int hotkey_toggle_verbose_output;
 unsigned int hotkey_increase_overlay_text_size;
 unsigned int hotkey_decrease_overlay_text_size;
 unsigned int hotkey_reset_overlay_text_size;
-unsigned int hotkey_toggle_multicolor_feed;
 unsigned int hotkey_toggle_text_feed_info_bar;
 // User preferences
 bool user_pref_overlay_text_feed_enabled;
 bool user_pref_audio_feedback_enabled;
 bool user_pref_verbose_output_enabled;
-bool user_pref_multicolor_feed_enabled;
 int user_pref_overlay_text_size;
 DWORD user_pref_overlay_text_pos;
-int user_pref_overlay_text_style;
+SP_D3D9O_TEXT_FEED_STYLE_ENUM user_pref_overlay_text_style;
 int user_pref_show_text_feed_info_bar;
 // Dark Souls PvP Watchdog Settings
 // (These values will be used to adjust the overlay to avoid clipping with the DSPW overlay)

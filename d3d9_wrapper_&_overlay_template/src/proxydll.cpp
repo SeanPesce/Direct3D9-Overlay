@@ -130,16 +130,7 @@ void LoadOriginalDll(void)
 void InitSettings()
 {
 	// Get keybinds from settings file
-	hotkey_toggle_overlay_text_feed = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_);
-	hotkey_toggle_text_feed_info_bar = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_TEXT_FEED_INFO_BAR_KEY_);
-	hotkey_next_overlay_text_pos = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_);
-	hotkey_next_overlay_text_style = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_STYLE_KEY_);
-	hotkey_toggle_audio_feedback = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_AUDIO_FEEDBACK_KEY_);
-	hotkey_toggle_verbose_output = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_VERBOSE_OUTPUT_KEY_);
-	hotkey_print_overlay_test_message = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_PRINT_OL_TXT_TEST_MSG_KEY_);
-	hotkey_increase_overlay_text_size = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_INCREASE_TXT_SIZE_KEY_);
-	hotkey_decrease_overlay_text_size = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_DECREASE_TXT_SIZE_KEY_);
-	hotkey_reset_overlay_text_size = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_RESET_TXT_SIZE_KEY_);
+	get_keybinds();
 
 	// Get user preferences from settings file
 	get_user_preferences();
@@ -232,20 +223,8 @@ HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section
 // Determines whether mod is enabled and calls the main loop for the mod
 DWORD WINAPI init_mod_thread(LPVOID lpParam)
 {
-
-	if (!user_pref_overlay_text_feed_enabled	// @TODO: update this in real implementation
-		&& hotkey_toggle_overlay_text_feed == 0
-		&& hotkey_next_overlay_text_style == 0
-		&& hotkey_next_overlay_text_pos == 0
-		&& hotkey_print_overlay_test_message == 0)
-	{
-		// Disable mod
-		mod_loop_enabled = false;
-	}
-	else
-	{
-		mod_loop_enabled = true;
-	}
+	// @TODO: Disable mod if no mod settings are initialized?
+	mod_loop_enabled = true;
 
 	extern void mod_loop();	// Main loop for the mod thread
 	mod_loop();
@@ -264,6 +243,103 @@ void ExitInstance()
 		::FreeLibrary(gl_hOriginalDll);
 	    gl_hOriginalDll = NULL;  
 	}
+}
+
+// Reads in configurable keybind values as specified in the settings file (.ini)
+void get_keybinds()
+{
+	extern std::list<SP_KEY_FUNCTION> keybinds; // Stores all function/keybind mappings
+	unsigned int key = 0;
+
+	// Toggle overlay text feed
+	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_);
+	if (key)
+	{
+		extern int toggle_text_feed();
+		add_function_keybind(key, toggle_text_feed, &keybinds);
+	}
+	key = 0;
+
+	// Toggle text feed info bar
+	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_TEXT_FEED_INFO_BAR_KEY_);
+	if (key)
+	{
+		extern int toggle_info_bar();
+		add_function_keybind(key, toggle_info_bar, &keybinds);
+	}
+	key = 0;
+
+	// Next overlay text feed position preset
+	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_);
+	if (key)
+	{
+		extern int next_overlay_text_position();
+		add_function_keybind(key, next_overlay_text_position, &keybinds);
+	}
+	key = 0;
+
+	// Next overlay text feed style (plain, shadowed, or outlined)
+	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_STYLE_KEY_);
+	if (key)
+	{
+		extern int next_overlay_text_style();
+		add_function_keybind(key, next_overlay_text_style, &keybinds);
+	}
+	key = 0;
+
+	// Toggle audio feedback when mod keybinds are pressed
+	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_AUDIO_FEEDBACK_KEY_);
+	if (key)
+	{
+		extern int toggle_audio_feedback();
+		add_function_keybind(key, toggle_audio_feedback, &keybinds);
+	}
+	key = 0;
+
+	// Toggle verbose text feed output
+	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_VERBOSE_OUTPUT_KEY_);
+	if (key)
+	{
+		extern int toggle_verbose_output();
+		add_function_keybind(key, toggle_verbose_output, &keybinds);
+	}
+	key = 0;
+
+	// Print test message to overlay text feed
+	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_PRINT_OL_TXT_TEST_MSG_KEY_);
+	if (key)
+	{
+		extern int print_overlay_test_message();
+		add_function_keybind(key, print_overlay_test_message, &keybinds);
+	}
+	key = 0;
+
+	// Increase text feed font size
+	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_INCREASE_TXT_SIZE_KEY_);
+	if (key)
+	{
+		extern int increase_text_feed_font_size();
+		add_function_keybind(key, increase_text_feed_font_size, &keybinds);
+	}
+	key = 0;
+
+	// Decrease text feed font size
+	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_DECREASE_TXT_SIZE_KEY_);
+	if (key)
+	{
+		extern int decrease_text_feed_font_size();
+		add_function_keybind(key, decrease_text_feed_font_size, &keybinds);
+	}
+	key = 0;
+
+	// Reset text feed font size
+	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_RESET_TXT_SIZE_KEY_);
+	if (key)
+	{
+		extern int reset_text_feed_font_size();
+		add_function_keybind(key, reset_text_feed_font_size, &keybinds);
+	}
+	key = 0;
 }
 
 // Reads in user preferences as specified in the settings file (.ini)

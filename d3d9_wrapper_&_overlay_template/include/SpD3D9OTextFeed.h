@@ -14,8 +14,8 @@
 #define _SP_D3D9O_TF_DEFAULT_SHADOW_Y_OFFSET_ 2
 #define _SP_D3D9O_TF_DEFAULT_OUTLINE_THICKNESS_ 2
 #define _SP_D3D9O_TF_DEFAULT_COLOR_ SP_D3D9O_TEXT_COLOR_WHITE
-#define _SP_D3D9O_TF_DEFAULT_OUTLINE_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f)
-#define _SP_D3D9O_TF_DEFAULT_SHADOW_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f)
+#define _SP_D3D9O_TF_DEFAULT_OUTLINE_COLOR_ colors[SP_D3D9O_TEXT_COLOR_BLACK]
+#define _SP_D3D9O_TF_DEFAULT_SHADOW_COLOR_ colors[SP_D3D9O_TEXT_COLOR_BLACK]
 #define _SP_D3D9O_TF_DEFAULT_POSITION_ (DT_NOCLIP | DT_TOP | DT_CENTER)
 #define _SP_D3D9O_TF_DEFAULT_STYLE_ SP_D3D9O_OUTLINED_TEXT
 #define _SP_D3D9O_TF_DEFAULT_FONT_FAMILY_ "Arial"
@@ -92,9 +92,9 @@ public:
 	int shadow_y_offset = _SP_D3D9O_TF_DEFAULT_SHADOW_Y_OFFSET_;	// Text shadow vertical offset
 	unsigned int outline_thickness = _SP_D3D9O_TF_DEFAULT_OUTLINE_THICKNESS_; // Text outline thickness
 	D3DXCOLOR colors[_SP_D3D9O_TEXT_COLOR_COUNT_]; // ARGB values for supported text colors
-	D3DXCOLOR color = SP_D3D9O_TEXT_COLORS[_SP_D3D9O_TF_DEFAULT_COLOR_];
-	D3DXCOLOR shadow_color = _SP_D3D9O_TF_DEFAULT_SHADOW_COLOR_;
-	D3DXCOLOR outline_color = _SP_D3D9O_TF_DEFAULT_OUTLINE_COLOR_;
+	D3DXCOLOR color = SP_D3D9O_TEXT_COLORS[_SP_D3D9O_TF_DEFAULT_COLOR_]; // Default text color
+	D3DXCOLOR shadow_color;
+	D3DXCOLOR outline_color;
 	int show_info_bar = _SP_D3D9O_TF_DEFAULT_INFO_BAR_; // Denotes whether to display each info bar attribute
 
 	// Constructor/destructor

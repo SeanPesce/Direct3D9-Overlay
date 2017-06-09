@@ -95,19 +95,6 @@ std::string d3d9_dll_chain; // Filename of the d3d9.dll wrapper to chain with (i
 bool d3d9_dll_chain_failed; // Indicated that a d3d9.dll wrapper chain was specified, but failed to load
 unsigned int generic_dll_count; // Number of generic DLLs loaded at runtime
 
-// Keybinds (stored as virtual key codes)
-//	More info and a reference for virtual key codes can be found at:
-//	https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
-unsigned int hotkey_toggle_overlay_text_feed;
-unsigned int hotkey_next_overlay_text_pos;
-unsigned int hotkey_next_overlay_text_style;
-unsigned int hotkey_print_overlay_test_message;
-unsigned int hotkey_toggle_audio_feedback;
-unsigned int hotkey_toggle_verbose_output;
-unsigned int hotkey_increase_overlay_text_size;
-unsigned int hotkey_decrease_overlay_text_size;
-unsigned int hotkey_reset_overlay_text_size;
-unsigned int hotkey_toggle_text_feed_info_bar;
 // User preferences
 bool user_pref_overlay_text_feed_enabled;
 bool user_pref_audio_feedback_enabled;
@@ -127,6 +114,7 @@ extern bool mod_loop_enabled; // Controls whether the main loop for the mod is e
 
 //////////////////////// MOD FUNCTION PROTOTYPES ////////////////////////
 DWORD WINAPI init_mod_thread(LPVOID lpParam); // Determines whether mod is enabled and calls the main loop for the mod
+void get_keybinds(); // Reads in configurable keybind values as specified in the settings file (.ini)
 void get_user_preferences(); // Reads in user preferences as specified in the settings file (.ini)
 HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section, const char *key, char *buffer, unsigned int buffer_size); // Loads a single DLL specified by the given settings file, section, and key parameters
 unsigned int load_generic_dlls_from_settings_file(const char *file_name, const char *section, const char *base_key); // Load as many generic DLLs (not wrappers) as are specified in the settings file (key numbers must be consecutive)

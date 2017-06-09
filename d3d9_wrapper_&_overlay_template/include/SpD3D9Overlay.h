@@ -8,9 +8,6 @@
 #include "stdafx.h"
 #include "SpD3D9.h"
 
-// Macro functions
-#define _SP_D3D9O_TEXT_FEED_IS_ENABLED_ (enabled_modules & SP_D3D9O_TEXT_FEED_ENABLED)
-
 // Default overlay properties
 #define _SP_D3D9O_DEFAULT_MODULES_ENABLED_ (SP_D3D9O_TEXT_FEED_ENABLED)
 

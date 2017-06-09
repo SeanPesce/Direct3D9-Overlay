@@ -14,6 +14,8 @@ SpD3D9OTextFeed::SpD3D9OTextFeed(SpD3D9Overlay *new_overlay)
 	{
 		colors[i] = SP_D3D9O_TEXT_COLORS[i];
 	}
+	shadow_color = _SP_D3D9O_TF_DEFAULT_SHADOW_COLOR_;
+	outline_color = _SP_D3D9O_TF_DEFAULT_OUTLINE_COLOR_;
 
 
 	// Initialize font

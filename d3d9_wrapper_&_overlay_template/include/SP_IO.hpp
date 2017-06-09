@@ -11,6 +11,7 @@
 #include <fstream>	// ofstream
 #include <iostream> // cout, endl
 #include <limits>	// numeric_limits
+#include <list>		// std::list
 #include <sstream>  // stringstream
 #include <string>	// to_string
 
@@ -27,6 +28,10 @@
 	#define _SP_KEY_TOGGLED_ 1
 #endif // _WIN32
 
+#define _SP_MAX_PP_KEY_LENGTH_ 128			// Maximum length for private profile keys
+#define _SP_MAX_PP_STRING_VAL_LENGTH_ 128	// Maximum length for private profile string values
+
+
 // Enumerator whose values denote different date string formats
 enum SP_DATE_STRING_FORMATS {
 	SP_DATE_MMDDYYYY,	// 12/31/9999
@@ -34,6 +39,13 @@ enum SP_DATE_STRING_FORMATS {
 	SP_DATE_MMDDYY,		// 12/31/99
 	SP_DATE_DDMMYY		// 31/12/99
 };
+
+
+// Represents a function bound to a keypress
+typedef struct SP_KEY_FUNCTION {
+	unsigned int key;	// Virtual key code
+	int (*function)();	// Function called when key is pressed
+} SP_KEY_FUNCTION;
 
 
 /////////////////////// Shell I/O ///////////////////////
@@ -103,8 +115,26 @@ int file_write_text(const char *file, const char *msg);
 int file_append_text(const char *file, const char *msg);
 
 
+/**
+	get_private_profile_string_section(const char*, const char*, std::list<std::string>*)
 
-/////////////////////// Text Data I/O ///////////////////////
+	Obtains a list of all key/value pairs from the specified section of the
+	specified configuration file. Each key/value pair is defined on a separate line
+	and specified by the key name followed by any combination/number of '=', ' ',
+	and/or '\t' characters.
+	
+	@param file		Path and file name of the configuration file (generally a .ini file).
+	@param section	The name of the section to be parsed (formatted as "[section]" in the file).
+	@param keys		The list that will be populated with parsed key/value pairs.
+	
+	@return	Number of key/value pairs that were successfully parsed from the specified
+			file, or -1 if errors were encountered.
+ */
+int get_private_profile_string_section(const char *file, const char *section, std::list<std::string> *keys);
+
+
+
+/////////////////////// General Text Data I/O ///////////////////////
 
 
 /**
@@ -296,9 +326,27 @@ int append_current_date_string(std::string *date_string, bool surround_with_brac
 	@param key_name			Name of the key where the hotkey value is specified (Format in the file should be "key_name=XX", where "XX"
 							denotes a hex-formatted virtual key code)
 	
-	@return the virtual key code for the specified hotkey as an unsigned int
+	@return the virtual key code for the specified hotkey as an unsigned int (zero on failure)
  */
 unsigned int get_vk_hotkey(const char *settings_file, const char *section, const char *key_name);
+
+
+/**
+	add_function_keybind(unsigned int, int (*)(), std::list<SP_KEY_FUNCTION>*)
+
+	Adds a new keybound function to the given list.
+
+	For more info on virtual key codes:
+	https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
+
+	@param key		Virtual key code of the key that calls the given function when pressed
+	@param function	Function called when key is pressed
+	@param binds	Pointer to a list of keybound functions; the new key function is added to the end of this list
+
+	@return 0 on success; non-zero value on failure
+ */
+int add_function_keybind(unsigned int key, int (*function)(), std::list<SP_KEY_FUNCTION> *binds);
+
 
 #ifdef _WIN32
 

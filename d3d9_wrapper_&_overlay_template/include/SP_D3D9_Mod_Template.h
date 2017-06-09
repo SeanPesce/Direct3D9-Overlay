@@ -59,16 +59,9 @@
 
 
 // Keybind & user preference-related variables
-extern unsigned int hotkey_toggle_overlay_text_feed;
-extern unsigned int hotkey_next_overlay_text_pos;
-extern unsigned int hotkey_next_overlay_text_style;
-extern unsigned int hotkey_print_overlay_test_message;
-extern unsigned int hotkey_toggle_audio_feedback;
-extern unsigned int hotkey_toggle_verbose_output;
-extern unsigned int hotkey_increase_overlay_text_size;
-extern unsigned int hotkey_decrease_overlay_text_size;
-extern unsigned int hotkey_reset_overlay_text_size;
-extern unsigned int hotkey_toggle_text_feed_info_bar;
+//	More info and a reference for virtual key codes can be found at:
+//	https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
+std::list<SP_KEY_FUNCTION> keybinds; // Stores all function/keybind mappings
 extern bool user_pref_overlay_text_feed_enabled;
 extern bool user_pref_audio_feedback_enabled;
 extern bool user_pref_verbose_output_enabled;
@@ -94,8 +87,16 @@ bool mod_loop_enabled; // Controls whether the main loop for the mod is enabled/
 // Function definitions
 void mod_loop();	// Main loop for the mod thread
 void initialize_mod(bool first_time_setup); // Initializes mod data and settings based on user preferences
-void next_overlay_text_position(DWORD current_position); // Cycles through the 9 overlay text feed position presets
-void next_overlay_text_style(int current_style); // Cycles through the overlay text styles (outlined, shadowed, or plain)
+int toggle_text_feed(); // Toggle overlay text feed
+int toggle_audio_feedback(); // Toggle audio feedback (when hotkeys are pressed)
+int toggle_info_bar(); // Toggle text feed info line (date, time, FPS, etc)
+int next_overlay_text_position(); // Cycles through the 9 overlay text feed position presets
+int next_overlay_text_style(); // Cycles through the overlay text styles (outlined, shadowed, or plain)
+int toggle_verbose_output(); // Toggle verbose text feed output
+int reset_text_feed_font_size(); // Restore default overlay text feed font size (defined in user preferences)
+int increase_text_feed_font_size(); // Increase overlay text feed font size
+int decrease_text_feed_font_size(); // Decrease overlay text feed font size
+int print_overlay_test_message(); // Print test message to overlay text feed
 void SP_beep(DWORD frequency, DWORD duration, bool wait); // Beeps at the specified frequency for a specified duration(in milliseconds) if audio feedback is enabled. If audio is disabled and wait==true, the thread is put to sleep for the specified duration instead.
 void SP_beep(DWORD frequency, DWORD duration); // Beeps at the specified frequency for a specified duration(in milliseconds) if audio feedback is enabled. If audio is disabled, the thread is put to sleep for the specified duration instead.
 

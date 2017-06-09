@@ -25,177 +25,15 @@ void mod_loop()
 
 			get_async_keyboard_state(key_state); // Capture all current async key states
 
-			if (hotkey_is_down(hotkey_toggle_overlay_text_feed))
+			std::list<SP_KEY_FUNCTION>::const_iterator key_func_iterator;
+			for (key_func_iterator = keybinds.begin(); key_func_iterator != keybinds.end(); key_func_iterator++)
 			{
-				// Toggle overlay text feed
-				gl_pSpD3D9Device->overlay->text_feed->set_enabled(!gl_pSpD3D9Device->overlay->text_feed->is_enabled());
-				if (gl_pSpD3D9Device->overlay->text_feed->is_enabled() && user_pref_verbose_output_enabled)
+				if (hotkey_is_down(key_func_iterator->key))
 				{
-					print_ol_feed(_SP_DS_OL_TXT_OL_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+					key_func_iterator->function();
+					break;
 				}
-				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
 			}
-			else if (hotkey_is_down(hotkey_toggle_audio_feedback))
-			{
-				// Toggle audio feedback
-				user_pref_audio_feedback_enabled = !user_pref_audio_feedback_enabled;
-				if (user_pref_audio_feedback_enabled)
-				{
-					print_ol_feed(_SP_DS_OL_TXT_AUDIO_FEEDBACK_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-				}
-				else
-				{
-					print_ol_feed(_SP_DS_OL_TXT_AUDIO_FEEDBACK_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-				}
-				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
-			}
-			else if (gl_pSpD3D9Device->overlay->text_feed->is_enabled() && hotkey_is_down(hotkey_toggle_text_feed_info_bar))
-			{
-				// Toggle info line (date, time, FPS, etc)
-				if (!gl_pSpD3D9Device->overlay->text_feed->show_info_bar)
-				{
-					if (user_pref_show_text_feed_info_bar)
-					{
-						gl_pSpD3D9Device->overlay->text_feed->show_info_bar = user_pref_show_text_feed_info_bar;
-					}
-					else
-					{
-						gl_pSpD3D9Device->overlay->text_feed->show_info_bar = SP_D3D9O_INFO_BAR_TITLE;
-					}
-					if (user_pref_verbose_output_enabled)
-					{
-						print_ol_feed(_SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-					}
-				}
-				else
-				{
-					gl_pSpD3D9Device->overlay->text_feed->show_info_bar = SP_D3D9O_INFO_BAR_DISABLED;
-					if (user_pref_verbose_output_enabled)
-					{
-						print_ol_feed(_SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-					}
-				}
-				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
-			}
-			else if (gl_pSpD3D9Device->overlay->text_feed->is_enabled() && hotkey_is_down(hotkey_next_overlay_text_pos))
-			{
-				// Change to next overlay text feed position preset
-				next_overlay_text_position(gl_pSpD3D9Device->overlay->text_feed->position);
-				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
-			}
-			else if (gl_pSpD3D9Device->overlay->text_feed->is_enabled() && hotkey_is_down(hotkey_next_overlay_text_style))
-			{
-				// Change to next overlay text style
-				next_overlay_text_style(gl_pSpD3D9Device->overlay->text_feed->style);
-				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
-			}
-			else if (gl_pSpD3D9Device->overlay->enabled_modules && hotkey_is_down(hotkey_toggle_verbose_output))
-			{
-				// Toggle verbose text output
-				user_pref_verbose_output_enabled = !user_pref_verbose_output_enabled;
-				if (user_pref_verbose_output_enabled)
-				{
-					print_ol_feed(_SP_DS_OL_TXT_VERBOSE_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-				}
-				else
-				{
-					print_ol_feed(_SP_DS_OL_TXT_VERBOSE_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-				}
-				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
-			}
-			else if (gl_pSpD3D9Device->overlay->text_feed->is_enabled() && hotkey_is_down(hotkey_reset_overlay_text_size))
-			{
-				// Restore default overlay text size (defined in user preferences)
-				current_overlay_text_size = user_pref_overlay_text_size;
-				gl_pSpD3D9Device->overlay->text_feed->set_font_height(current_overlay_text_size);
-				if (user_pref_verbose_output_enabled)
-				{
-					print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_RESET_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-				}
-				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
-			}
-			else if (gl_pSpD3D9Device->overlay->text_feed->is_enabled() && hotkey_is_down(hotkey_increase_overlay_text_size))
-			{
-				// Increase overlay text size
-				gl_pSpD3D9Device->overlay->text_feed->set_font_height(++current_overlay_text_size);
-				if (user_pref_verbose_output_enabled)
-				{
-					print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_INCREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-				}
-				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
-			}
-			else if (gl_pSpD3D9Device->overlay->text_feed->is_enabled() && hotkey_is_down(hotkey_decrease_overlay_text_size))
-			{
-				if (current_overlay_text_size > 1) // Check if current font size is already the smallest supported
-				{
-					// Decrease overlay text feed font size
-					gl_pSpD3D9Device->overlay->text_feed->set_font_height(--current_overlay_text_size);
-					if (user_pref_verbose_output_enabled)
-					{
-						print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_DECREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-					}
-				}
-				else if (user_pref_verbose_output_enabled)
-				{
-					// Current overlay text feed font size is already the smallest supported; can't decrease it
-					print_ol_feed(_SP_DS_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, SP_D3D9O_TEXT_COLOR_YELLOW);
-				}
-				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
-			}
-			else if (gl_pSpD3D9Device->overlay->text_feed->is_enabled() && hotkey_is_down(hotkey_print_overlay_test_message))
-			{
-				// Print test message to text overlay feed
-				print_ol_feed(_SP_DS_OL_TXT_TEST_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, test_message_color);
-				switch (test_message_color)
-				{
-					case SP_D3D9O_TEXT_COLOR_WHITE:
-						test_message_color = SP_D3D9O_TEXT_COLOR_BLACK;
-						break;
-					case SP_D3D9O_TEXT_COLOR_BLACK:
-						test_message_color = SP_D3D9O_TEXT_COLOR_RED;
-						break;
-					case SP_D3D9O_TEXT_COLOR_RED:
-						test_message_color = SP_D3D9O_TEXT_COLOR_ORANGE;
-						break;
-					case SP_D3D9O_TEXT_COLOR_ORANGE:
-						test_message_color = SP_D3D9O_TEXT_COLOR_YELLOW;
-						break;
-					case SP_D3D9O_TEXT_COLOR_YELLOW:
-						test_message_color = SP_D3D9O_TEXT_COLOR_GREEN;
-						break;
-					case SP_D3D9O_TEXT_COLOR_GREEN:
-						test_message_color = SP_D3D9O_TEXT_COLOR_CYAN;
-						break;
-					case SP_D3D9O_TEXT_COLOR_CYAN:
-						test_message_color = SP_D3D9O_TEXT_COLOR_BLUE;
-						break;
-					case SP_D3D9O_TEXT_COLOR_BLUE:
-						test_message_color = SP_D3D9O_TEXT_COLOR_PURPLE;
-						break;
-					case SP_D3D9O_TEXT_COLOR_PURPLE:
-						test_message_color = SP_D3D9O_TEXT_COLOR_PINK;
-						break;
-					case SP_D3D9O_TEXT_COLOR_PINK:
-						test_message_color = SP_D3D9O_TEXT_COLOR_CYCLE_ALL;
-						break;
-					case SP_D3D9O_TEXT_COLOR_CYCLE_ALL:
-						test_message_color = SP_D3D9O_TEXT_COLOR_WHITE;
-						break;
-					default:
-						test_message_color = _SP_D3D9O_TF_DEFAULT_COLOR_;
-						break;
-				}
-				SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-				Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
-			}
-
-			// @TODO: Other hotkeys should also be checked and handled here
 
 			Sleep(1);
 		}
@@ -295,107 +133,334 @@ void initialize_mod(bool first_time_setup)
 }
 
 // Switches the overlay text feed to the next preset position
-void next_overlay_text_position(DWORD current_position)
+int next_overlay_text_position()
 {
-	switch (current_position)
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
-	case _SP_TEXT_TOP_LEFT_:
-		gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_TOP_CENTER_;
-		if (user_pref_verbose_output_enabled)
+		switch (gl_pSpD3D9Device->overlay->text_feed->position)
 		{
-			print_ol_feed(_SP_DS_OL_TXT_TOP_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+		case _SP_TEXT_TOP_LEFT_:
+			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_TOP_CENTER_;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_TOP_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
+		case _SP_TEXT_TOP_CENTER_:
+			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_TOP_RIGHT_;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_TOP_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
+		case _SP_TEXT_TOP_RIGHT_:
+			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_CENTER_LEFT_;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_MID_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
+		case _SP_TEXT_CENTER_LEFT_:
+			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_CENTER_CENTER_;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_MID_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
+		case _SP_TEXT_CENTER_CENTER_:
+			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_CENTER_RIGHT_;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_MID_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
+		case _SP_TEXT_CENTER_RIGHT_:
+			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_BOTTOM_LEFT_;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_BOTTOM_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
+		case _SP_TEXT_BOTTOM_LEFT_:
+			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_BOTTOM_CENTER_;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_BOTTOM_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
+		case _SP_TEXT_BOTTOM_CENTER_:
+			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_BOTTOM_RIGHT_;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_BOTTOM_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
+		case _SP_TEXT_BOTTOM_RIGHT_:
+		default:
+			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_TOP_LEFT_;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_TOP_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
 		}
-		break;
-	case _SP_TEXT_TOP_CENTER_:
-		gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_TOP_RIGHT_;
-		if (user_pref_verbose_output_enabled)
-		{
-			print_ol_feed(_SP_DS_OL_TXT_TOP_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-		}
-		break;
-	case _SP_TEXT_TOP_RIGHT_:
-		gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_CENTER_LEFT_;
-		if (user_pref_verbose_output_enabled)
-		{
-			print_ol_feed(_SP_DS_OL_TXT_MID_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-		}
-		break;
-	case _SP_TEXT_CENTER_LEFT_:
-		gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_CENTER_CENTER_;
-		if (user_pref_verbose_output_enabled)
-		{
-			print_ol_feed(_SP_DS_OL_TXT_MID_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-		}
-		break;
-	case _SP_TEXT_CENTER_CENTER_:
-		gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_CENTER_RIGHT_;
-		if (user_pref_verbose_output_enabled)
-		{
-			print_ol_feed(_SP_DS_OL_TXT_MID_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-		}
-		break;
-	case _SP_TEXT_CENTER_RIGHT_:
-		gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_BOTTOM_LEFT_;
-		if (user_pref_verbose_output_enabled)
-		{
-			print_ol_feed(_SP_DS_OL_TXT_BOTTOM_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-		}
-		break;
-	case _SP_TEXT_BOTTOM_LEFT_:
-		gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_BOTTOM_CENTER_;
-		if (user_pref_verbose_output_enabled)
-		{
-			print_ol_feed(_SP_DS_OL_TXT_BOTTOM_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-		}
-		break;
-	case _SP_TEXT_BOTTOM_CENTER_:
-		gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_BOTTOM_RIGHT_;
-		if (user_pref_verbose_output_enabled)
-		{
-			print_ol_feed(_SP_DS_OL_TXT_BOTTOM_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-		}
-		break;
-	case _SP_TEXT_BOTTOM_RIGHT_:
-	default:
-		gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_TOP_LEFT_;
-		if (user_pref_verbose_output_enabled)
-		{
-			print_ol_feed(_SP_DS_OL_TXT_TOP_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-		}
-		break;
+		SP_beep(800, _SP_DS_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+
+		return 0;
 	}
-	SP_beep(800, _SP_DS_DEFAULT_BEEP_DURATION_);
+
+	return -1; // Text feed not enabled
 }
 
 // Switches to the next text overlay style (outlined, shadowed, or plain)
-void next_overlay_text_style(int current_style)
+int next_overlay_text_style()
 {
-	switch (current_style)
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
-	case SP_D3D9O_OUTLINED_TEXT:
-		gl_pSpD3D9Device->overlay->text_feed->style = SP_D3D9O_SHADOWED_TEXT;
-		if (user_pref_verbose_output_enabled)
+		switch (gl_pSpD3D9Device->overlay->text_feed->style)
 		{
-			print_ol_feed(_SP_DS_OL_TXT_SHADOW_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+		case SP_D3D9O_OUTLINED_TEXT:
+			gl_pSpD3D9Device->overlay->text_feed->style = SP_D3D9O_SHADOWED_TEXT;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_SHADOW_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
+		case SP_D3D9O_SHADOWED_TEXT:
+			gl_pSpD3D9Device->overlay->text_feed->style = SP_D3D9O_PLAIN_TEXT;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_PLAIN_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
+		case SP_D3D9O_PLAIN_TEXT:
+		default:
+			gl_pSpD3D9Device->overlay->text_feed->style = SP_D3D9O_OUTLINED_TEXT;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			break;
 		}
-		break;
-	case SP_D3D9O_SHADOWED_TEXT:
-		gl_pSpD3D9Device->overlay->text_feed->style = SP_D3D9O_PLAIN_TEXT;
-		if (user_pref_verbose_output_enabled)
-		{
-			print_ol_feed(_SP_DS_OL_TXT_PLAIN_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-		}
-		break;
-	case SP_D3D9O_PLAIN_TEXT:
-	default:
-		gl_pSpD3D9Device->overlay->text_feed->style = SP_D3D9O_OUTLINED_TEXT;
-		if (user_pref_verbose_output_enabled)
-		{
-			print_ol_feed(_SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
-		}
-		break;
+		SP_beep(600, _SP_DS_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+		return 0;
 	}
-	SP_beep(600, _SP_DS_DEFAULT_BEEP_DURATION_);
+
+	return -1; // Text feed not enabled
+}
+
+
+// Toggles overlay text feed module
+int toggle_text_feed()
+{
+	gl_pSpD3D9Device->overlay->text_feed->set_enabled(!gl_pSpD3D9Device->overlay->text_feed->is_enabled());
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled() && user_pref_verbose_output_enabled)
+	{
+		print_ol_feed(_SP_DS_OL_TXT_OL_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+	}
+	SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
+	Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+
+	return 0;
+}
+
+// Toggle audio feedback (when hotkeys are pressed)
+int toggle_audio_feedback()
+{
+	user_pref_audio_feedback_enabled = !user_pref_audio_feedback_enabled;
+	if (user_pref_audio_feedback_enabled)
+	{
+		print_ol_feed(_SP_DS_OL_TXT_AUDIO_FEEDBACK_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+	}
+	else
+	{
+		print_ol_feed(_SP_DS_OL_TXT_AUDIO_FEEDBACK_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+	}
+	SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
+	Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+
+	return 0;
+}
+
+// Toggle text feed info line (date, time, FPS, etc)
+int toggle_info_bar()
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		if (!gl_pSpD3D9Device->overlay->text_feed->show_info_bar)
+		{
+			if (user_pref_show_text_feed_info_bar)
+			{
+				gl_pSpD3D9Device->overlay->text_feed->show_info_bar = user_pref_show_text_feed_info_bar;
+			}
+			else
+			{
+				gl_pSpD3D9Device->overlay->text_feed->show_info_bar = SP_D3D9O_INFO_BAR_TITLE;
+			}
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+		}
+		else
+		{
+			gl_pSpD3D9Device->overlay->text_feed->show_info_bar = SP_D3D9O_INFO_BAR_DISABLED;
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(_SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+		}
+		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+
+		return 0;
+	}
+	
+	return -1; // Text feed not enabled
+}
+
+// Toggle verbose text feed output
+int toggle_verbose_output()
+{
+	if (gl_pSpD3D9Device->overlay->enabled_modules)
+	{
+		user_pref_verbose_output_enabled = !user_pref_verbose_output_enabled;
+		if (user_pref_verbose_output_enabled)
+		{
+			print_ol_feed(_SP_DS_OL_TXT_VERBOSE_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+		}
+		else
+		{
+			print_ol_feed(_SP_DS_OL_TXT_VERBOSE_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+		}
+		SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+
+		return 0;
+	}
+
+	return -1; // Overlay not enabled
+}
+
+// Restore default overlay text feed font size (defined in user preferences)
+int reset_text_feed_font_size()
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		current_overlay_text_size = user_pref_overlay_text_size;
+		gl_pSpD3D9Device->overlay->text_feed->set_font_height(current_overlay_text_size);
+		if (user_pref_verbose_output_enabled)
+		{
+			print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_RESET_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+		}
+		SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+		return 0;
+	}
+
+	return -1; // Text feed not enabled
+}
+
+// Increase overlay text feed font size
+int increase_text_feed_font_size()
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		gl_pSpD3D9Device->overlay->text_feed->set_font_height(++current_overlay_text_size);
+		if (user_pref_verbose_output_enabled)
+		{
+			print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_INCREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+		}
+		SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+		return 0;
+	}
+
+	return -1; // Text feed not enabled
+}
+
+// Decrease overlay text feed font size
+int decrease_text_feed_font_size()
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		if (current_overlay_text_size > 1) // Check if current font size is already the smallest supported
+		{
+			// Decrease overlay text feed font size
+			gl_pSpD3D9Device->overlay->text_feed->set_font_height(--current_overlay_text_size);
+			if (user_pref_verbose_output_enabled)
+			{
+				print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_DECREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			}
+			SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
+			Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+			return 0;
+		}
+		else if (user_pref_verbose_output_enabled)
+		{
+			// Current overlay text feed font size is already the smallest supported; can't decrease it
+			print_ol_feed(_SP_DS_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, SP_D3D9O_TEXT_COLOR_YELLOW);
+			SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
+			Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+			return 1;
+		}
+	}
+
+	return -1; // Text feed not enabled
+}
+
+// Print test message to overlay text feed
+int print_overlay_test_message()
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		print_ol_feed(_SP_DS_OL_TXT_TEST_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, test_message_color);
+		switch (test_message_color)
+		{
+		case SP_D3D9O_TEXT_COLOR_WHITE:
+			test_message_color = SP_D3D9O_TEXT_COLOR_BLACK;
+			break;
+		case SP_D3D9O_TEXT_COLOR_BLACK:
+			test_message_color = SP_D3D9O_TEXT_COLOR_RED;
+			break;
+		case SP_D3D9O_TEXT_COLOR_RED:
+			test_message_color = SP_D3D9O_TEXT_COLOR_ORANGE;
+			break;
+		case SP_D3D9O_TEXT_COLOR_ORANGE:
+			test_message_color = SP_D3D9O_TEXT_COLOR_YELLOW;
+			break;
+		case SP_D3D9O_TEXT_COLOR_YELLOW:
+			test_message_color = SP_D3D9O_TEXT_COLOR_GREEN;
+			break;
+		case SP_D3D9O_TEXT_COLOR_GREEN:
+			test_message_color = SP_D3D9O_TEXT_COLOR_CYAN;
+			break;
+		case SP_D3D9O_TEXT_COLOR_CYAN:
+			test_message_color = SP_D3D9O_TEXT_COLOR_BLUE;
+			break;
+		case SP_D3D9O_TEXT_COLOR_BLUE:
+			test_message_color = SP_D3D9O_TEXT_COLOR_PURPLE;
+			break;
+		case SP_D3D9O_TEXT_COLOR_PURPLE:
+			test_message_color = SP_D3D9O_TEXT_COLOR_PINK;
+			break;
+		case SP_D3D9O_TEXT_COLOR_PINK:
+			test_message_color = SP_D3D9O_TEXT_COLOR_CYCLE_ALL;
+			break;
+		case SP_D3D9O_TEXT_COLOR_CYCLE_ALL:
+			test_message_color = SP_D3D9O_TEXT_COLOR_WHITE;
+			break;
+		default:
+			test_message_color = _SP_D3D9O_TF_DEFAULT_COLOR_;
+			break;
+		}
+		SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+		return 0;
+	}
+
+	return -1; // Text feed not enabled
 }
 
 

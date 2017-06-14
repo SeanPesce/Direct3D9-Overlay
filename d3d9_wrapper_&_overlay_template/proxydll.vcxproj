@@ -145,6 +145,7 @@
     <None Include="proxydll.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\D3DFont.h" />
     <ClInclude Include="include\SpD3D9.h" />
     <ClInclude Include="include\SpD3D9Interface.h" />
     <ClInclude Include="include\SpD3D9Device.h" />
@@ -157,6 +158,7 @@
     <ClInclude Include="include\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\D3DFont.cpp" />
     <ClCompile Include="src\SpD3D9Interface.cpp" />
     <ClCompile Include="src\SpD3D9Device.cpp" />
     <ClCompile Include="src\proxydll.cpp" />

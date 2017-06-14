@@ -19,21 +19,26 @@ SpD3D9OTextFeed::SpD3D9OTextFeed(SpD3D9Overlay *new_overlay)
 
 
 	// Initialize font
-	HRESULT font_hr = D3DXCreateFont(
-		overlay->device->m_pIDirect3DDevice9, // D3D device
-		_SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_, // Height
-		0,						// Width
-		FW_BOLD,				// Weight
-		1,						// MipLevels, 0 = autogen mipmaps
-		FALSE,					// Italic
-		DEFAULT_CHARSET,		// CharSet
-		OUT_DEFAULT_PRECIS,		// OutputPrecision
-		ANTIALIASED_QUALITY,	// Quality
-		DEFAULT_PITCH | FF_DONTCARE, // PitchAndFamily
-		_SP_D3D9O_TF_DEFAULT_FONT_FAMILY_, // pFaceName
-		&font);					// ppFont
-	_SP_D3D9_CHECK_FAILED_(font_hr);
-
+	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
+		HRESULT font_hr = D3DXCreateFont(
+			overlay->device->m_pIDirect3DDevice9, // D3D device
+			_SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_, // Height
+			0,						// Width
+			FW_BOLD,				// Weight
+			1,						// MipLevels, 0 = autogen mipmaps
+			FALSE,					// Italic
+			DEFAULT_CHARSET,		// CharSet
+			OUT_DEFAULT_PRECIS,		// OutputPrecision
+			ANTIALIASED_QUALITY,	// Quality
+			DEFAULT_PITCH | FF_DONTCARE, // PitchAndFamily
+			_SP_D3D9O_TF_DEFAULT_FONT_FAMILY_, // pFaceName
+			&font);					// ppFont
+		_SP_D3D9_CHECK_FAILED_(font_hr);
+	#else
+		font = new CD3DFont(_SP_D3D9O_TF_DEFAULT_FONT_FAMILY_, font_height, D3DFONT_BOLD);
+		font->InitializeDeviceObjects(overlay->device->m_pIDirect3DDevice9);
+		font->RestoreDeviceObjects();
+	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 
 	// Initialize text feed boundaries
 	RECT window_rect;
@@ -48,6 +53,13 @@ SpD3D9OTextFeed::SpD3D9OTextFeed(SpD3D9Overlay *new_overlay)
 
 SpD3D9OTextFeed::~SpD3D9OTextFeed()
 {
+	#ifndef _SP_D3D9O_TF_USE_ID3DX_FONT_
+		if (font != NULL)
+		{
+			delete font;
+			font = NULL;
+		}
+	#endif
 }
 
 
@@ -208,6 +220,8 @@ void SpD3D9OTextFeed::set_font_height(unsigned int new_text_height)
 
 void SpD3D9OTextFeed::update_font_height()
 {
+	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
+
 	// Store the current font attributes
 	D3DXFONT_DESC font_desc;
 	HRESULT font_desc_hr = font->GetDesc(&font_desc);
@@ -261,13 +275,28 @@ void SpD3D9OTextFeed::update_font_height()
 		_SP_D3D9_CHECK_FAILED_(font_hr);
 	}
 
-	new_font_size = 0;
+	#else
 
-	//needs_reset = true;
+	if (font != NULL)
+	{
+		delete font;
+		font = NULL;
+	}
+
+	font = new CD3DFont(_SP_D3D9O_TF_DEFAULT_FONT_FAMILY_, new_font_size, D3DFONT_BOLD);
+
+	font->InitializeDeviceObjects(overlay->device->m_pIDirect3DDevice9);
+	font->RestoreDeviceObjects();
+
+	font_height = new_font_size;
+
+	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
+
+	new_font_size = 0;
 }
 
 
-
+#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
 void SpD3D9OTextFeed::cycle_color()
 {
 	if (current_rgb_cycle_vals[0] == 0x00FF0000 && current_rgb_cycle_vals[1] != 0x0000FF00 && current_rgb_cycle_vals[2] == 0x00000000)
@@ -316,7 +345,7 @@ void SpD3D9OTextFeed::cycle_color()
 	}
 	colors[SP_D3D9O_TEXT_COLOR_CYCLE_ALL] = D3DXCOLOR(0xFF000000 + current_rgb_cycle_vals[0] + current_rgb_cycle_vals[1] + current_rgb_cycle_vals[2]);
 }
-
+#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 
 
 void SpD3D9OTextFeed::update_info_header()
@@ -377,7 +406,7 @@ void SpD3D9OTextFeed::update_info_header()
 }
 
 
-
+#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
 void SpD3D9OTextFeed::build_feed()
 {
 	// Iterate through overlay text feed message list for each color
@@ -424,7 +453,146 @@ void SpD3D9OTextFeed::build_feed()
 		}
 	}
 }
+#else
 
+void SpD3D9OTextFeed::build_feed()
+{
+	feed_string_full.clear();
+
+	if (show_info_bar)
+	{
+		update_info_header();
+		feed_string_full += '^';
+		feed_string_full += SP_D3D9O_TEXT_COLOR_TABLE_CHARS[_SP_D3D9O_TF_DEFAULT_COLOR_];
+		feed_string_full.append(info_string).append("\n");
+	}
+
+	std::list<SP_D3D9O_TEXT_FEED_ENTRY>::const_iterator iterator;
+	for (iterator = messages.begin(); iterator != messages.end(); iterator++)
+	{
+		feed_string_full += '^';
+		feed_string_full += SP_D3D9O_TEXT_COLOR_TABLE_CHARS[iterator->color];
+		feed_string_full.append(iterator->message).append("\n");
+	}
+}
+
+void SpD3D9OTextFeed::update_position()
+{
+	coordinates.flags = 0;
+
+	int message_count = 0;
+	if (show_info_bar)
+	{
+		message_count++;
+	}
+
+	switch (style) {
+		case SP_D3D9O_SHADOWED_TEXT:
+			// Set text feed X position
+			if (position & DT_CENTER)
+			{
+				coordinates.shadowed[0].x = (float)bounds.shadowed[0].right / 2.0f;
+				coordinates.shadowed[1].x = (float)bounds.shadowed[1].right / 2.0f;
+				coordinates.flags |= D3DFONT_CENTERED;
+			}
+			else if (position & DT_RIGHT)
+			{
+				coordinates.shadowed[0].x = (float)bounds.shadowed[0].right;
+				coordinates.shadowed[1].x = (float)bounds.shadowed[1].right;
+				coordinates.flags |= D3DFONT_RIGHT;
+			}
+			else
+			{
+				coordinates.shadowed[0].x = (float)bounds.shadowed[0].left;
+				coordinates.shadowed[1].x = (float)bounds.shadowed[1].left;
+			}
+			// Set text feed Y position
+			if (position & DT_VCENTER)
+			{
+				coordinates.shadowed[0].y = ((float)bounds.shadowed[0].bottom / 2.0f) - (((messages.size() + message_count) * (font_height * 1.5f)) / 2.0f);
+				coordinates.shadowed[1].y = ((float)bounds.shadowed[1].bottom / 2.0f) - (((messages.size() + message_count) * (font_height * 1.5f)) / 2.0f);
+			}
+			else if (position & DT_BOTTOM)
+			{
+				coordinates.shadowed[0].y = (float)bounds.shadowed[0].bottom - ((messages.size() + message_count) * (font_height * 1.5f));
+				coordinates.shadowed[1].y = (float)bounds.shadowed[1].bottom - ((messages.size() + message_count) * (font_height * 1.5f));
+			}
+			else
+			{
+				coordinates.shadowed[0].y = (float)bounds.shadowed[0].top;
+				coordinates.shadowed[1].y = (float)bounds.shadowed[1].top;
+			}
+			break;
+
+		case SP_D3D9O_PLAIN_TEXT:
+			// Set text feed X position
+			if (position & DT_CENTER)
+			{
+				coordinates.plain.x = (float)bounds.plain.right / 2.0f;
+				coordinates.flags |= D3DFONT_CENTERED;
+			}
+			else if (position & DT_RIGHT)
+			{
+				coordinates.plain.x = (float)bounds.plain.right;
+				coordinates.flags |= D3DFONT_RIGHT;
+			}
+			else
+			{
+				coordinates.plain.x = (float)bounds.plain.left;
+			}
+			// Set text feed Y position
+			if (position & DT_VCENTER)
+			{
+				coordinates.plain.y = ((float)bounds.plain.bottom / 2.0f) - (((messages.size() + message_count) * (font_height * 1.5f)) / 2.0f);
+			}
+			else if (position & DT_BOTTOM)
+			{
+				coordinates.plain.y = (float)bounds.plain.bottom - ((messages.size() + message_count) * (font_height * 1.5f));
+			}
+			else
+			{
+				coordinates.plain.y = (float)bounds.plain.top;
+			}
+			break;
+
+		case SP_D3D9O_OUTLINED_TEXT:
+		default:
+			for (int i = 0; i < 9; i++)
+			{
+				// Set text feed X position
+				if (position & DT_CENTER)
+				{
+					coordinates.outlined[i].x = (float)bounds.outlined[i].right / 2.0f;
+					coordinates.flags |= D3DFONT_CENTERED;
+				}
+				else if (position & DT_RIGHT)
+				{
+					coordinates.outlined[i].x = (float)bounds.outlined[i].right;
+					coordinates.flags |= D3DFONT_RIGHT;
+				}
+				else
+				{
+					coordinates.outlined[i].x = (float)bounds.outlined[i].left;
+				}
+				// Set text feed Y position
+				if (position & DT_VCENTER)
+				{
+					coordinates.outlined[i].y = ((float)bounds.outlined[i].bottom / 2.0f) - (((messages.size() + message_count) * (font_height * 1.5f)) / 2.0f);
+				}
+				else if (position & DT_BOTTOM)
+				{
+					coordinates.outlined[i].y = (float)bounds.outlined[i].bottom - ((messages.size() + message_count) * (font_height * 1.5f));
+				}
+				else
+				{
+					coordinates.outlined[i].y = (float)bounds.outlined[i].top;
+				}
+			}
+			break;
+	}
+}
+
+#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 
 
 void SpD3D9OTextFeed::clean_feed()
@@ -517,36 +685,68 @@ void SpD3D9OTextFeed::draw()
 		update_font_height();
 	}
 
-	cycle_color(); // Calculate the next ARGB color value for text whose color cycles through all colors
+	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
+		cycle_color(); // Calculate the next ARGB color value for text whose color cycles through all colors
+	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 
 	build_feed(); // Build text feed string
 
-	switch (style) {
-		case SP_D3D9O_SHADOWED_TEXT:
-			font->DrawText(NULL, feed_string_full.c_str(), -1, &bounds.shadowed[1], position, shadow_color); // Draw text shadow
-			for (int c = 0; c < _SP_D3D9O_TEXT_COLOR_COUNT_; c++)
-			{
-				font->DrawText(NULL, feed_string[c].c_str(), -1, &bounds.shadowed[0], position, colors[c]); // Draw text
-			}
-			break;
-		case SP_D3D9O_PLAIN_TEXT:
-			for (int c = 0; c < _SP_D3D9O_TEXT_COLOR_COUNT_; c++)
-			{
-				font->DrawText(NULL, feed_string[c].c_str(), -1, &bounds.plain, position, colors[c]); // Draw text
-			}
-			break;
-		case SP_D3D9O_OUTLINED_TEXT:
-		default:
-			// Draw outlined text
-			for (int o = 1; o <= 8; o++) // 8 = number of boundary rects for outlined text style
-			{
-				font->DrawText(NULL, feed_string_full.c_str(), -1, &bounds.outlined[o], position, outline_color); // Draw text outline
-			}
-			for (int c = 0; c < _SP_D3D9O_TEXT_COLOR_COUNT_; c++)
-			{
-				font->DrawText(NULL, feed_string[c].c_str(), -1, &bounds.outlined[0], position, colors[c]); // Draw text
-			}
-			break;
-	}
+	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
+
+		switch (style) {
+			case SP_D3D9O_SHADOWED_TEXT:
+				font->DrawText(NULL, feed_string_full.c_str(), -1, &bounds.shadowed[1], position, shadow_color); // Draw text shadow
+				for (int c = 0; c < _SP_D3D9O_TEXT_COLOR_COUNT_; c++)
+				{
+					font->DrawText(NULL, feed_string[c].c_str(), -1, &bounds.shadowed[0], position, colors[c]); // Draw text
+				}
+				break;
+			case SP_D3D9O_PLAIN_TEXT:
+				for (int c = 0; c < _SP_D3D9O_TEXT_COLOR_COUNT_; c++)
+				{
+					font->DrawText(NULL, feed_string[c].c_str(), -1, &bounds.plain, position, colors[c]); // Draw text
+				}
+				break;
+			case SP_D3D9O_OUTLINED_TEXT:
+			default:
+				// Draw outlined text
+				for (int o = 1; o <= 8; o++) // 8 = number of boundary rects for outlined text style
+				{
+					font->DrawText(NULL, feed_string_full.c_str(), -1, &bounds.outlined[o], position, outline_color); // Draw text outline
+				}
+				for (int c = 0; c < _SP_D3D9O_TEXT_COLOR_COUNT_; c++)
+				{
+					font->DrawText(NULL, feed_string[c].c_str(), -1, &bounds.outlined[0], position, colors[c]); // Draw text
+				}
+				break;
+		}
+
+	#else
+
+		update_position();
+
+		font->BeginDrawing();
+		
+		switch (style) {
+			case SP_D3D9O_SHADOWED_TEXT:
+				font->DrawText(coordinates.shadowed[1].x, coordinates.shadowed[1].y, shadow_color, feed_string_full.c_str(), coordinates.flags, 0); // Draw text shadow
+				font->DrawText(coordinates.shadowed[0].x, coordinates.shadowed[0].y, colors[_SP_D3D9O_TF_DEFAULT_COLOR_], feed_string_full.c_str(), (coordinates.flags | D3DFONT_COLORTABLE), 0); // Draw text
+				break;
+			case SP_D3D9O_PLAIN_TEXT:
+				font->DrawText(coordinates.plain.x, coordinates.plain.y, colors[_SP_D3D9O_TF_DEFAULT_COLOR_], feed_string_full.c_str(), (coordinates.flags | D3DFONT_COLORTABLE), 0); // Draw text
+				break;
+			case SP_D3D9O_OUTLINED_TEXT:
+			default:
+				for (int o = 1; o <= 8; o++) // 8 = number of boundary rects for outlined text style
+				{
+					font->DrawText(coordinates.outlined[o].x, coordinates.outlined[o].y, outline_color, feed_string_full.c_str(), coordinates.flags, 0); // Draw text outline
+				}
+				font->DrawText(coordinates.outlined[0].x, coordinates.outlined[0].y, colors[_SP_D3D9O_TF_DEFAULT_COLOR_], feed_string_full.c_str(), (coordinates.flags | D3DFONT_COLORTABLE), 0); // Draw text
+				break;
+		}
+
+		font->EndDrawing();
+
+	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 
 }

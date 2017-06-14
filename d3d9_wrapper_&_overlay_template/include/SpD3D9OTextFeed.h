@@ -8,8 +8,14 @@
 #include "stdafx.h"
 #include "SpD3D9.h"
 
+#include "D3DFont.h"
+
 // Default text feed attributes
-#define _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_ 20
+#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
+	#define _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_ 20
+#else
+	#define _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_ 12
+#endif
 #define _SP_D3D9O_TF_DEFAULT_SHADOW_X_OFFSET_ 2
 #define _SP_D3D9O_TF_DEFAULT_SHADOW_Y_OFFSET_ 2
 #define _SP_D3D9O_TF_DEFAULT_OUTLINE_THICKNESS_ 2
@@ -23,26 +29,6 @@
 #define _SP_D3D9O_TF_DEFAULT_TITLE_ "Direct3D Overlay by Sean Pesce"
 
 // Overlay class data
-#ifndef _SP_D3D9O_TEXT_COLOR_COUNT_
-	#define _SP_D3D9O_TEXT_COLOR_COUNT_ 11
-#endif // _SP_D3D9O_TEXT_COLOR_COUNT_
-class SpD3D9Overlay;
-#ifndef _SP_D3D9O_TEXT_COLOR_ENUM_
-	#define _SP_D3D9O_TEXT_COLOR_ENUM_
-enum SP_D3D9O_TEXT_COLOR_ENUM {
-	SP_D3D9O_TEXT_COLOR_WHITE,
-	SP_D3D9O_TEXT_COLOR_BLACK,
-	SP_D3D9O_TEXT_COLOR_RED,
-	SP_D3D9O_TEXT_COLOR_ORANGE,
-	SP_D3D9O_TEXT_COLOR_YELLOW,
-	SP_D3D9O_TEXT_COLOR_GREEN,
-	SP_D3D9O_TEXT_COLOR_CYAN,
-	SP_D3D9O_TEXT_COLOR_BLUE,
-	SP_D3D9O_TEXT_COLOR_PURPLE,
-	SP_D3D9O_TEXT_COLOR_PINK,
-	SP_D3D9O_TEXT_COLOR_CYCLE_ALL
-};
-#endif // _SP_D3D9O_TEXT_COLOR_ENUM_
 extern const D3DXCOLOR SP_D3D9O_TEXT_COLORS[_SP_D3D9O_TEXT_COLOR_COUNT_];
 
 
@@ -78,6 +64,21 @@ typedef struct SP_D3D9O_TEXT_FEED_BOUNDS {
 	RECT outlined[9];
 } SP_D3D9O_TEXT_FEED_BOUNDS;
 
+#ifndef _SP_D3D9O_TF_USE_ID3DX_FONT_
+typedef struct SP_D3D9O_TEXT_FEED_COORDINATES {
+	float x = 0.0f;
+	float y = 0.0f;
+} SP_D3D9O_TEXT_FEED_COORDINATES;
+
+typedef struct SP_D3D9O_TEXT_FEED_LOCATION {
+	// Screenspace coordinates for positioning each text style
+	DWORD flags = 0;
+	SP_D3D9O_TEXT_FEED_COORDINATES plain;
+	SP_D3D9O_TEXT_FEED_COORDINATES shadowed[2];
+	SP_D3D9O_TEXT_FEED_COORDINATES outlined[9];
+} SP_D3D9O_TEXT_FEED_LOCATION;
+#endif
+
 
 class SpD3D9OTextFeed
 {
@@ -85,14 +86,20 @@ public:
 	SpD3D9Overlay *overlay = NULL; // D3D9 overlay that this text feed belongs to
 	std::list<SP_D3D9O_TEXT_FEED_ENTRY> messages; // List of messages in the overlay text feed
 	SP_D3D9O_TEXT_FEED_BOUNDS bounds; // Screenspace boundaries for positioning each text style
-	ID3DXFont *font = NULL;
 	DWORD position = _SP_D3D9O_TF_DEFAULT_POSITION_;
 	SP_D3D9O_TEXT_FEED_STYLE_ENUM style = _SP_D3D9O_TF_DEFAULT_STYLE_;
 	int shadow_x_offset = _SP_D3D9O_TF_DEFAULT_SHADOW_X_OFFSET_;	// Text shadow horizontal offset
 	int shadow_y_offset = _SP_D3D9O_TF_DEFAULT_SHADOW_Y_OFFSET_;	// Text shadow vertical offset
 	unsigned int outline_thickness = _SP_D3D9O_TF_DEFAULT_OUTLINE_THICKNESS_; // Text outline thickness
 	D3DXCOLOR colors[_SP_D3D9O_TEXT_COLOR_COUNT_]; // ARGB values for supported text colors
-	D3DXCOLOR color = SP_D3D9O_TEXT_COLORS[_SP_D3D9O_TF_DEFAULT_COLOR_]; // Default text color
+	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
+		ID3DXFont *font = NULL;
+		D3DXCOLOR color = SP_D3D9O_TEXT_COLORS[_SP_D3D9O_TF_DEFAULT_COLOR_]; // Default text color
+	#else
+		CD3DFont *font = NULL;
+		int font_height = _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_;
+		SP_D3D9O_TEXT_FEED_LOCATION coordinates; // X and Y positioning for each text style
+	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 	D3DXCOLOR shadow_color;
 	D3DXCOLOR outline_color;
 	int show_info_bar = _SP_D3D9O_TF_DEFAULT_INFO_BAR_; // Denotes whether to display each info bar attribute
@@ -121,8 +128,12 @@ private:
 	std::string feed_string_full = "";	// String to hold the feed text as a single string (used for shadow/outline)
 	void SpD3D9OTextFeed::build_feed();
 	void SpD3D9OTextFeed::update_font_height(); // Update text to new font height
-	void SpD3D9OTextFeed::cycle_color(); // Cycles text to next color in RGB spectrum
 	void SpD3D9OTextFeed::update_info_header(); // Updates info string attributes (date, time, FPS, etc)
+	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
+		void SpD3D9OTextFeed::cycle_color(); // Cycles text to next color in RGB spectrum
+	#else
+		void SpD3D9OTextFeed::update_position(); // Updates text feed position based on boundaries and number of messages
+	#endif
 };
 
 

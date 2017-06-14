@@ -83,8 +83,11 @@ void initialize_mod(bool first_time_setup)
 	print_ol_feed("DEBUG: Direct3D debugging is enabled", 0, false, SP_D3D9O_TEXT_COLOR_ORANGE);
 	#endif // D3D_DEBUG_INFO
 
+	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
 	print_ol_feed("--------------------------------------------------------", 0, false, SP_D3D9O_TEXT_COLOR_CYCLE_ALL);
-	
+	#else
+	print_ol_feed("--------------------------------------------------------", 0, false);
+	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 	
 	if (user_pref_verbose_output_enabled && first_time_setup)
 	{
@@ -445,12 +448,18 @@ int print_overlay_test_message()
 		case SP_D3D9O_TEXT_COLOR_PURPLE:
 			test_message_color = SP_D3D9O_TEXT_COLOR_PINK;
 			break;
+#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
 		case SP_D3D9O_TEXT_COLOR_PINK:
 			test_message_color = SP_D3D9O_TEXT_COLOR_CYCLE_ALL;
 			break;
 		case SP_D3D9O_TEXT_COLOR_CYCLE_ALL:
 			test_message_color = SP_D3D9O_TEXT_COLOR_WHITE;
 			break;
+#else
+		case SP_D3D9O_TEXT_COLOR_PINK:
+			test_message_color = SP_D3D9O_TEXT_COLOR_WHITE;
+			break;
+#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 		default:
 			test_message_color = _SP_D3D9O_TF_DEFAULT_COLOR_;
 			break;

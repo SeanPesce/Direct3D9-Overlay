@@ -285,7 +285,12 @@ void SpD3D9Overlay::reset_tasks()
 	// Free video memory resources used by text feed
 	if (text_feed->font != NULL)
 	{
-		_SP_D3D9_CHECK_FAILED_(text_feed->font->OnLostDevice()); // (Must be called before resetting device)
+		#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
+			_SP_D3D9_CHECK_FAILED_(text_feed->font->OnLostDevice()); // (Must be called before resetting device)
+		#else
+			delete text_feed->font;
+			text_feed->font = NULL;
+		#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 	}
 }
 
@@ -294,10 +299,16 @@ void SpD3D9Overlay::reset_tasks()
 void SpD3D9Overlay::post_reset_tasks(D3DPRESENT_PARAMETERS *present_params)
 {
 	// Re-acquire video memory resources for overlay text feed font
-	if (text_feed->font != NULL)
-	{
-		_SP_D3D9_CHECK_FAILED_(text_feed->font->OnResetDevice()); // (Must be called after resetting a device)
-	}
+	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
+		if (text_feed->font != NULL)
+		{
+			_SP_D3D9_CHECK_FAILED_(text_feed->font->OnResetDevice()); // (Must be called after resetting a device)
+		}
+	#else
+		text_feed->font = new CD3DFont(_SP_D3D9O_TF_DEFAULT_FONT_FAMILY_, text_feed->font_height, D3DFONT_BOLD);
+		text_feed->font->InitializeDeviceObjects(device->m_pIDirect3DDevice9);
+		text_feed->font->RestoreDeviceObjects();
+	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 
 	// Store window mode (windowed or fullscreen)
 	is_windowed = present_params->Windowed != 0;

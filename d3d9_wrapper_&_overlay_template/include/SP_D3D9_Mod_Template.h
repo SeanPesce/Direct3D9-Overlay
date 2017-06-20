@@ -7,6 +7,7 @@
 
 #include <Windows.h>
 #include "SP_IO.hpp"
+#include "SP_SysUtils.hpp"
 #include "SpD3D9Device.h"
 
 // Macro to determine if a hotkey is enabled and currently being pressed
@@ -69,9 +70,12 @@ extern int user_pref_overlay_text_size;
 extern DWORD user_pref_overlay_text_pos;
 extern SP_D3D9O_TEXT_FEED_STYLE_ENUM user_pref_overlay_text_style;
 extern int user_pref_show_text_feed_info_bar;
+
+#ifdef _SP_DARK_SOULS_1_
 // Dark Souls PvP Watchdog Settings
 extern int dspw_pref_font_size;
 extern int user_pref_dspw_ol_offset;
+#endif // _SP_DARK_SOULS_1_
 
 // Overlay-related variables
 extern SpD3D9Device* gl_pSpD3D9Device; // Pointer to the IDirect3DDevice9 wrapper that contains the overlay

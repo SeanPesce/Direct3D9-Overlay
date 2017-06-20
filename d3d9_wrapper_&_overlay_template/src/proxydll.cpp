@@ -354,8 +354,10 @@ void get_user_preferences()
 	// Verbose text output enabled/disabled
 	user_pref_verbose_output_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_DEV_PREFS_, _SP_DS_OL_TXT_VERBOSE_OUTPUT_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_VERBOSE_OUTPUT_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
+#ifdef _SP_DARK_SOULS_1_
 	// PvP Watchdog overlay adjustment (Dark Souls)
 	user_pref_dspw_ol_offset = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DSPW_ADJUSTMENT_KEY_, OL_TXT_DISABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
+#endif // _SP_DARK_SOULS_1_
 
 	// FPS counter enabled/disabled
 	if ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLE_FPS_KEY_, OL_TXT_ENABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED)
@@ -452,6 +454,7 @@ void get_user_preferences()
 		user_pref_overlay_text_style = SP_D3D9O_OUTLINED_TEXT;
 	}
 
+#ifdef _SP_DARK_SOULS_1_
 	// Get DSPW font size in case user wants to adjust this overlay to avoid clipping with the PvP Watchdog overlay
 	dspw_pref_font_size = get_dspw_font_size();
 
@@ -460,8 +463,11 @@ void get_user_preferences()
 		// Set overlay offset to adjust for PvP Watchdog overlay
 		user_pref_dspw_ol_offset = dspw_pref_font_size + 5;
 	}
+#endif // _SP_DARK_SOULS_1_
+
 }
 
+#ifdef _SP_DARK_SOULS_1_
 // Reads the PvP Watchdog settings file (DSPWSteam.ini) to obtain the DSPW font size in
 //  case the user wants to adjust this overlay to avoid clipping with the PvP Watchdog
 //  overlay
@@ -499,4 +505,5 @@ int get_dspw_font_size()
 	// Couldn't find the FontSize key in the DSPW settings file
 	return 0;
 }
+#endif // _SP_DARK_SOULS_1_
 

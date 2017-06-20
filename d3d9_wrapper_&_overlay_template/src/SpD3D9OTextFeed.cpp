@@ -95,12 +95,17 @@ void SpD3D9OTextFeed::disable()
 
 void SpD3D9OTextFeed::set_bounds(RECT *window_boundaries)
 {
+	int vertical_offset = 0;
+
+#ifdef _SP_DARK_SOULS_1_
 	extern int user_pref_dspw_ol_offset; // Used to adjust the overlay to avoid clipping with the DSPW overlay
+	vertical_offset = user_pref_dspw_ol_offset;
+#endif // _SP_DARK_SOULS_1_
 
 	// Initialize plain text rect
 	SetRect(&bounds.plain,
 		window_boundaries->left,
-		window_boundaries->top + user_pref_dspw_ol_offset,
+		window_boundaries->top + vertical_offset,
 		window_boundaries->right,
 		window_boundaries->bottom);
 
@@ -110,7 +115,7 @@ void SpD3D9OTextFeed::set_bounds(RECT *window_boundaries)
 		// Case: x and y offsets are both positive
 		SetRect(&bounds.shadowed[0],
 			window_boundaries->left,
-			window_boundaries->top + user_pref_dspw_ol_offset,
+			window_boundaries->top + vertical_offset,
 			window_boundaries->right - shadow_x_offset,
 			window_boundaries->bottom - shadow_y_offset);
 	}
@@ -154,7 +159,7 @@ void SpD3D9OTextFeed::set_bounds(RECT *window_boundaries)
 	// Inititialize main outlined text rect
 	SetRect(&bounds.outlined[0],
 		window_boundaries->left + outline_thickness,
-		window_boundaries->top + outline_thickness + user_pref_dspw_ol_offset,
+		window_boundaries->top + outline_thickness + vertical_offset,
 		window_boundaries->right - outline_thickness,
 		window_boundaries->bottom - outline_thickness);
 

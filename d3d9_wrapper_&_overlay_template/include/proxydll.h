@@ -31,7 +31,9 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 //	Advanced settings section keys
 #define _SP_DS_DLL_CHAIN_KEY_ "d3d9Chain"
 #define _SP_DS_DLL_GENERIC_KEY_ "GenericDLL"
-#define _SP_DS_DSPW_ADJUSTMENT_KEY_ "DspwOverlayAdjustment"
+#ifdef _SP_DARK_SOULS_1_
+	#define _SP_DS_DSPW_ADJUSTMENT_KEY_ "DspwOverlayAdjustment"
+#endif // _SP_DARK_SOULS_1_
 //	Keybinds section keys
 #define _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_ "ToggleOverlay"
 #define _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_ "ChangeOverlayTextPosition"
@@ -103,13 +105,16 @@ int user_pref_overlay_text_size;
 DWORD user_pref_overlay_text_pos;
 SP_D3D9O_TEXT_FEED_STYLE_ENUM user_pref_overlay_text_style;
 int user_pref_show_text_feed_info_bar;
+// Mod variables & data
+SHORT key_state[256];	// Buffer for async key states
+extern bool mod_loop_enabled; // Controls whether the main loop for the mod is enabled/disabled
+
+#ifdef _SP_DARK_SOULS_1_
 // Dark Souls PvP Watchdog Settings
 // (These values will be used to adjust the overlay to avoid clipping with the DSPW overlay)
 int dspw_pref_font_size;
 int user_pref_dspw_ol_offset;
-// Mod variables & data
-SHORT key_state[256];	// Buffer for async key states
-extern bool mod_loop_enabled; // Controls whether the main loop for the mod is enabled/disabled
+#endif // _SP_DARK_SOULS_1_
 
 
 //////////////////////// MOD FUNCTION PROTOTYPES ////////////////////////
@@ -118,7 +123,10 @@ void get_keybinds(); // Reads in configurable keybind values as specified in the
 void get_user_preferences(); // Reads in user preferences as specified in the settings file (.ini)
 HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section, const char *key, char *buffer, unsigned int buffer_size); // Loads a single DLL specified by the given settings file, section, and key parameters
 unsigned int load_generic_dlls_from_settings_file(const char *file_name, const char *section, const char *base_key); // Load as many generic DLLs (not wrappers) as are specified in the settings file (key numbers must be consecutive)
+
+#ifdef _SP_DARK_SOULS_1_
 int get_dspw_font_size(); // Reads the PvP Watchdog settings file (DSPWSteam.ini) to obtain the DSPW font size in case user wants to adjust this overlay to avoid clipping with the PvP Watchdog overlay
+#endif // _SP_DARK_SOULS_1_
 
 
 #endif // _SP_D3D9_OVERLAY_TEMPLATE_H_

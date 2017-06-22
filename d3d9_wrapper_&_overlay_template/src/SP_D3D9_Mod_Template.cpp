@@ -98,7 +98,7 @@ void initialize_mod(bool first_time_setup)
 		{
 			if (!d3d9_dll_chain_failed)
 			{
-				print_ol_feed(std::string("DEBUG: \"").append(d3d9_dll_chain).append("\" successfully loaded as Direct3D 9 wrapper").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9O_TEXT_COLOR_BLUE);
+				print_ol_feed(std::string("DEBUG: \"").append(d3d9_dll_chain).append("\" successfully loaded as Direct3D9 wrapper").c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9O_TEXT_COLOR_BLUE);
 			}
 			else
 			{

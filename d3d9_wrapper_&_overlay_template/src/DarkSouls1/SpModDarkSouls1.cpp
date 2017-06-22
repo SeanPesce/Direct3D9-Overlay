@@ -33,7 +33,7 @@ void load_ds1_mod_keybinds()
 // Fixes input bug that causes players to be stuck at a bonfire
 int fix_bonfire_input()
 {
-	int status = -1;
+	int status = SP_DS1_PLAYER_STATUS_LOADING;
 	player_char_status.read(&status);
 
 	if (status == SP_DS1_PLAYER_STATUS_HOLLOW || status == SP_DS1_PLAYER_STATUS_HUMAN) // Check if player is hollow/human

@@ -194,6 +194,8 @@ unsigned int load_generic_dlls_from_settings_file(const char *file_name, const c
 // Loads a single DLL specified by the given settings file, section, and key parameters
 HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section, const char *key, char *buffer, unsigned int buffer_size)
 {
+	extern std::list<SP_KEY_FUNCTION> keybinds;
+
 	// Clear the buffer
 	buffer[0] = '\0';
 
@@ -210,7 +212,28 @@ HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section
 		}
 		else
 		{
-			return new_dll_instance; // Successfully loaded the DLL
+			// Successfully loaded the DLL
+
+			// Check if external DLL utilizes keybinds and/or overlay
+			typedef void (__stdcall *load_keybinds_T)(std::list<SP_KEY_FUNCTION> *new_keybinds);
+			load_keybinds_T load_keybinds_func = (load_keybinds_T)GetProcAddress(new_dll_instance, "load_keybinds");
+
+			if (load_keybinds_func != NULL)
+			{
+				// External DLL utilizes keybinds
+				load_keybinds_func(&keybinds);
+			}
+
+			typedef void (__stdcall *set_device_wrapper_T)(SpD3D9Device **new_device);
+			set_device_wrapper_T set_device_wrapper_func = (set_device_wrapper_T)GetProcAddress(new_dll_instance, "set_device_wrapper");
+
+			if (set_device_wrapper_func != NULL)
+			{
+				// External DLL utilizes overlay
+				set_device_wrapper_func(&gl_pSpD3D9Device);
+			}
+
+			return new_dll_instance;
 		}
 	}
 	else

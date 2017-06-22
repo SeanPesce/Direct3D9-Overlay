@@ -148,56 +148,56 @@ int next_overlay_text_position()
 			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_TOP_CENTER_;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_TOP_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_TOP_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		case _SP_TEXT_TOP_CENTER_:
 			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_TOP_RIGHT_;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_TOP_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_TOP_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		case _SP_TEXT_TOP_RIGHT_:
 			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_CENTER_LEFT_;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_MID_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_MID_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		case _SP_TEXT_CENTER_LEFT_:
 			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_CENTER_CENTER_;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_MID_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_MID_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		case _SP_TEXT_CENTER_CENTER_:
 			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_CENTER_RIGHT_;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_MID_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_MID_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		case _SP_TEXT_CENTER_RIGHT_:
 			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_BOTTOM_LEFT_;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_BOTTOM_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_BOTTOM_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		case _SP_TEXT_BOTTOM_LEFT_:
 			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_BOTTOM_CENTER_;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_BOTTOM_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_BOTTOM_CENTER_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		case _SP_TEXT_BOTTOM_CENTER_:
 			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_BOTTOM_RIGHT_;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_BOTTOM_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_BOTTOM_RIGHT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		case _SP_TEXT_BOTTOM_RIGHT_:
@@ -205,12 +205,12 @@ int next_overlay_text_position()
 			gl_pSpD3D9Device->overlay->text_feed->position = _SP_TEXT_TOP_LEFT_;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_TOP_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_TOP_LEFT_POS_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		}
-		SP_beep(800, _SP_DS_DEFAULT_BEEP_DURATION_);
-		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+		SP_beep(800, _SP_D3D9_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
 
 		return 0;
 	}
@@ -229,14 +229,14 @@ int next_overlay_text_style()
 			gl_pSpD3D9Device->overlay->text_feed->style = SP_D3D9O_SHADOWED_TEXT;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_SHADOW_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_SHADOW_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		case SP_D3D9O_SHADOWED_TEXT:
 			gl_pSpD3D9Device->overlay->text_feed->style = SP_D3D9O_PLAIN_TEXT;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_PLAIN_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_PLAIN_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		case SP_D3D9O_PLAIN_TEXT:
@@ -244,12 +244,12 @@ int next_overlay_text_style()
 			gl_pSpD3D9Device->overlay->text_feed->style = SP_D3D9O_OUTLINED_TEXT;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_OUTLINE_STYLE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			break;
 		}
-		SP_beep(600, _SP_DS_DEFAULT_BEEP_DURATION_);
-		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+		SP_beep(600, _SP_D3D9_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
 		return 0;
 	}
 
@@ -263,10 +263,10 @@ int toggle_text_feed()
 	gl_pSpD3D9Device->overlay->text_feed->set_enabled(!gl_pSpD3D9Device->overlay->text_feed->is_enabled());
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled() && user_pref_verbose_output_enabled)
 	{
-		print_ol_feed(_SP_DS_OL_TXT_OL_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+		print_ol_feed(_SP_D3D9_OL_TXT_OL_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 	}
-	SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-	Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+	SP_beep(500, _SP_D3D9_DEFAULT_BEEP_DURATION_);
+	Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
 
 	return 0;
 }
@@ -277,14 +277,14 @@ int toggle_audio_feedback()
 	user_pref_audio_feedback_enabled = !user_pref_audio_feedback_enabled;
 	if (user_pref_audio_feedback_enabled)
 	{
-		print_ol_feed(_SP_DS_OL_TXT_AUDIO_FEEDBACK_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+		print_ol_feed(_SP_D3D9_OL_TXT_AUDIO_FEEDBACK_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 	}
 	else
 	{
-		print_ol_feed(_SP_DS_OL_TXT_AUDIO_FEEDBACK_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+		print_ol_feed(_SP_D3D9_OL_TXT_AUDIO_FEEDBACK_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 	}
-	SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-	Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+	SP_beep(500, _SP_D3D9_DEFAULT_BEEP_DURATION_);
+	Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
 
 	return 0;
 }
@@ -306,7 +306,7 @@ int toggle_info_bar()
 			}
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_OL_TEXT_FEED_INFO_STRING_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 		}
 		else
@@ -314,10 +314,10 @@ int toggle_info_bar()
 			gl_pSpD3D9Device->overlay->text_feed->show_info_bar = SP_D3D9O_INFO_BAR_DISABLED;
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(_SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(_SP_D3D9_OL_TXT_OL_TEXT_FEED_INFO_STRING_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 		}
-		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+		Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
 
 		return 0;
 	}
@@ -333,14 +333,14 @@ int toggle_verbose_output()
 		user_pref_verbose_output_enabled = !user_pref_verbose_output_enabled;
 		if (user_pref_verbose_output_enabled)
 		{
-			print_ol_feed(_SP_DS_OL_TXT_VERBOSE_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			print_ol_feed(_SP_D3D9_OL_TXT_VERBOSE_ENABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		else
 		{
-			print_ol_feed(_SP_DS_OL_TXT_VERBOSE_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			print_ol_feed(_SP_D3D9_OL_TXT_VERBOSE_DISABLED_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
-		SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+		SP_beep(500, _SP_D3D9_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
 
 		return 0;
 	}
@@ -357,10 +357,10 @@ int reset_text_feed_font_size()
 		gl_pSpD3D9Device->overlay->text_feed->set_font_height(current_overlay_text_size);
 		if (user_pref_verbose_output_enabled)
 		{
-			print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_RESET_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			print_ol_feed(std::string(_SP_D3D9_OL_TXT_SIZE_RESET_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
-		SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+		SP_beep(500, _SP_D3D9_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
 		return 0;
 	}
 
@@ -375,10 +375,10 @@ int increase_text_feed_font_size()
 		gl_pSpD3D9Device->overlay->text_feed->set_font_height(++current_overlay_text_size);
 		if (user_pref_verbose_output_enabled)
 		{
-			print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_INCREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			print_ol_feed(std::string(_SP_D3D9_OL_TXT_SIZE_INCREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
-		SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+		SP_beep(500, _SP_D3D9_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
 		return 0;
 	}
 
@@ -396,18 +396,18 @@ int decrease_text_feed_font_size()
 			gl_pSpD3D9Device->overlay->text_feed->set_font_height(--current_overlay_text_size);
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(std::string(_SP_DS_OL_TXT_SIZE_DECREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(std::string(_SP_D3D9_OL_TXT_SIZE_DECREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
-			SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-			Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+			SP_beep(500, _SP_D3D9_DEFAULT_BEEP_DURATION_);
+			Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
 			return 0;
 		}
 		else if (user_pref_verbose_output_enabled)
 		{
 			// Current overlay text feed font size is already the smallest supported; can't decrease it
-			print_ol_feed(_SP_DS_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, SP_D3D9O_TEXT_COLOR_YELLOW);
-			SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-			Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+			print_ol_feed(_SP_D3D9_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, SP_D3D9O_TEXT_COLOR_YELLOW);
+			SP_beep(500, _SP_D3D9_DEFAULT_BEEP_DURATION_);
+			Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
 			return 1;
 		}
 	}
@@ -420,7 +420,7 @@ int print_overlay_test_message()
 {
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
-		print_ol_feed(_SP_DS_OL_TXT_TEST_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, test_message_color);
+		print_ol_feed(_SP_D3D9_OL_TXT_TEST_MESSAGE_, _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true, test_message_color);
 		switch (test_message_color)
 		{
 		case SP_D3D9O_TEXT_COLOR_WHITE:
@@ -467,8 +467,8 @@ int print_overlay_test_message()
 			break;
 		}
 
-		SP_beep(500, _SP_DS_DEFAULT_BEEP_DURATION_);
-		Sleep(_SP_DS_KEYPRESS_WAIT_TIME_);
+		SP_beep(500, _SP_D3D9_DEFAULT_BEEP_DURATION_);
+		Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
 		return 0;
 	}
 

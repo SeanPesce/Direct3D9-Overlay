@@ -6,7 +6,9 @@
 #ifndef _SP_D3D9_OVERLAY_TEMPLATE_H_
 	#define _SP_D3D9_OVERLAY_TEMPLATE_H_
 
-#include "SP_IO.hpp"
+#ifdef _SP_DARK_SOULS_1_
+	//#include "SpModDarkSouls1.h"
+#endif // _SP_DARK_SOULS_1_
 
 
 //////////////////////// WRAPPER DLL FUNCTIONS ////////////////////////
@@ -20,44 +22,6 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 
 
 //////////////////////// CONSTANTS & ENUMS ////////////////////////
-// Settings file data:
-#define _SP_DS_SETTINGS_FILE_ ".\\d3d9_Mod.ini"	// Settings file name
-//	Settings file sections
-#define _SP_DS_SETTINGS_SECTION_KEYBINDS_ "Keybinds"
-#define _SP_DS_SETTINGS_SECTION_PREFS_ "Preferences"
-#define _SP_DS_SETTINGS_SECTION_ADV_SETTINGS_ "Advanced Settings"
-#define _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_ "Developer Keybinds"
-#define _SP_DS_SETTINGS_SECTION_DEV_PREFS_ "Developer Preferences"
-//	Advanced settings section keys
-#define _SP_DS_DLL_CHAIN_KEY_ "d3d9Chain"
-#define _SP_DS_DLL_GENERIC_KEY_ "GenericDLL"
-#ifdef _SP_DARK_SOULS_1_
-	#define _SP_DS_DSPW_ADJUSTMENT_KEY_ "DspwOverlayAdjustment"
-#endif // _SP_DARK_SOULS_1_
-//	Keybinds section keys
-#define _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_ "ToggleOverlay"
-#define _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_ "ChangeOverlayTextPosition"
-#define _SP_DS_HOTKEY_NEXT_OL_TXT_STYLE_KEY_ "ChangeOverlayTextStyle"
-#define _SP_DS_HOTKEY_TOGGLE_TEXT_FEED_INFO_BAR_KEY_ "ToggleInfoBar"
-//	User preferences section keys
-#define _SP_DS_OL_TXT_ENABLED_KEY_ "EnableOverlay"
-#define _SP_DS_OL_TXT_SIZE_KEY_ "OverlayTextSize"
-#define _SP_DS_OL_TXT_HORIZONTAL_POS_KEY_ "OverlayTextHorizontalPosition"
-#define _SP_DS_OL_TXT_VERTICAL_POS_KEY_ "OverlayTextVerticalPosition"
-#define _SP_DS_OL_TXT_STYLE_KEY_ "OverlayTextStyle"
-#define _SP_DS_OL_TXT_AUDIO_ENABLED_KEY_ "EnableAudioFeedback"
-#define _SP_DS_OL_TXT_ENABLE_FPS_KEY_ "DisplayFPS"
-#define _SP_DS_OL_TXT_ENABLE_TIME_KEY_ "DisplayTime"
-#define _SP_DS_OL_TXT_ENABLE_DATE_KEY_ "DisplayDate"
-//	Developer keybinds section keys
-#define _SP_DS_HOTKEY_PRINT_OL_TXT_TEST_MSG_KEY_ "PrintTestMessage"
-#define _SP_DS_HOTKEY_TOGGLE_AUDIO_FEEDBACK_KEY_ "ToggleAudioFeedback"
-#define _SP_DS_HOTKEY_TOGGLE_VERBOSE_OUTPUT_KEY_ "ToggleVerboseOutput"
-#define _SP_DS_HOTKEY_INCREASE_TXT_SIZE_KEY_ "IncreaseTextSize"
-#define _SP_DS_HOTKEY_DECREASE_TXT_SIZE_KEY_ "DecreaseTextSize"
-#define _SP_DS_HOTKEY_RESET_TXT_SIZE_KEY_ "ResetTextSize"
-//	Developer preferences section keys
-#define _SP_DS_OL_TXT_VERBOSE_OUTPUT_ENABLED_KEY_ "EnableVerboseOutput"
 
 // Enumerator whose values specify whether a toggleable setting is enabled or disabled:
 enum SP_OL_TXT_ENABLED_ENUM {
@@ -80,12 +44,12 @@ const char *SP_OL_TXT_POS_VALS[6] = { "LEFT", "CENTER", "RIGHT", "TOP", "CENTER"
 const char *SP_OL_TXT_STYLE_VALS[3] = { "OUTLINE", "SHADOW", "PLAIN" }; // If specified string isn't one of these values, the default value is used
 
 // Default initialization setting values:
-#define _SP_DS_DEFAULT_VAL_OL_TXT_ENABLED_ OL_TXT_ENABLED
-#define _SP_DS_DEFAULT_VAL_OL_TXT_AUDIO_ENABLED_ OL_TXT_DISABLED
-#define _SP_DS_DEFAULT_VAL_OL_TXT_VERBOSE_OUTPUT_ENABLED_ OL_TXT_DISABLED
-#define _SP_DS_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_HCENTER]
-#define _SP_DS_DEFAULT_VAL_OL_TXT_VERTICAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_BOTTOM]
-#define _SP_DS_DEFAULT_VAL_OL_TXT_STYLE_ SP_OL_TXT_STYLE_VALS[SP_D3D9O_OUTLINED_TEXT]
+#define _SP_D3D9_DEFAULT_VAL_OL_TXT_ENABLED_ OL_TXT_ENABLED
+#define _SP_D3D9_DEFAULT_VAL_OL_TXT_AUDIO_ENABLED_ OL_TXT_DISABLED
+#define _SP_D3D9_DEFAULT_VAL_OL_TXT_VERBOSE_OUTPUT_ENABLED_ OL_TXT_DISABLED
+#define _SP_D3D9_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_HCENTER]
+#define _SP_D3D9_DEFAULT_VAL_OL_TXT_VERTICAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_BOTTOM]
+#define _SP_D3D9_DEFAULT_VAL_OL_TXT_STYLE_ SP_OL_TXT_STYLE_VALS[SP_D3D9O_OUTLINED_TEXT]
 
 
 //////////////////////// VARIABLES & DATA ////////////////////////

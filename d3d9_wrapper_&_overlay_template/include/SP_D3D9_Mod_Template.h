@@ -7,7 +7,6 @@
 
 #include <Windows.h>
 #include "SP_IO.hpp"
-#include "SP_SysUtils.hpp"
 #include "SpD3D9Device.h"
 
 // Macro to determine if a hotkey is enabled and currently being pressed
@@ -24,39 +23,36 @@
 #define _SP_TEXT_BOTTOM_CENTER_ (DT_NOCLIP | DT_BOTTOM | DT_CENTER)
 #define _SP_TEXT_BOTTOM_RIGHT_ (DT_NOCLIP | DT_BOTTOM | DT_RIGHT)
 // Dark Souls game window class returned by RealGetWindowClass()
-#define _SP_DS_WINDOW_CLASS_ "DARK SOULS"
-// Delay, in milliseconds, after a mod keybind is pressed, before the mod will continue listening for future keypresses
-#define _SP_DS_KEYPRESS_WAIT_TIME_ 100
+#define _SP_D3D9_WINDOW_CLASS_ "DARK SOULS"
 
 
 // Output
-#define _SP_DS_DEFAULT_BEEP_DURATION_ 100
-#define _SP_DS_OL_TXT_OL_ENABLED_MESSAGE_ "Overlay enabled"
-#define _SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_ENABLED_MESSAGE_ "Info bar enabled"
-#define _SP_DS_OL_TXT_OL_TEXT_FEED_INFO_STRING_DISABLED_MESSAGE_ "Info bar disabled"
-#define _SP_DS_OL_TXT_OUTLINE_STYLE_MESSAGE_ "Text style changed to outlined"
-#define _SP_DS_OL_TXT_SHADOW_STYLE_MESSAGE_ "Text style changed to shadowed"
-#define _SP_DS_OL_TXT_PLAIN_STYLE_MESSAGE_ "Text style changed to plain"
-#define _SP_DS_OL_TXT_TOP_LEFT_POS_MESSAGE_ "Text position set to top left"
-#define _SP_DS_OL_TXT_TOP_CENTER_POS_MESSAGE_ "Text position set to top center"
-#define _SP_DS_OL_TXT_TOP_RIGHT_POS_MESSAGE_ "Text position set to top right"
-#define _SP_DS_OL_TXT_MID_LEFT_POS_MESSAGE_ "Text position set to center left"
-#define _SP_DS_OL_TXT_MID_CENTER_POS_MESSAGE_ "Text position set to center"
-#define _SP_DS_OL_TXT_MID_RIGHT_POS_MESSAGE_ "Text position set to center right"
-#define _SP_DS_OL_TXT_BOTTOM_LEFT_POS_MESSAGE_ "Text position set to bottom left"
-#define _SP_DS_OL_TXT_BOTTOM_CENTER_POS_MESSAGE_ "Text position set to bottom center"
-#define _SP_DS_OL_TXT_BOTTOM_RIGHT_POS_MESSAGE_ "Text position set to bottom right"
-#define _SP_DS_OL_TXT_VERBOSE_ENABLED_MESSAGE_ "Verbose output enabled"
-#define _SP_DS_OL_TXT_VERBOSE_DISABLED_MESSAGE_ "Verbose output disabled"
-#define _SP_DS_OL_TXT_AUDIO_FEEDBACK_ENABLED_MESSAGE_ "Audio feedback enabled"
-#define _SP_DS_OL_TXT_AUDIO_FEEDBACK_DISABLED_MESSAGE_ "Audio feedback disabled"
-#define _SP_DS_OL_TXT_MULTICOLOR_FEED_ENABLED_MESSAGE_ "Multi-color text feed enabled"
-#define _SP_DS_OL_TXT_MULTICOLOR_FEED_DISABLED_MESSAGE_ "Multi-color text feed disabled"
-#define _SP_DS_OL_TXT_SIZE_RESET_MESSAGE_ "Font size reset to "
-#define _SP_DS_OL_TXT_SIZE_INCREASED_MESSAGE_ "Font size increased to "
-#define _SP_DS_OL_TXT_SIZE_DECREASED_MESSAGE_ "Font size decreased to "
-#define _SP_DS_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_ "WARNING: Font is too small; can't decrease font size"
-#define _SP_DS_OL_TXT_TEST_MESSAGE_ "TEST MESSAGE"
+#define _SP_D3D9_OL_TXT_OL_ENABLED_MESSAGE_ "Overlay enabled"
+#define _SP_D3D9_OL_TXT_OL_TEXT_FEED_INFO_STRING_ENABLED_MESSAGE_ "Info bar enabled"
+#define _SP_D3D9_OL_TXT_OL_TEXT_FEED_INFO_STRING_DISABLED_MESSAGE_ "Info bar disabled"
+#define _SP_D3D9_OL_TXT_OUTLINE_STYLE_MESSAGE_ "Text style changed to outlined"
+#define _SP_D3D9_OL_TXT_SHADOW_STYLE_MESSAGE_ "Text style changed to shadowed"
+#define _SP_D3D9_OL_TXT_PLAIN_STYLE_MESSAGE_ "Text style changed to plain"
+#define _SP_D3D9_OL_TXT_TOP_LEFT_POS_MESSAGE_ "Text position set to top left"
+#define _SP_D3D9_OL_TXT_TOP_CENTER_POS_MESSAGE_ "Text position set to top center"
+#define _SP_D3D9_OL_TXT_TOP_RIGHT_POS_MESSAGE_ "Text position set to top right"
+#define _SP_D3D9_OL_TXT_MID_LEFT_POS_MESSAGE_ "Text position set to center left"
+#define _SP_D3D9_OL_TXT_MID_CENTER_POS_MESSAGE_ "Text position set to center"
+#define _SP_D3D9_OL_TXT_MID_RIGHT_POS_MESSAGE_ "Text position set to center right"
+#define _SP_D3D9_OL_TXT_BOTTOM_LEFT_POS_MESSAGE_ "Text position set to bottom left"
+#define _SP_D3D9_OL_TXT_BOTTOM_CENTER_POS_MESSAGE_ "Text position set to bottom center"
+#define _SP_D3D9_OL_TXT_BOTTOM_RIGHT_POS_MESSAGE_ "Text position set to bottom right"
+#define _SP_D3D9_OL_TXT_VERBOSE_ENABLED_MESSAGE_ "Verbose output enabled"
+#define _SP_D3D9_OL_TXT_VERBOSE_DISABLED_MESSAGE_ "Verbose output disabled"
+#define _SP_D3D9_OL_TXT_AUDIO_FEEDBACK_ENABLED_MESSAGE_ "Audio feedback enabled"
+#define _SP_D3D9_OL_TXT_AUDIO_FEEDBACK_DISABLED_MESSAGE_ "Audio feedback disabled"
+#define _SP_D3D9_OL_TXT_MULTICOLOR_FEED_ENABLED_MESSAGE_ "Multi-color text feed enabled"
+#define _SP_D3D9_OL_TXT_MULTICOLOR_FEED_DISABLED_MESSAGE_ "Multi-color text feed disabled"
+#define _SP_D3D9_OL_TXT_SIZE_RESET_MESSAGE_ "Font size reset to "
+#define _SP_D3D9_OL_TXT_SIZE_INCREASED_MESSAGE_ "Font size increased to "
+#define _SP_D3D9_OL_TXT_SIZE_DECREASED_MESSAGE_ "Font size decreased to "
+#define _SP_D3D9_OL_TXT_SIZE_CANT_DECREASE_MESSAGE_ "WARNING: Font is too small; can't decrease font size"
+#define _SP_D3D9_OL_TXT_TEST_MESSAGE_ "TEST MESSAGE"
 
 
 // Keybind & user preference-related variables

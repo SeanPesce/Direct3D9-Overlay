@@ -136,14 +136,14 @@ void InitSettings()
 	get_user_preferences();
 
 	// Load generic DLLs
-	generic_dll_count = load_generic_dlls_from_settings_file(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DLL_GENERIC_KEY_);
+	generic_dll_count = load_generic_dlls_from_settings_file(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_ADV_SETTINGS_, _SP_D3D9_DLL_GENERIC_KEY_);
 
 	// Chain d3d9.dll wrapper (if one is specified in the settings file)
 	char d3d9_chain_buffer[128]; // Buffer to hold the filename of the d3d9.dll wrapper to load
 	d3d9_chain_buffer[0] = '\0';
 
 	// Check settings file for d3d9 DLL chain
-	gl_hOriginalDll = load_dll_from_settings_file(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DLL_CHAIN_KEY_, d3d9_chain_buffer, 128);
+	gl_hOriginalDll = load_dll_from_settings_file(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_ADV_SETTINGS_, _SP_D3D9_DLL_CHAIN_KEY_, d3d9_chain_buffer, 128);
 	d3d9_dll_chain = std::string(d3d9_chain_buffer);
 }
 
@@ -252,7 +252,7 @@ void get_keybinds()
 	unsigned int key = 0;
 
 	// Toggle overlay text feed
-	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_OL_TXT_KEY_);
+	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_KEYBINDS_, _SP_D3D9_HOTKEY_TOGGLE_OL_TXT_KEY_);
 	if (key)
 	{
 		extern int toggle_text_feed();
@@ -261,7 +261,7 @@ void get_keybinds()
 	key = 0;
 
 	// Toggle text feed info bar
-	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_TEXT_FEED_INFO_BAR_KEY_);
+	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_KEYBINDS_, _SP_D3D9_HOTKEY_TOGGLE_TEXT_FEED_INFO_BAR_KEY_);
 	if (key)
 	{
 		extern int toggle_info_bar();
@@ -270,7 +270,7 @@ void get_keybinds()
 	key = 0;
 
 	// Next overlay text feed position preset
-	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_POS_KEY_);
+	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_KEYBINDS_, _SP_D3D9_HOTKEY_NEXT_OL_TXT_POS_KEY_);
 	if (key)
 	{
 		extern int next_overlay_text_position();
@@ -279,7 +279,7 @@ void get_keybinds()
 	key = 0;
 
 	// Next overlay text feed style (plain, shadowed, or outlined)
-	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_KEYBINDS_, _SP_DS_HOTKEY_NEXT_OL_TXT_STYLE_KEY_);
+	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_KEYBINDS_, _SP_D3D9_HOTKEY_NEXT_OL_TXT_STYLE_KEY_);
 	if (key)
 	{
 		extern int next_overlay_text_style();
@@ -288,7 +288,7 @@ void get_keybinds()
 	key = 0;
 
 	// Toggle audio feedback when mod keybinds are pressed
-	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_AUDIO_FEEDBACK_KEY_);
+	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_D3D9_HOTKEY_TOGGLE_AUDIO_FEEDBACK_KEY_);
 	if (key)
 	{
 		extern int toggle_audio_feedback();
@@ -297,7 +297,7 @@ void get_keybinds()
 	key = 0;
 
 	// Toggle verbose text feed output
-	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_TOGGLE_VERBOSE_OUTPUT_KEY_);
+	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_D3D9_HOTKEY_TOGGLE_VERBOSE_OUTPUT_KEY_);
 	if (key)
 	{
 		extern int toggle_verbose_output();
@@ -306,7 +306,7 @@ void get_keybinds()
 	key = 0;
 
 	// Print test message to overlay text feed
-	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_PRINT_OL_TXT_TEST_MSG_KEY_);
+	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_D3D9_HOTKEY_PRINT_OL_TXT_TEST_MSG_KEY_);
 	if (key)
 	{
 		extern int print_overlay_test_message();
@@ -315,7 +315,7 @@ void get_keybinds()
 	key = 0;
 
 	// Increase text feed font size
-	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_INCREASE_TXT_SIZE_KEY_);
+	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_D3D9_HOTKEY_INCREASE_TXT_SIZE_KEY_);
 	if (key)
 	{
 		extern int increase_text_feed_font_size();
@@ -324,7 +324,7 @@ void get_keybinds()
 	key = 0;
 
 	// Decrease text feed font size
-	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_DECREASE_TXT_SIZE_KEY_);
+	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_D3D9_HOTKEY_DECREASE_TXT_SIZE_KEY_);
 	if (key)
 	{
 		extern int decrease_text_feed_font_size();
@@ -333,7 +333,7 @@ void get_keybinds()
 	key = 0;
 
 	// Reset text feed font size
-	key = get_vk_hotkey(_SP_DS_SETTINGS_FILE_, _SP_DS_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_DS_HOTKEY_RESET_TXT_SIZE_KEY_);
+	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_DEV_KEYBINDS_, _SP_D3D9_HOTKEY_RESET_TXT_SIZE_KEY_);
 	if (key)
 	{
 		extern int reset_text_feed_font_size();
@@ -346,21 +346,21 @@ void get_keybinds()
 void get_user_preferences()
 {
 	// Overlay enabled/disabled
-	user_pref_overlay_text_feed_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
+	user_pref_overlay_text_feed_enabled = ((int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_ENABLED_KEY_, _SP_D3D9_DEFAULT_VAL_OL_TXT_ENABLED_, _SP_D3D9_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
 	// Audio feedback enabled/disabled
-	user_pref_audio_feedback_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_AUDIO_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_AUDIO_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
+	user_pref_audio_feedback_enabled = ((int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_AUDIO_ENABLED_KEY_, _SP_D3D9_DEFAULT_VAL_OL_TXT_AUDIO_ENABLED_, _SP_D3D9_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
 	// Verbose text output enabled/disabled
-	user_pref_verbose_output_enabled = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_DEV_PREFS_, _SP_DS_OL_TXT_VERBOSE_OUTPUT_ENABLED_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_VERBOSE_OUTPUT_ENABLED_, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
+	user_pref_verbose_output_enabled = ((int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_DEV_PREFS_, _SP_D3D9_OL_TXT_VERBOSE_OUTPUT_ENABLED_KEY_, _SP_D3D9_DEFAULT_VAL_OL_TXT_VERBOSE_OUTPUT_ENABLED_, _SP_D3D9_SETTINGS_FILE_) != OL_TXT_DISABLED);
 
 #ifdef _SP_DARK_SOULS_1_
 	// PvP Watchdog overlay adjustment (Dark Souls)
-	user_pref_dspw_ol_offset = ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_ADV_SETTINGS_, _SP_DS_DSPW_ADJUSTMENT_KEY_, OL_TXT_DISABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED);
+	user_pref_dspw_ol_offset = ((int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_ADV_SETTINGS_, _SP_D3D9_DSPW_ADJUSTMENT_KEY_, OL_TXT_DISABLED, _SP_D3D9_SETTINGS_FILE_) != OL_TXT_DISABLED);
 #endif // _SP_DARK_SOULS_1_
 
 	// FPS counter enabled/disabled
-	if ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLE_FPS_KEY_, OL_TXT_ENABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED)
+	if ((int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_ENABLE_FPS_KEY_, OL_TXT_ENABLED, _SP_D3D9_SETTINGS_FILE_) != OL_TXT_DISABLED)
 	{
 		user_pref_show_text_feed_info_bar = SP_D3D9O_INFO_BAR_TITLE;
 		user_pref_show_text_feed_info_bar += SP_D3D9O_INFO_BAR_FPS;
@@ -371,21 +371,21 @@ void get_user_preferences()
 	}
 
 	// Display date enabled/disabled
-	if ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLE_DATE_KEY_, OL_TXT_ENABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED)
+	if ((int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_ENABLE_DATE_KEY_, OL_TXT_ENABLED, _SP_D3D9_SETTINGS_FILE_) != OL_TXT_DISABLED)
 	{
 		user_pref_show_text_feed_info_bar |= SP_D3D9O_INFO_BAR_TITLE;
 		user_pref_show_text_feed_info_bar += SP_D3D9O_INFO_BAR_DATE;
 	}
 
 	// Display time enabled/disabled
-	if ((int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_ENABLE_TIME_KEY_, OL_TXT_ENABLED, _SP_DS_SETTINGS_FILE_) != OL_TXT_DISABLED)
+	if ((int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_ENABLE_TIME_KEY_, OL_TXT_ENABLED, _SP_D3D9_SETTINGS_FILE_) != OL_TXT_DISABLED)
 	{
 		user_pref_show_text_feed_info_bar |= SP_D3D9O_INFO_BAR_TITLE;
 		user_pref_show_text_feed_info_bar += SP_D3D9O_INFO_BAR_TIME;
 	}
 
 	// Overlay text size
-	user_pref_overlay_text_size = (int)GetPrivateProfileInt(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_SIZE_KEY_, _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_, _SP_DS_SETTINGS_FILE_);
+	user_pref_overlay_text_size = (int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_SIZE_KEY_, _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_, _SP_D3D9_SETTINGS_FILE_);
 	if (user_pref_overlay_text_size < 1)
 	{
 		// Invalid font size specified; set to default
@@ -395,7 +395,7 @@ void get_user_preferences()
 	char settings_buffer[128];
 	
 	// Overlay text horizonal position
-	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_HORIZONTAL_POS_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
+	GetPrivateProfileString(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_HORIZONTAL_POS_KEY_, _SP_D3D9_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_, settings_buffer, 128, _SP_D3D9_SETTINGS_FILE_);
 	std::string setting_value = settings_buffer;
 	std::transform(setting_value.begin(), setting_value.end(), setting_value.begin(), ::toupper);
 	if (strcmp(setting_value.c_str(), SP_OL_TXT_POS_VALS[OL_TXT_POS_LEFT]) == 0)
@@ -415,7 +415,7 @@ void get_user_preferences()
 	}
 
 	// Overlay text vertical position
-	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_VERTICAL_POS_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_VERTICAL_POS_, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
+	GetPrivateProfileString(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_VERTICAL_POS_KEY_, _SP_D3D9_DEFAULT_VAL_OL_TXT_VERTICAL_POS_, settings_buffer, 128, _SP_D3D9_SETTINGS_FILE_);
 	setting_value = settings_buffer;
 	std::transform(setting_value.begin(), setting_value.end(), setting_value.begin(), ::toupper);
 	if (strcmp(setting_value.c_str(), SP_OL_TXT_POS_VALS[OL_TXT_POS_TOP]) == 0)
@@ -435,7 +435,7 @@ void get_user_preferences()
 	}
 
 	// Overlay text style (outlined, shadowed, or plain)
-	GetPrivateProfileString(_SP_DS_SETTINGS_SECTION_PREFS_, _SP_DS_OL_TXT_STYLE_KEY_, _SP_DS_DEFAULT_VAL_OL_TXT_STYLE_, settings_buffer, 128, _SP_DS_SETTINGS_FILE_);
+	GetPrivateProfileString(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_STYLE_KEY_, _SP_D3D9_DEFAULT_VAL_OL_TXT_STYLE_, settings_buffer, 128, _SP_D3D9_SETTINGS_FILE_);
 	setting_value = settings_buffer;
 	std::transform(setting_value.begin(), setting_value.end(), setting_value.begin(), ::toupper);
 	if (strcmp(setting_value.c_str(), SP_OL_TXT_STYLE_VALS[SP_D3D9O_SHADOWED_TEXT]) == 0)
@@ -463,6 +463,9 @@ void get_user_preferences()
 		// Set overlay offset to adjust for PvP Watchdog overlay
 		user_pref_dspw_ol_offset = dspw_pref_font_size + 5;
 	}
+
+	extern void initialize_ds1_mods();
+	initialize_ds1_mods();
 #endif // _SP_DARK_SOULS_1_
 
 }

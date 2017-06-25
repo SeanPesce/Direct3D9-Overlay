@@ -1,6 +1,6 @@
 // Author: Sean Pesce
 
-#include "ExampleD3D9OverlayPlugin.h"
+#include "ExampleOverlayPlugin.h"
 
 #ifdef _DEVICE_READY_
 	#undef _DEVICE_READY_

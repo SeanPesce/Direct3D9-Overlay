@@ -27,7 +27,7 @@
     <None Include="Exports.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ExampleD3D9OverlayPlugin.h" />
+    <ClInclude Include="ExampleOverlayPlugin.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B6E0A84A-4E32-4C51-B564-0695A3DA6CF8}</ProjectGuid>

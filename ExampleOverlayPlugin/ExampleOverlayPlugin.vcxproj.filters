@@ -31,7 +31,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ExampleD3D9OverlayPlugin.h">
+    <ClInclude Include="ExampleOverlayPlugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

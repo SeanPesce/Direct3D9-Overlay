@@ -1,0 +1,4 @@
+LIBRARY ExampleOverlayPlugin.dll
+EXPORTS
+	load_keybinds @1
+	set_device_wrapper @2

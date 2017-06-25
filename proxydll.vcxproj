@@ -127,7 +127,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;C:\Users\Sean\Desktop\Programming\C++ Utilities\System Utilities\include;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Winmm.lib;d3dx9.lib;SP_IO.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -150,7 +150,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;C:\Users\Sean\Desktop\Programming\C++ Utilities\System Utilities\include;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Winmm.lib;d3dx9.lib;SP_IO.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -170,7 +170,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;C:\Users\Sean\Desktop\Programming\C++ Utilities\System Utilities\include;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -194,7 +194,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;C:\Users\Sean\Desktop\Programming\C++ Utilities\System Utilities\include;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -217,7 +217,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;C:\Users\Sean\Desktop\Programming\C++ Utilities\System Utilities\include;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -241,7 +241,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;C:\Users\Sean\Desktop\Programming\C++ Utilities\System Utilities\include;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -271,7 +271,6 @@
     <ClInclude Include="include\SpD3D9SwapChain.h" />
     <ClInclude Include="include\SpD3D9OTextFeed.h" />
     <ClInclude Include="include\SP_D3D9_Mod_Template.h" />
-    <ClInclude Include="include\SP_IO.hpp" />
     <ClInclude Include="include\stdafx.h" />
   </ItemGroup>
   <ItemGroup>

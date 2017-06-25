@@ -6,7 +6,7 @@
 
 #define WIN32_LEAN_AND_MEAN		
 
-#define D3D_DEBUG_INFO 1
+//#define D3D_DEBUG_INFO 1
 
 #include <Windows.h>
 #include <algorithm>
@@ -75,6 +75,8 @@
 	#define _SP_D3D9_CHECK_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("%s (%s) - Occurred in:  thread %d;  %s (line %d)",DXGetErrorString(hres_tmp_),DXGetErrorDescription(hres_tmp_),GetCurrentThreadId(),__FUNCTION__,__LINE__);}}
 	#define _SP_D3D9_CHECK_AND_RETURN_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("%s (%s) - Occurred in:  thread %d;  %s (line %d)",DXGetErrorString(hres_tmp_),DXGetErrorDescription(hres_tmp_),GetCurrentThreadId(),__FUNCTION__,__LINE__);}return hres_tmp_;}
 #else
-	#define _SP_D3D9_CHECK_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("D3D9 ERROR - Occurred in:  thread %d;  %s (line %d)",GetCurrentThreadId(),__FUNCTION__,__LINE__);}}
-	#define _SP_D3D9_CHECK_AND_RETURN_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("D3D9 ERROR - Occurred in:  thread %d;  %s (line %d)",GetCurrentThreadId(),__FUNCTION__,__LINE__);}return hres_tmp_;}
+	//#define _SP_D3D9_CHECK_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("D3D9 ERROR - Occurred in:  thread %d;  %s (line %d)",GetCurrentThreadId(),__FUNCTION__,__LINE__);}}
+	//#define _SP_D3D9_CHECK_AND_RETURN_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("D3D9 ERROR - Occurred in:  thread %d;  %s (line %d)",GetCurrentThreadId(),__FUNCTION__,__LINE__);}return hres_tmp_;}
+	#define _SP_D3D9_CHECK_FAILED_(f) FAILED(f)
+	#define _SP_D3D9_CHECK_AND_RETURN_FAILED_(f) return f;
 #endif // D3D_DEBUG_INFO

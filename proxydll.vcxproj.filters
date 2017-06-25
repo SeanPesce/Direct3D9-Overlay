@@ -26,9 +26,6 @@
     <ClInclude Include="include\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\SP_IO.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\SP_D3D9_Mod_Template.h">
       <Filter>Header Files</Filter>
     </ClInclude>

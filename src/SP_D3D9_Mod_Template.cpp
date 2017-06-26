@@ -5,14 +5,14 @@
 
 
 // Main loop for the mod thread
-void mod_loop()
+void input_loop()
 {
 	initialize_mod(true);
 
-	while (mod_loop_enabled)
+	while (input_loop_enabled)
 	{
 		
-		if (mod_loop_paused)
+		if (input_loop_paused)
 		{
 			initialize_mod(false);
 		}
@@ -48,13 +48,13 @@ void mod_loop()
 // Initializes mod data and settings based on user preferences
 void initialize_mod(bool first_time_setup)
 {
-	while (mod_loop_enabled && (mod_loop_paused || gl_pSpD3D9Device == NULL || gl_pSpD3D9Device->overlay->game_window == NULL) /* || gl_pSpD3D9Device->focus_window == NULL || gl_pSpD3D9Device->device_window == NULL*/)
+	while (input_loop_enabled && (input_loop_paused || gl_pSpD3D9Device == NULL || gl_pSpD3D9Device->overlay->game_window == NULL) /* || gl_pSpD3D9Device->focus_window == NULL || gl_pSpD3D9Device->device_window == NULL*/)
 	{
 		// Wait for the IDirect3DDevice9 wrapper object to be initialized
 		Sleep(500);
 	}
 
-	if (!mod_loop_enabled)
+	if (!input_loop_enabled)
 	{
 		return;
 	}
@@ -89,6 +89,15 @@ void initialize_mod(bool first_time_setup)
 	print_ol_feed("--------------------------------------------------------", 0, false);
 	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 	
+	if (first_time_setup)
+	{
+		// Call external DLL plugin initialization functions
+		for (initialization_func_T init_func : dll_init_funcs)
+		{
+			init_func();
+		}
+	}
+
 	if (user_pref_verbose_output_enabled && first_time_setup)
 	{
 		// Print whether a d3d9.dll wrapper was chained

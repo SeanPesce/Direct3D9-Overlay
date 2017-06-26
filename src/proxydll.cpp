@@ -35,13 +35,13 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 			mod_thread = CreateThread(
 				NULL,				// Default security attributes
 				0,					// Use default stack size
-				init_mod_thread,	// Thread function name
+				init_input_thread,	// Thread function name
 				NULL,				// Argument to thread function
 				0,					// Use default creation flags
 				&mod_thread_id);	// Returns the thread identifier
 			break;
 	    case DLL_PROCESS_DETACH:
-			mod_loop_enabled = false;
+			input_loop_enabled = false;
 			_SP_D3D9_LOG_EVENT_("Exit (Detached from process)\n\n");
 			ExitInstance();
 			break;
@@ -214,6 +214,16 @@ HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section
 		{
 			// Successfully loaded the DLL
 
+			typedef void(__stdcall *initialization_func_T)();
+			initialization_func_T initialize_func = (initialization_func_T)GetProcAddress(new_dll_instance, "initialize_plugin");
+
+			if (initialize_func != NULL)
+			{
+				// External DLL has an initialization function that must be called
+				extern std::vector<initialization_func_T> dll_init_funcs;
+				dll_init_funcs.push_back(initialize_func);
+			}
+
 			// Check if external DLL utilizes keybinds and/or overlay
 			typedef void (__stdcall *load_keybinds_T)(std::list<SP_KEY_FUNCTION> *new_keybinds);
 			load_keybinds_T load_keybinds_func = (load_keybinds_T)GetProcAddress(new_dll_instance, "load_keybinds");
@@ -244,13 +254,13 @@ HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section
 
 
 // Determines whether mod is enabled and calls the main loop for the mod
-DWORD WINAPI init_mod_thread(LPVOID lpParam)
+DWORD WINAPI init_input_thread(LPVOID lpParam)
 {
 	// @TODO: Disable mod if no mod settings are initialized?
-	mod_loop_enabled = true;
+	input_loop_enabled = true;
 
-	extern void mod_loop();	// Main loop for the mod thread
-	mod_loop();
+	extern void input_loop();	// Main loop for the mod thread
+	input_loop();
 
 	return 0;
 }
@@ -486,9 +496,6 @@ void get_user_preferences()
 		// Set overlay offset to adjust for PvP Watchdog overlay
 		user_pref_dspw_ol_offset = dspw_pref_font_size + 5;
 	}
-
-	extern void initialize_ds1_mods();
-	initialize_ds1_mods();
 #endif // _SP_DARK_SOULS_1_
 
 }

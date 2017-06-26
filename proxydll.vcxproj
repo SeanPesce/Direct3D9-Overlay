@@ -127,7 +127,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Winmm.lib;d3dx9.lib;SP_IO.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -150,7 +150,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Winmm.lib;d3dx9.lib;SP_IO.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -170,7 +170,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -194,7 +194,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -217,7 +217,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -241,7 +241,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>include\DarkSouls1;include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -262,7 +262,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\D3DFont.h" />
-    <ClInclude Include="include\DarkSouls1\SpModDarkSouls1.h" />
     <ClInclude Include="include\SpD3D9.h" />
     <ClInclude Include="include\SpD3D9Interface.h" />
     <ClInclude Include="include\SpD3D9Device.h" />
@@ -275,7 +274,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\D3DFont.cpp" />
-    <ClCompile Include="src\DarkSouls1\SpModDarkSouls1.cpp" />
     <ClCompile Include="src\SpD3D9Interface.cpp" />
     <ClCompile Include="src\SpD3D9Device.cpp" />
     <ClCompile Include="src\proxydll.cpp" />

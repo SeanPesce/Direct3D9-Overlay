@@ -135,9 +135,9 @@ HMONITOR __stdcall SpD3D9Interface::GetAdapterMonitor(UINT Adapter)
 HRESULT __stdcall SpD3D9Interface::CreateDevice(UINT Adapter,D3DDEVTYPE DeviceType,HWND hFocusWindow,DWORD BehaviorFlags,D3DPRESENT_PARAMETERS* pPresentationParameters,IDirect3DDevice9** ppReturnedDeviceInterface)
 {
 	extern SpD3D9Device* gl_pSpD3D9Device; // Global var
-	extern bool mod_loop_paused;
+	extern bool input_loop_paused;
 
-	mod_loop_paused = true;
+	input_loop_paused = true;
 
 	//while (gl_pSpD3D9Device != NULL)
 	if(gl_pSpD3D9Device != NULL)
@@ -169,7 +169,7 @@ HRESULT __stdcall SpD3D9Interface::CreateDevice(UINT Adapter,D3DDEVTYPE DeviceTy
 	// Store our pointer (the fake one) for returning it to the calling progam
 	*ppReturnedDeviceInterface = gl_pSpD3D9Device;
 
-	mod_loop_paused = false;
+	input_loop_paused = false;
 	return(hres); 
 }
   

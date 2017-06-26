@@ -79,13 +79,15 @@ int current_overlay_text_size;
 SP_D3D9O_TEXT_COLOR_ENUM test_message_color;
 int dspw_overlay_adjustment; // Used to adjust the overlay to avoid clipping with the PvP Watchdog overlay
 
-// Mod-related variables
+// Input-related variables
 extern SHORT key_state[256]; // Key state buffer to hold the states of all 256 virtual keys
-bool mod_loop_paused;
-bool mod_loop_enabled; // Controls whether the main loop for the mod is enabled/disabled
+typedef void(__stdcall *initialization_func_T)();
+std::vector<initialization_func_T> dll_init_funcs; // Initialization functions for loaded DLLs
+bool input_loop_paused;
+bool input_loop_enabled; // Controls whether the main loop that detects player input is enabled/disabled
 
 // Function definitions
-void mod_loop();	// Main loop for the mod thread
+void input_loop();	// Main loop for the thread that detects player input
 void initialize_mod(bool first_time_setup); // Initializes mod data and settings based on user preferences
 int toggle_text_feed(); // Toggle overlay text feed
 int toggle_audio_feedback(); // Toggle audio feedback (when hotkeys are pressed)

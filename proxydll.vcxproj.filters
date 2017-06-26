@@ -50,9 +50,6 @@
     <ClInclude Include="include\D3DFont.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\DarkSouls1\SpModDarkSouls1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\proxydll.cpp">
@@ -80,9 +77,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\D3DFont.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DarkSouls1\SpModDarkSouls1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

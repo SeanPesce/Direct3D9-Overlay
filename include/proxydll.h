@@ -71,7 +71,7 @@ SP_D3D9O_TEXT_FEED_STYLE_ENUM user_pref_overlay_text_style;
 int user_pref_show_text_feed_info_bar;
 // Mod variables & data
 SHORT key_state[256];	// Buffer for async key states
-extern bool mod_loop_enabled; // Controls whether the main loop for the mod is enabled/disabled
+extern bool input_loop_enabled; // Controls whether the main loop for the mod is enabled/disabled
 
 #ifdef _SP_DARK_SOULS_1_
 // Dark Souls PvP Watchdog Settings
@@ -82,7 +82,7 @@ int user_pref_dspw_ol_offset;
 
 
 //////////////////////// MOD FUNCTION PROTOTYPES ////////////////////////
-DWORD WINAPI init_mod_thread(LPVOID lpParam); // Determines whether mod is enabled and calls the main loop for the mod
+DWORD WINAPI init_input_thread(LPVOID lpParam); // Determines whether mod is enabled and calls the main loop for the mod
 void get_keybinds(); // Reads in configurable keybind values as specified in the settings file (.ini)
 void get_user_preferences(); // Reads in user preferences as specified in the settings file (.ini)
 HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section, const char *key, char *buffer, unsigned int buffer_size); // Loads a single DLL specified by the given settings file, section, and key parameters

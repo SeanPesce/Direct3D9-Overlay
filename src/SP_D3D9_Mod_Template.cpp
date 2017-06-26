@@ -83,11 +83,13 @@ void initialize_mod(bool first_time_setup)
 	print_ol_feed("DEBUG: Direct3D debugging is enabled", 0, false, SP_D3D9O_TEXT_COLOR_ORANGE);
 	#endif // D3D_DEBUG_INFO
 
+	/*
 	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
 	print_ol_feed("--------------------------------------------------------", 0, false, SP_D3D9O_TEXT_COLOR_CYCLE_ALL);
 	#else
 	print_ol_feed("--------------------------------------------------------", 0, false);
 	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
+	*/
 	
 	if (first_time_setup)
 	{

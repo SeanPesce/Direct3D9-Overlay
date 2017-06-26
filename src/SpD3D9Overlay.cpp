@@ -107,7 +107,7 @@ SpD3D9Overlay::SpD3D9Overlay(SpD3D9Interface *new_interface, SpD3D9Device *new_d
 
 	// Start the FPS count timer
 	fps_timer_id = 0;
-	fps_timer_id = SetTimer(NULL, 0, 1000, &update_fps_count);
+	fps_timer_id = (unsigned int)SetTimer(NULL, 0, 1000, &update_fps_count);
 	if (!fps_timer_id)
 	{
 		// Handle error
@@ -435,7 +435,7 @@ void CALLBACK update_fps_count(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwT
 	gl_pSpD3D9Device->get_back_buffer_calls = 0;
 
 	// Restart timer
-	if (!(gl_pSpD3D9Device->overlay->fps_timer_id = SetTimer(NULL, idEvent, 1000, &update_fps_count)))
+	if (!(gl_pSpD3D9Device->overlay->fps_timer_id = (unsigned int)SetTimer(NULL, idEvent, 1000, &update_fps_count)))
 	{
 		// Handle error
 	}

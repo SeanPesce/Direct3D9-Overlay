@@ -18,9 +18,6 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lib\D3DFont.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="lib\SpD3D9OTextFeed.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

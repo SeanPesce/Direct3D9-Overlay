@@ -1,4 +1,5 @@
 LIBRARY ExampleOverlayPlugin.dll
 EXPORTS
-	load_keybinds @1
-	set_device_wrapper @2
+	initialize_plugin @1
+	load_keybinds @2
+	set_device_wrapper @3

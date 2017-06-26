@@ -33,6 +33,7 @@ std::string keybinds_section;
 
 
 // Exported functions:
+void __stdcall initialize_plugin();
 void __stdcall load_keybinds(std::list<SP_KEY_FUNCTION> *new_keybinds);
 void __stdcall set_device_wrapper(SpD3D9Device **new_device);
 

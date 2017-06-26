@@ -14,12 +14,16 @@
 #ifdef _KEYBINDS_SECTION_
 	#undef _KEYBINDS_SECTION_
 #endif
+#ifdef _PRINT_OVERLAY_
+	#undef _PRINT_OVERLAY_
+#endif
 
 
 #define _DEVICE_READY_ _SP_D3D9O_PLUGIN_DEVICE_READY_			// Checks that the D3D9 device, overlay, and text feed are initialized
 #define _GET_TEXT_FEED_ (*device)->overlay->text_feed			// Text feed object (prints messages)
 #define _SETTINGS_FILE_ _SP_D3D9_SETTINGS_FILE_					// File to load settings from
 #define _KEYBINDS_SECTION_ _SP_D3D9_SETTINGS_SECTION_KEYBINDS_	// Section of settings file that holds keybind assignments
+#define _PRINT_OVERLAY_(...) {if(_DEVICE_READY_){_GET_TEXT_FEED_->print(##__VA_ARGS__);}} // Performs necessary checks and prints message to overlay text feed
 
 
 BOOL APIENTRY DllMain( HMODULE hModule,
@@ -42,7 +46,16 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 }
 
 
-//Exported functions: 
+// Exported functions: 
+
+void __stdcall initialize_plugin()
+{
+	// @TODO: Replace this with real initialization tasks
+	Beep(500, 200);
+	Beep(600, 200);
+	Beep(700, 200);
+}
+
 
 void __stdcall load_keybinds(std::list<SP_KEY_FUNCTION> *new_keybinds)
 {
@@ -55,6 +68,7 @@ void __stdcall load_keybinds(std::list<SP_KEY_FUNCTION> *new_keybinds)
 
 		unsigned int key = 0;
 
+		// @TODO: Replace this with real keybound functions
 		if (key = get_vk_hotkey(settings_file.c_str(), keybinds_section.c_str(), "PrintExternalTestMessage"))
 		{
 			add_function_keybind(key, print_test_msg, keybinds);
@@ -74,15 +88,7 @@ void __stdcall set_device_wrapper(SpD3D9Device **new_device)
 
 int print_test_msg()
 {
-	if (_DEVICE_READY_) // _DEVICE_READY_ should always be called before printing to the overlay from an external DLL
-	{
-		SpD3D9OTextFeed *text_feed = _GET_TEXT_FEED_;
-
-		text_feed->print("Printing from external DLL", 2000, true);
-
-		Sleep(200);
-		return 0;
-	}
-
-	return -1; // Text feed is NULL
+	_PRINT_OVERLAY_("Printing from external DLL", 2000, true);
+	Sleep(200);
+	return 0;
 }

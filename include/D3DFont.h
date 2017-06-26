@@ -28,6 +28,7 @@
  *		
  *
  *	Credits:
+ *		Atom0s
  *		Topblast
  *		Direct3D 9 SDK
  *		Renkokuken  (Sakuri)

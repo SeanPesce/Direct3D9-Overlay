@@ -27,15 +27,17 @@ class SpD3D9Overlay;
 
 // Global variables & data:
 SpD3D9Device **device;
+bool *verbose_output_enabled;
 std::list<SP_KEY_FUNCTION> *keybinds;
+bool *audio_feedback_enabled;
 std::string settings_file;
 std::string keybinds_section;
 
 
 // Exported functions:
 void __stdcall initialize_plugin();
-void __stdcall load_keybinds(std::list<SP_KEY_FUNCTION> *new_keybinds);
-void __stdcall set_device_wrapper(SpD3D9Device **new_device);
+void __stdcall load_keybinds(std::list<SP_KEY_FUNCTION> *new_keybinds, bool *audio_feedback);
+void __stdcall set_device_wrapper(SpD3D9Device **new_device, bool *verbose_output);
 
 
 // Other functions:

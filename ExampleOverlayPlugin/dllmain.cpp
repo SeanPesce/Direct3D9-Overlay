@@ -57,8 +57,9 @@ void __stdcall initialize_plugin()
 }
 
 
-void __stdcall load_keybinds(std::list<SP_KEY_FUNCTION> *new_keybinds)
+void __stdcall load_keybinds(std::list<SP_KEY_FUNCTION> *new_keybinds, bool *audio_feedback)
 {
+	audio_feedback_enabled = audio_feedback;
 	keybinds = new_keybinds;
 
 	if (keybinds != NULL)
@@ -77,8 +78,9 @@ void __stdcall load_keybinds(std::list<SP_KEY_FUNCTION> *new_keybinds)
 	}
 }
 
-void __stdcall set_device_wrapper(SpD3D9Device **new_device)
+void __stdcall set_device_wrapper(SpD3D9Device **new_device, bool *verbose_output)
 {
+	verbose_output_enabled = verbose_output;
 	device = new_device;
 }
 
@@ -88,7 +90,24 @@ void __stdcall set_device_wrapper(SpD3D9Device **new_device)
 
 int print_test_msg()
 {
-	_PRINT_OVERLAY_("Printing from external DLL", 2000, true);
-	Sleep(200);
+	if (*verbose_output_enabled)
+	{
+		_PRINT_OVERLAY_("Printing from external DLL (Verbose output is enabled)", 2000, true);
+	}
+	else
+	{
+		_PRINT_OVERLAY_("Printing from external DLL", 2000, true);
+	}
+
+	if (*audio_feedback_enabled)
+	{
+		Beep(500, 100);
+		Sleep(100);
+	}
+	else
+	{
+		Sleep(200);
+	}
+	
 	return 0;
 }

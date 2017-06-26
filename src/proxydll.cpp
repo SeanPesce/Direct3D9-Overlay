@@ -225,22 +225,22 @@ HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section
 			}
 
 			// Check if external DLL utilizes keybinds and/or overlay
-			typedef void (__stdcall *load_keybinds_T)(std::list<SP_KEY_FUNCTION> *new_keybinds);
+			typedef void (__stdcall *load_keybinds_T)(std::list<SP_KEY_FUNCTION> *new_keybinds, bool *audio_feedback);
 			load_keybinds_T load_keybinds_func = (load_keybinds_T)GetProcAddress(new_dll_instance, "load_keybinds");
 
 			if (load_keybinds_func != NULL)
 			{
 				// External DLL utilizes keybinds
-				load_keybinds_func(&keybinds);
+				load_keybinds_func(&keybinds, &user_pref_audio_feedback_enabled);
 			}
 
-			typedef void (__stdcall *set_device_wrapper_T)(SpD3D9Device **new_device);
+			typedef void (__stdcall *set_device_wrapper_T)(SpD3D9Device **new_device, bool *verbose_output);
 			set_device_wrapper_T set_device_wrapper_func = (set_device_wrapper_T)GetProcAddress(new_dll_instance, "set_device_wrapper");
 
 			if (set_device_wrapper_func != NULL)
 			{
 				// External DLL utilizes overlay
-				set_device_wrapper_func(&gl_pSpD3D9Device);
+				set_device_wrapper_func(&gl_pSpD3D9Device, &user_pref_verbose_output_enabled);
 			}
 
 			return new_dll_instance;

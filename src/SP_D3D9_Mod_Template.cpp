@@ -135,6 +135,7 @@ void initialize_mod(bool first_time_setup)
 			print_ol_feed("DEBUG: No generic DLLs were loaded at runtime", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9O_TEXT_COLOR_BLUE);
 		}
 #ifdef _SP_DARK_SOULS_1_
+#ifdef D3D_DEBUG_INFO
 		// Print the PvP Watchdog font size, if DSPWSteam.ini was found
 		if (dspw_pref_font_size)
 		{
@@ -144,6 +145,7 @@ void initialize_mod(bool first_time_setup)
 		{
 			print_ol_feed("DEBUG: PvP Watchdog overlay font size not found (assuming zero)", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9O_TEXT_COLOR_BLUE);
 		}
+#endif // D3D_DEBUG_INFO
 #endif // _SP_DARK_SOULS_1_
 	}
 }

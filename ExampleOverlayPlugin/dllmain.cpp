@@ -19,10 +19,10 @@
 #endif
 
 
-#define _DEVICE_READY_ _SP_D3D9O_PLUGIN_DEVICE_READY_			// Checks that the D3D9 device, overlay, and text feed are initialized
-#define _GET_TEXT_FEED_ (*device)->overlay->text_feed			// Text feed object (prints messages)
-#define _SETTINGS_FILE_ _SP_D3D9_SETTINGS_FILE_					// File to load settings from
-#define _KEYBINDS_SECTION_ _SP_D3D9_SETTINGS_SECTION_KEYBINDS_	// Section of settings file that holds keybind assignments
+#define _DEVICE_READY_ _SP_D3D9O_PLUGIN_DEVICE_READY_		// Checks that the D3D9 device, overlay, and text feed are initialized
+#define _GET_TEXT_FEED_ (*device)->overlay->text_feed		// Text feed object (prints messages)
+#define _SETTINGS_FILE_ ".//d3d9_Mod.ini"					// File to load settings from
+#define _KEYBINDS_SECTION_ "Keybinds"						// Section of settings file that holds keybind assignments
 #define _PRINT_OVERLAY_(...) {if(_DEVICE_READY_){_GET_TEXT_FEED_->print(##__VA_ARGS__);}} // Performs necessary checks and prints message to overlay text feed
 
 

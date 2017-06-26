@@ -5,7 +5,7 @@
 #ifndef _SP_D3D9_OVERLAY_H_
 	#define _SP_D3D9_OVERLAY_H_
 
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "SpD3D9.h"
 
 // Default overlay properties

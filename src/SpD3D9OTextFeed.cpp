@@ -223,6 +223,19 @@ void SpD3D9OTextFeed::set_font_height(unsigned int new_text_height)
 
 
 
+void SpD3D9OTextFeed::set_title(const char *new_title)
+{
+	new_info_title.clear();
+	new_info_title.append(new_title);
+
+	if (new_info_title.empty())
+	{
+		new_info_title.append(" ");
+	}
+}
+
+
+
 void SpD3D9OTextFeed::update_font_height()
 {
 	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
@@ -406,8 +419,16 @@ void SpD3D9OTextFeed::update_info_header()
 	if (show_info_bar & SP_D3D9O_INFO_BAR_TITLE)
 	{
 		// Insert title into text feed info string
-		info_string.append(_SP_D3D9O_TF_DEFAULT_TITLE_);
+		info_string.append(info_title.c_str());
 	}
+}
+
+
+void SpD3D9OTextFeed::update_title()
+{
+	info_title.clear();
+	info_title.append(new_info_title.c_str());
+	new_info_title.clear();
 }
 
 
@@ -688,6 +709,11 @@ void SpD3D9OTextFeed::draw()
 	if (new_font_size)
 	{
 		update_font_height();
+	}
+
+	if (!new_info_title.empty())
+	{
+		update_title();
 	}
 
 	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_

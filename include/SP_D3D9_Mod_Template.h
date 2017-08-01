@@ -83,6 +83,8 @@ int dspw_overlay_adjustment; // Used to adjust the overlay to avoid clipping wit
 extern SHORT key_state[256]; // Key state buffer to hold the states of all 256 virtual keys
 typedef void(__stdcall *initialization_func_T)();
 std::vector<initialization_func_T> dll_init_funcs; // Initialization functions for loaded DLLs
+typedef void(__stdcall *info_bar_func_T)(std::string *);
+std::vector<info_bar_func_T> dll_info_bar_funcs; // Functions for adding live-updating strings to the text feed info bar from loaded DLLs
 bool input_loop_paused;
 bool input_loop_enabled; // Controls whether the main loop that detects player input is enabled/disabled
 

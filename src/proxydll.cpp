@@ -243,6 +243,16 @@ HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section
 				set_device_wrapper_func(&gl_pSpD3D9Device, &user_pref_verbose_output_enabled);
 			}
 
+			typedef void(__stdcall *info_bar_func_T)(std::string *);
+			info_bar_func_T info_bar_func = (info_bar_func_T)GetProcAddress(new_dll_instance, "add_info_bar_element"); // Load function for adding info bar elements
+
+			if (info_bar_func != NULL)
+			{
+				// External DLL implements info bar elements
+				extern std::vector<info_bar_func_T> dll_info_bar_funcs;
+				dll_info_bar_funcs.push_back(info_bar_func);
+			}
+
 			return new_dll_instance;
 		}
 	}

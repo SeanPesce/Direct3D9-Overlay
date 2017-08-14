@@ -99,8 +99,9 @@ SpD3D9Overlay::SpD3D9Overlay(SpD3D9Interface *new_interface, SpD3D9Device *new_d
 		}
 	}
 
-	// Initialize overlay text feed
+	// Initialize overlay components
 	text_feed = new SpD3D9OTextFeed(this);
+	console = new SpD3D9OConsole(this);
 
 	// Create state block for drawing the overlay
 	create_state_block();
@@ -120,6 +121,9 @@ SpD3D9Overlay::~SpD3D9Overlay()
 {
 	delete text_feed;
 	text_feed = NULL;
+
+	delete console;
+	console = NULL;
 }
 
 
@@ -244,6 +248,8 @@ void SpD3D9Overlay::release_tasks()
 		text_feed->font->Release()
 	}*/
 	text_feed->font = NULL;
+
+	console->font = NULL;
 }
 
 
@@ -268,6 +274,8 @@ void SpD3D9Overlay::force_release_tasks()
 		_SP_D3D9_LOG_EVENT_("Font released; ref count=%u", text_feed->font->Release());
 	}*/
 	text_feed->font = NULL;
+
+	console->font = NULL;
 }
 
 
@@ -292,6 +300,12 @@ void SpD3D9Overlay::reset_tasks()
 			text_feed->font = NULL;
 		#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 	}
+
+	if (console->font != NULL)
+	{
+		delete console->font;
+		console->font = NULL;
+	}
 }
 
 
@@ -309,6 +323,12 @@ void SpD3D9Overlay::post_reset_tasks(D3DPRESENT_PARAMETERS *present_params)
 		text_feed->font->InitializeDeviceObjects(device->m_pIDirect3DDevice9);
 		text_feed->font->RestoreDeviceObjects();
 	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
+
+	// Re-acquire video memory resources for overlay console font
+	console->font = new CD3DFont(console->font_family.c_str(), console->font_height, 0);
+	console->font->InitializeDeviceObjects(device->m_pIDirect3DDevice9);
+	console->font->RestoreDeviceObjects();
+
 
 	// Store window mode (windowed or fullscreen)
 	is_windowed = present_params->Windowed != 0;
@@ -381,7 +401,7 @@ void SpD3D9Overlay::post_reset_tasks(D3DPRESENT_PARAMETERS *present_params)
 
 void SpD3D9Overlay::end_scene_tasks()
 {
-	if (enabled_modules & SP_D3D9O_TEXT_FEED_ENABLED)
+	if (enabled_elements & SP_D3D9O_TEXT_FEED_ENABLED)
 	{
 		// Set overlay rect sizes and positions
 		if (needs_update)
@@ -445,7 +465,12 @@ void CALLBACK update_fps_count(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwT
 
 void SpD3D9Overlay::draw(IDirect3DSwapChain9 *swap_chain)
 {
-	if (!enabled_modules)
+	#if (defined _SP_USE_DETOUR_DISPATCH_MSG_INPUT_ || defined _SP_USE_WIN_HOOK_EX_INPUT_)
+		MSG msg;
+		PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
+	#endif // _SP_USE_DETOUR_DISPATCH_MSG_INPUT_ || _SP_USE_WIN_HOOK_EX_INPUT_
+
+	if (!enabled_elements)
 	{
 		return;
 	}
@@ -512,7 +537,13 @@ void SpD3D9Overlay::draw(IDirect3DSwapChain9 *swap_chain)
 
 	_SP_D3D9_CHECK_FAILED_(device->BeginScene()); // Begin drawing the overlay
 
-	if (enabled_modules & SP_D3D9O_TEXT_FEED_ENABLED)
+	if (enabled_elements & SP_D3D9O_CONSOLE_ENABLED)
+	{
+		// Draw console
+		console->draw();
+	}
+
+	if (enabled_elements & SP_D3D9O_TEXT_FEED_ENABLED)
 	{
 		// Draw text feed
 		text_feed->draw();

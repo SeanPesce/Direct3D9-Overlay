@@ -66,29 +66,29 @@ SpD3D9OTextFeed::~SpD3D9OTextFeed()
 
 bool SpD3D9OTextFeed::is_enabled()
 {
-	return (overlay->enabled_modules & SP_D3D9O_TEXT_FEED_ENABLED);
+	return (overlay->enabled_elements & SP_D3D9O_TEXT_FEED_ENABLED);
 }
 
 void SpD3D9OTextFeed::set_enabled(bool enabled)
 {
 	if (enabled)
 	{
-		overlay->enabled_modules |= SP_D3D9O_TEXT_FEED_ENABLED; // Enable text feed
+		overlay->enabled_elements |= SP_D3D9O_TEXT_FEED_ENABLED; // Enable text feed
 	}
 	else
 	{
-		overlay->enabled_modules &= SP_D3D9O_TEXT_FEED_DISABLED; // Disable text feed
+		overlay->enabled_elements &= SP_D3D9O_TEXT_FEED_DISABLED; // Disable text feed
 	}
 }
 
 void SpD3D9OTextFeed::enable()
 {
-	overlay->enabled_modules |= SP_D3D9O_TEXT_FEED_ENABLED;
+	overlay->enabled_elements |= SP_D3D9O_TEXT_FEED_ENABLED;
 }
 
 void SpD3D9OTextFeed::disable()
 {
-	overlay->enabled_modules &= SP_D3D9O_TEXT_FEED_DISABLED;
+	overlay->enabled_elements &= SP_D3D9O_TEXT_FEED_DISABLED;
 }
 
 

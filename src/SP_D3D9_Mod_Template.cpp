@@ -22,26 +22,52 @@ void input_loop()
 			|| GetFocus() == gl_pSpD3D9Device->overlay->focus_window || GetFocus() == gl_pSpD3D9Device->overlay->device_window
 			/*|| IsWindowEnabled(gl_pSpD3D9Device->focus_window) || IsWindowEnabled(gl_pSpD3D9Device->device_window)*/))
 		{
-
-			get_async_keyboard_state(key_state); // Capture all current async key states
-
-			std::list<SP_KEY_FUNCTION>::const_iterator key_func_iterator;
-			for (key_func_iterator = keybinds.begin(); key_func_iterator != keybinds.end(); key_func_iterator++)
+			if (!gl_pSpD3D9Device->overlay->console->is_open())
 			{
-				if (hotkey_is_down(key_func_iterator->key))
+				get_async_keyboard_state(key_state); // Capture all current async key states
+
+				std::list<SP_KEY_FUNCTION>::const_iterator key_func_iterator;
+				for (key_func_iterator = keybinds.begin(); key_func_iterator != keybinds.end(); key_func_iterator++)
 				{
-					key_func_iterator->function();
-					break;
+					if (hotkey_is_down(key_func_iterator->key))
+					{
+						key_func_iterator->function();
+						break;
+					}
 				}
+			}
+			else
+			{
+				#ifdef _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
+				gl_input_handler->di8_keyboard->SetCooperativeLevel(*(gl_pSpD3D9Device->overlay->game_window), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+
+				if (SUCCEEDED(gl_input_handler->di8_keyboard->Acquire()))
+				{
+					gl_pSpD3D9Device->overlay->console->get_input();
+					continue;
+				}
+				else
+				{
+					// Handle error
+					Beep(300, 300);
+				}
+				#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
+				
+				gl_pSpD3D9Device->overlay->console->get_input();
 			}
 
 			Sleep(1);
 		}
 		else
 		{
-			// Game window is not   
+			// Game window is not active
 			Sleep(100);
 		}
+	}
+
+	if (gl_input_handler != NULL)
+	{
+		delete gl_input_handler;
 	}
 }
 
@@ -57,6 +83,11 @@ void initialize_mod(bool first_time_setup)
 	if (!input_loop_enabled)
 	{
 		return;
+	}
+
+	if (gl_input_handler == NULL)
+	{
+		gl_input_handler = new SpD3D9OInputHandler();
 	}
 
 	// Set overlay text feed position, style, and font size
@@ -341,7 +372,7 @@ int toggle_info_bar()
 // Toggle verbose text feed output
 int toggle_verbose_output()
 {
-	if (gl_pSpD3D9Device->overlay->enabled_modules)
+	if (gl_pSpD3D9Device->overlay->enabled_elements)
 	{
 		user_pref_verbose_output_enabled = !user_pref_verbose_output_enabled;
 		if (user_pref_verbose_output_enabled)

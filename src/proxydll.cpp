@@ -9,6 +9,7 @@
 SpD3D9Device*		gl_pSpD3D9Device;
 SpD3D9Interface*	gl_pSpD3D9Interface;
 SpD3D9SwapChain*	gl_pSpD3D9SwapChain;
+DWORD				lasterr;
 HINSTANCE			gl_hOriginalDll;
 HINSTANCE			gl_hThisInstance;
 #pragma data_seg ()
@@ -294,6 +295,16 @@ void get_keybinds()
 	extern std::list<SP_KEY_FUNCTION> keybinds; // Stores all function/keybind mappings
 	unsigned int key = 0;
 
+	// Open console
+	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_KEYBINDS_, _SP_D3D9_HOTKEY_OPEN_CONSOLE_KEY_);
+	if (key)
+	{
+		extern int open_console();
+		add_function_keybind(key, open_console, &keybinds);
+	}
+	console_key = key;
+	key = 0;
+
 	// Toggle overlay text feed
 	key = get_vk_hotkey(_SP_D3D9_SETTINGS_FILE_, _SP_D3D9_SETTINGS_SECTION_KEYBINDS_, _SP_D3D9_HOTKEY_TOGGLE_OL_TXT_KEY_);
 	if (key)
@@ -434,6 +445,15 @@ void get_user_preferences()
 		// Invalid font size specified; set to default
 		user_pref_overlay_text_size = _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_;
 	}
+
+	// Console text size
+	user_pref_console_text_size = (int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_CONSOLE_TXT_SIZE_KEY_, _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_, _SP_D3D9_SETTINGS_FILE_);
+	if (user_pref_overlay_text_size < 1)
+	{
+		// Invalid font size specified; set to default
+		user_pref_console_text_size = _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_;
+	}
+
 
 	char settings_buffer[128];
 	

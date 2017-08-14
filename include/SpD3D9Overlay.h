@@ -49,15 +49,19 @@
 class SpD3D9Interface;
 class SpD3D9Device;
 class SpD3D9OTextFeed;
+class SpD3D9OConsole;
+class SpD3D9OInputHandler;
 
 // Denotes which modules of the overlay are currently active (text feed, etc)
 enum SP_D3D9O_ENABLE_MODULES_ENUM {
 	SP_D3D9O_TEXT_FEED_ENABLED = 0x00000001,
+	SP_D3D9O_CONSOLE_ENABLED = 0x00000002,
 	SP_D3D9O_ALL_MODULES_ENABLED = 0xFFFFFFFF // Denotes all modules enabled, but also forces enum to use 32-bit ints
 };
 // Used to disable overlay modules using the bitwise AND operator
 enum SP_D3D9O_DISABLE_MODULES_ENUM {
 	SP_D3D9O_TEXT_FEED_DISABLED = 0xFFFFFFFE,
+	SP_D3D9O_CONSOLE_DISABLED = 0xFFFFFFFD,
 	SP_D3D9O_ALL_MODULES_DISABLED = 0x00000000
 };
 
@@ -117,7 +121,8 @@ public:
 
 	// Overlay member data
 	SpD3D9OTextFeed *text_feed = NULL;
-	uint32_t enabled_modules = _SP_D3D9O_DEFAULT_MODULES_ENABLED_; // Denotes which modules of the overlay are currently active (text feed, etc)
+	SpD3D9OConsole *console = NULL;
+	uint32_t enabled_elements = _SP_D3D9O_DEFAULT_MODULES_ENABLED_; // Denotes which elements of the overlay are currently active (text feed, console etc)
 	bool is_windowed; // Specifies whether the program is running in windowed or exclusive full-screen mode
 	bool needs_update = true; 
 	HWND *game_window = NULL; // Main game window (should be pointer to focus_window or device_window)

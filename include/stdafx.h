@@ -37,6 +37,7 @@
 #define _SP_D3D9_HOTKEY_NEXT_OL_TXT_POS_KEY_ "ChangeOverlayTextPosition"
 #define _SP_D3D9_HOTKEY_NEXT_OL_TXT_STYLE_KEY_ "ChangeOverlayTextStyle"
 #define _SP_D3D9_HOTKEY_TOGGLE_TEXT_FEED_INFO_BAR_KEY_ "ToggleInfoBar"
+#define _SP_D3D9_HOTKEY_OPEN_CONSOLE_KEY_ "OpenConsole"
 //	User preferences section key names
 #define _SP_D3D9_OL_TXT_ENABLED_KEY_ "EnableOverlay"
 #define _SP_D3D9_OL_TXT_SIZE_KEY_ "OverlayTextSize"
@@ -47,6 +48,7 @@
 #define _SP_D3D9_OL_TXT_ENABLE_FPS_KEY_ "DisplayFPS"
 #define _SP_D3D9_OL_TXT_ENABLE_TIME_KEY_ "DisplayTime"
 #define _SP_D3D9_OL_TXT_ENABLE_DATE_KEY_ "DisplayDate"
+#define _SP_D3D9_OL_CONSOLE_TXT_SIZE_KEY_ "ConsoleTextSize"
 //	Developer keybinds section key names
 #define _SP_D3D9_HOTKEY_PRINT_OL_TXT_TEST_MSG_KEY_ "PrintTestMessage"
 #define _SP_D3D9_HOTKEY_TOGGLE_AUDIO_FEEDBACK_KEY_ "ToggleAudioFeedback"

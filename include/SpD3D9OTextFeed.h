@@ -114,8 +114,7 @@ public:
 	void SpD3D9OTextFeed::enable();
 	void SpD3D9OTextFeed::disable();
 	void SpD3D9OTextFeed::draw();
-	void SpD3D9OTextFeed::print(const char *message, unsigned long long duration, bool include_timestamp); // Prints message with default-colored text
-	void SpD3D9OTextFeed::print(const char *message, unsigned long long duration, bool include_timestamp, SP_D3D9O_TEXT_COLOR_ENUM text_color); // Prints message with specified text color
+	void SpD3D9OTextFeed::print(const char *message, unsigned long long duration = 2000, bool include_timestamp = true, SP_D3D9O_TEXT_COLOR_ENUM text_color = _SP_D3D9O_TF_DEFAULT_COLOR_); // Prints message with specified text color
 	void SpD3D9OTextFeed::set_bounds(RECT *window_boundaries); // Initializes screenspace boundaries for each text style
 	void SpD3D9OTextFeed::set_font_height(unsigned int new_text_height); // Set font height
 	void SpD3D9OTextFeed::set_title(const char *new_title); // Set info bar title message

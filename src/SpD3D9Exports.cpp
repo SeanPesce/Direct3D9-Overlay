@@ -37,23 +37,16 @@ __declspec(dllexport) int register_console_command(const char *command, void(*fu
 }
 
 
-__declspec(dllexport) int print(const char *message)
+__declspec(dllexport) bool print(const char *message, unsigned long long duration, bool include_timestamp, SP_D3D9O_TEXT_COLOR_ENUM text_color)
 {
-	int return_val = 0;
-
+	extern SpD3D9Device* gl_pSpD3D9Device;
 	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->text_feed != NULL)
 	{
-		gl_pSpD3D9Device->overlay->text_feed->print(message, default_msg_duration, true);
-		return_val++;
+		gl_pSpD3D9Device->overlay->text_feed->print(message, duration, include_timestamp, text_color);
+		return true;
 	}
 
-	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->console != NULL)
-	{
-		gl_pSpD3D9Device->overlay->console->print(message);
-		return_val++;
-	}
-
-	return return_val;
+	return false;
 }
 
 
@@ -69,25 +62,12 @@ __declspec(dllexport) bool print_console(const char *message)
 }
 
 
-__declspec(dllexport) bool print_text_feed(const char *message, unsigned long long duration, bool include_timestamp)
+__declspec(dllexport) bool set_text_feed_title(const char *new_title)
 {
 	extern SpD3D9Device* gl_pSpD3D9Device;
 	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->text_feed != NULL)
 	{
-		gl_pSpD3D9Device->overlay->text_feed->print(message, duration, include_timestamp);
-		return true;
-	}
-
-	return false;
-}
-
-
-__declspec(dllexport) bool print_text_feed(const char *message, unsigned long long duration, bool include_timestamp, SP_D3D9O_TEXT_COLOR_ENUM text_color)
-{
-	extern SpD3D9Device* gl_pSpD3D9Device;
-	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->text_feed != NULL)
-	{
-		gl_pSpD3D9Device->overlay->text_feed->print(message, duration, include_timestamp, text_color);
+		gl_pSpD3D9Device->overlay->text_feed->set_title(new_title);
 		return true;
 	}
 

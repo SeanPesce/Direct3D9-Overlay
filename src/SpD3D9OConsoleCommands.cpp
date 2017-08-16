@@ -9,6 +9,9 @@
 #include <iomanip> // std::hex
 
 
+extern SpD3D9Device *gl_pSpD3D9Device;
+
+
 void error_code_to_string(DWORD last_error, std::string *message)
 {
 	message->clear();
@@ -47,6 +50,13 @@ void cc_exit(std::vector<std::string> args, std::string *output)
 	}
 
 	exit(EXIT_SUCCESS);
+}
+
+
+// Closes the console
+void cc_close(std::vector<std::string> args, std::string *output)
+{
+	gl_pSpD3D9Device->overlay->console->toggle();
 }
 
 
@@ -120,7 +130,6 @@ void cc_alias(std::vector<std::string> args, std::string *output)
 
 void cc_paste(std::vector<std::string> args, std::string *output)
 {
-	extern SpD3D9Device *gl_pSpD3D9Device;
 	DWORD err = 0;
 	std::string err_msg;
 
@@ -189,6 +198,20 @@ void cc_paste(std::vector<std::string> args, std::string *output)
 		plural = "s";
 	}
 	output->append("SUCCESS: Copied ").append(std::to_string(clipboard_str.length())).append(" character").append(plural).append(" to console input");
+}
+
+
+
+void cc_print(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		gl_pSpD3D9Device->overlay->text_feed->print(args.at(0).c_str());
+	}
+	else
+	{
+		output->append("ERROR: Too few arguments");
+	}
 }
 
 
@@ -316,6 +339,7 @@ void register_default_console_commands()
 {
 	SpD3D9OConsole::register_command("exit", cc_exit, "exit [exit code]");
 	SpD3D9OConsole::register_command("quit", cc_exit, "exit [exit code]");
+	SpD3D9OConsole::register_command("close", cc_close, "Closes the console window");
 	SpD3D9OConsole::register_command("alias", cc_alias, "alias <ALIAS|COMMAND> <ALIAS|COMMAND>");
 	SpD3D9OConsole::register_command("paste", cc_paste, "Copies ANSI text data from the clipboard to the console input");
 	SpD3D9OConsole::register_command("beep", cc_beep, "beep <frequency> <duration>");

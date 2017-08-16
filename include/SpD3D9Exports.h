@@ -63,10 +63,9 @@ __declspec(dllexport) unsigned long long default_msg_duration;
 __declspec(dllexport) IDirect3DDevice9 *get_d3d9_device();
 __declspec(dllexport) unsigned int register_hotkey_function(unsigned int vk_hotkey, int(*function)());
 __declspec(dllexport) int register_console_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message);
-__declspec(dllexport) int print(const char *message);
-__declspec(dllexport) bool print_console(const char *message);
-__declspec(dllexport) bool print_text_feed(const char *message, unsigned long long duration, bool include_timestamp);
-__declspec(dllexport) bool print_text_feed(const char *message, unsigned long long duration, bool include_timestamp, SP_D3D9O_TEXT_COLOR_ENUM text_color);
+__declspec(dllexport) bool print(const char *message, unsigned long long duration = 2000, bool include_timestamp = true, SP_D3D9O_TEXT_COLOR_ENUM text_color = SP_D3D9O_TEXT_COLOR_WHITE); // Prints to text feed and console
+__declspec(dllexport) bool print_console(const char *message); // Prints only to console
+__declspec(dllexport) bool set_text_feed_title(const char *new_title);
 
 
 

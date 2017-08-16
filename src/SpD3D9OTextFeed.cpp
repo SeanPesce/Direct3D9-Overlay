@@ -697,13 +697,12 @@ void SpD3D9OTextFeed::print(const char *message, unsigned long long duration, bo
 	new_message.message.append(message);
 
 
+	// Also print to the console
+	overlay->console->print(std::string("TEXT FEED: ").append(new_message.message).c_str());
+
+
 	// Add the constructed message to the overlay text feed message queue
 	messages.push_back(new_message);
-}
-
-void SpD3D9OTextFeed::print(const char *message, unsigned long long duration, bool include_timestamp)
-{
-	print(message, duration, include_timestamp, _SP_D3D9O_TF_DEFAULT_COLOR_);
 }
 
 

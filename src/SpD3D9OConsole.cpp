@@ -409,6 +409,7 @@ void SpD3D9OConsole::handle_key_event(DIDEVICEOBJECTDATA *key_event)
 void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 {
 	DWORD last_err;
+	std::string exec_cmd; // Only used when executing a command
 
 	if (is_open() && !SpD3D9OInputHandler::get()->handled)        // If the console is visible, take input
 	{
@@ -503,21 +504,22 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_RETURN:
-				if (command.length() > 0)
-				{
+				//if (command.length() > 0)
+				//{
 					command_log.push_back(command);
 					command_log_position = (unsigned int)command_log.size();
-					std::string exec_cmd = command;
+					exec_cmd = command;
 					print(command.insert(0, prompt).c_str());
 					command.clear();
 					caret_position = 0;
 
 					execute_command(exec_cmd.c_str());
-				}
-				else
-				{
-					toggle();
-				}
+				//}
+				//else
+				//{
+					////toggle();
+					//print(command.insert(0, prompt).c_str());
+				//}
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_BACK:
@@ -659,6 +661,12 @@ void SpD3D9OConsole::execute_command(const char *new_command)
 {
 	std::string command = new_command;
 	trim(&command);
+
+	if (command.length() == 0)
+	{
+		return;
+	}
+
 	std::string command_name;
 	std::string command_args = "";
 	unsigned int space;
@@ -675,9 +683,6 @@ void SpD3D9OConsole::execute_command(const char *new_command)
 	to_lower((char *)command_name.c_str());
 	std::vector<std::string> args;
 	parse_args(command_args.c_str(), &args);
-
-	//overlay->text_feed->print(std::string("Command name: \"").append(command_name).append("\"").c_str(), 10000, false);
-	//overlay->text_feed->print(std::string("Command args: \"").append(command_args).append("\"").c_str(), 10000, false);
 
 	int command_index = -1;
 	seqan::String<char> cmd(command_name);
@@ -698,13 +703,11 @@ void SpD3D9OConsole::execute_command(const char *new_command)
 		if (command_output.size() > 0)
 		{
 			print(command_output.c_str());
-			overlay->text_feed->print(command_output.c_str(), 10000, false);
 		}
 	}
 	else
 	{
 		print(std::string("ERROR: Unrecognized command \"").append(command_name).append("\"").c_str());
-		overlay->text_feed->print(std::string("ERROR: Unrecognized command \"").append(command_name).append("\"").c_str(), 10000, false);
 	}
 }
 

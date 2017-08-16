@@ -31,7 +31,7 @@
 	#include <detours.h>
 #endif // _SP_USING_DETOURS_
 
-SpD3D9OInputHandler *gl_input_handler;
+SpD3D9OInputHandler * SpD3D9OInputHandler::instance = NULL;
 
 #ifdef _SP_DISABLE_DINPUT8_INPUT_
 	// Create the original function call definition
@@ -40,6 +40,17 @@ SpD3D9OInputHandler *gl_input_handler;
 		HRESULT(__fastcall *oGetDeviceData)(void* pThis, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags) = NULL;
 	}
 #endif // _SP_DISABLE_DINPUT8_INPUT_
+
+
+SpD3D9OInputHandler *SpD3D9OInputHandler::get()
+{
+	if (instance == NULL)
+	{
+		instance = new SpD3D9OInputHandler();
+	}
+
+	return instance;
+}
 
 
 SpD3D9OInputHandler::SpD3D9OInputHandler()
@@ -200,7 +211,7 @@ SpD3D9OInputHandler::SpD3D9OInputHandler()
 		}
 	#endif // _SP_USE_GET_RAW_INPUT_DATA_INPUT_
 
-	gl_input_handler = this;
+	// instance = this;
 }
 
 
@@ -219,7 +230,7 @@ SpD3D9OInputHandler::~SpD3D9OInputHandler()
 			dinput8->Release();
 	#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 
-	gl_input_handler = NULL;
+	instance = NULL;
 }
 
 
@@ -258,7 +269,7 @@ void SpD3D9OInputHandler::get_device_input()
 	const DWORD	dwLButtonTime = 13379,
 		dwRButtonTime = 13378;
 
-	gl_input_handler->handled = false;
+	handled = false;
 
 	RAWINPUT *raw_input = (RAWINPUT *)pData;
 
@@ -311,13 +322,13 @@ void SpD3D9OInputHandler::get_device_input()
 				switch (raw_input->data.keyboard.VKey)
 				{
 					case VK_SHIFT:
-						gl_input_handler->shift = true;
+						shift = true;
 						break;
 					case VK_CONTROL:
-						gl_input_handler->ctrl = true;
+						ctrl = true;
 						break;
 					case VK_MENU: // ALT key
-						gl_input_handler->alt = true;
+						alt = true;
 						break;
 				}
 
@@ -352,13 +363,13 @@ void SpD3D9OInputHandler::get_device_input()
 				switch (raw_input->data.keyboard.VKey)
 				{
 					case VK_SHIFT:
-						gl_input_handler->shift = false;
+						shift = false;
 						break;
 					case VK_CONTROL:
-						gl_input_handler->ctrl = false;
+						ctrl = false;
 						break;
 					case VK_MENU: // ALT key
-						gl_input_handler->alt = false;
+						alt = false;
 						break;
 				}
 				break; // case WM_KEYUP
@@ -580,7 +591,7 @@ HRESULT __fastcall hkGetDeviceData(void* pThis, DWORD cbObjectData, LPDIDEVICEOB
 UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData, PUINT pcbSize, UINT cbSizeHeader)
 {
 	// Get return value of original function:
-	UINT return_value = gl_input_handler->oGetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+	UINT return_value = SpD3D9OInputHandler::get()->oGetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
 	if (pData == NULL || return_value == (UINT)-1)
 	{
@@ -591,9 +602,16 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 	const DWORD	dwLButtonTime = 13379,
 		dwRButtonTime = 13378;
 
-	gl_input_handler->handled = false;
+	SpD3D9OInputHandler::get()->handled = false;
 
 	RAWINPUT *raw_input = (RAWINPUT *)pData;
+
+	// Send raw input data to overlay plugins
+	extern std::vector<void(__stdcall *)(RAWINPUT *, PUINT)> plugin_get_raw_input_data_funcs;
+	for (auto raw_input_data_func : plugin_get_raw_input_data_funcs)
+	{
+		raw_input_data_func(raw_input, pcbSize);
+	}
 	
 	switch (raw_input->header.dwType)
 	{
@@ -643,17 +661,17 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 					switch (raw_input->data.keyboard.VKey)
 					{
 						case VK_SHIFT:
-							gl_input_handler->shift = true;
+							SpD3D9OInputHandler::get()->shift = true;
 							break;
 						case VK_CONTROL:
-							gl_input_handler->ctrl = true;
+							SpD3D9OInputHandler::get()->ctrl = true;
 							break;
 						case VK_MENU: // ALT key
-							gl_input_handler->alt = true;
+							SpD3D9OInputHandler::get()->alt = true;
 							break;
 						case VK_LWIN:
 						case VK_RWIN:
-							gl_input_handler->win = true;
+							SpD3D9OInputHandler::get()->win = true;
 							break;
 					}
 
@@ -688,17 +706,17 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 					switch (raw_input->data.keyboard.VKey)
 					{
 						case VK_SHIFT:
-							gl_input_handler->shift = false;
+							SpD3D9OInputHandler::get()->shift = false;
 							break;
 						case VK_CONTROL:
-							gl_input_handler->ctrl = false;
+							SpD3D9OInputHandler::get()->ctrl = false;
 							break;
 						case VK_MENU: // ALT key
-							gl_input_handler->alt = false;
+							SpD3D9OInputHandler::get()->alt = false;
 							break;
 						case VK_LWIN:
 						case VK_RWIN:
-							gl_input_handler->win = false;
+							SpD3D9OInputHandler::get()->win = false;
 							break;
 					}
 					break; // case WM_KEYUP
@@ -708,7 +726,22 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 
 	} // switch (raw_input->header.dwType)
 
-	if (gl_input_handler->handled)
+
+
+	// Check if any overlay plugins want to disable in-game player input
+	bool disable_input = false;
+	extern std::vector<bool(__stdcall *)()> plugin_disable_player_input_funcs;
+	for (auto player_input_func : plugin_disable_player_input_funcs)
+	{
+		disable_input = player_input_func();
+		if (disable_input)
+		{
+			break;
+		}
+	}
+
+
+	if (SpD3D9OInputHandler::get()->handled || disable_input)
 	{
 		// Skip calling original function if message was handled
 		*pcbSize = 0;
@@ -874,12 +907,7 @@ LRESULT __stdcall handle_message(int nCode, WPARAM wParam, LPARAM lParam)
 		Beep(500, 70);
 	}
 
-	if (gl_input_handler == NULL)
-	{
-		return CallNextHookEx(input_hook, nCode, wParam, lParam);
-	}
-
-	gl_input_handler->handled = false;
+	SpD3D9OInputHandler::get()->handled = false;
 
 	WPARAM msg_wParam = ((CWPSTRUCT *)lParam)->wParam;
 	WPARAM msg_lParam = ((CWPSTRUCT *)lParam)->lParam;
@@ -942,10 +970,10 @@ LRESULT __stdcall handle_message(int nCode, WPARAM wParam, LPARAM lParam)
 			switch (msg_wParam)
 			{
 				case VK_SHIFT:
-					gl_input_handler->shift = true;
+					SpD3D9OInputHandler::get()->shift = true;
 					break;
 				case VK_CONTROL:
-					gl_input_handler->ctrl = true;
+					SpD3D9OInputHandler::get()->ctrl = true;
 					break;
 			}
 
@@ -988,10 +1016,10 @@ LRESULT __stdcall handle_message(int nCode, WPARAM wParam, LPARAM lParam)
 			switch (msg_wParam)
 			{
 				case VK_SHIFT:
-					gl_input_handler->shift = false;
+					SpD3D9OInputHandler::get()->shift = false;
 					break;
 				case VK_CONTROL:
-					gl_input_handler->ctrl = false;
+					SpD3D9OInputHandler::get()->ctrl = false;
 					break;
 			}
 			break;
@@ -1012,7 +1040,7 @@ LRESULT __stdcall handle_message(int nCode, WPARAM wParam, LPARAM lParam)
 LRESULT WINAPI hkDispatchMessage(MSG* lpmsg)
 {
 	Beep(500, 10);
-	gl_input_handler->handled = false;
+	SpD3D9OInputHandler::get()->handled = false;
 
 	WPARAM wParam = lpmsg->wParam;
 	WPARAM lParam = lpmsg->lParam;
@@ -1075,17 +1103,17 @@ LRESULT WINAPI hkDispatchMessage(MSG* lpmsg)
 			switch(wParam)
 			{
 				case VK_SHIFT:
-					gl_input_handler->shift = true;
+					SpD3D9OInputHandler::get()->shift = true;
 					break;
 				case VK_CONTROL:
-					gl_input_handler->ctrl = true;
+					SpD3D9OInputHandler::get()->ctrl = true;
 					break;
 				case VK_MENU: // ALT key
-					gl_input_handler->alt = true;
+					SpD3D9OInputHandler::get()->alt = true;
 					break;
 				case VK_LWIN:
 				case VK_RWIN:
-					gl_input_handler->win = true;
+					SpD3D9OInputHandler::get()->win = true;
 					break;
 			}
 			
@@ -1128,17 +1156,17 @@ LRESULT WINAPI hkDispatchMessage(MSG* lpmsg)
 			switch (wParam)
 			{
 				case VK_SHIFT:
-					gl_input_handler->shift = false;
+					SpD3D9OInputHandler::get()->shift = false;
 					break;
 				case VK_CONTROL:
-					gl_input_handler->ctrl = false;
+					SpD3D9OInputHandler::get()->ctrl = false;
 					break;
 				case VK_MENU: // ALT key
-					gl_input_handler->alt = false;
+					SpD3D9OInputHandler::get()->alt = false;
 					break;
 				case VK_LWIN:
 				case VK_RWIN:
-					gl_input_handler->win = false;
+					SpD3D9OInputHandler::get()->win = false;
 					break;
 			}
 			break;
@@ -1150,7 +1178,7 @@ LRESULT WINAPI hkDispatchMessage(MSG* lpmsg)
 			break;
 		}
 
-	return gl_input_handler->oDispatchMessage(lpmsg); // @TODO: Skip calling original function if message was handled?
+	return SpD3D9OInputHandler::get()->oDispatchMessage(lpmsg); // @TODO: Skip calling original function if message was handled?
 }
 
 

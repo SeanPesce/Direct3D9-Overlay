@@ -8,7 +8,17 @@
 
 //#define D3D_DEBUG_INFO 1
 
+
 #include <Windows.h>
+
+// Fixes for compatibility issues between SeQan and Windows API
+#ifdef min
+	#undef min
+#endif // min
+#ifdef max
+	#undef max
+#endif // max
+
 #include <algorithm>
 #include "d3d9.h"
 #include "SP_IO.hpp"

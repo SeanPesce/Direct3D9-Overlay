@@ -56,6 +56,9 @@
     <ClInclude Include="include\SpD3D9OInputHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpD3D9Exports.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\proxydll.cpp">
@@ -89,6 +92,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\SpD3D9OInputHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SpD3D9Exports.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SpD3D9OConsoleCommands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

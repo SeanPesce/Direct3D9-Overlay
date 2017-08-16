@@ -136,7 +136,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)proxydll.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
-      <ImportLibrary>$(OutDir)proxydll.lib</ImportLibrary>
+      <ImportLibrary>$(IntDir)d3d9_sp_overlay.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalLibraryDirectories>lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
@@ -159,7 +159,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)proxydll.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
-      <ImportLibrary>$(OutDir)proxydll.lib</ImportLibrary>
+      <ImportLibrary>$(IntDir)d3d9_sp_overlay.lib</ImportLibrary>
       <AdditionalLibraryDirectories>lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -181,7 +181,7 @@
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <ImportLibrary>$(OutDir)proxydll.lib</ImportLibrary>
+      <ImportLibrary>$(IntDir)d3d9_sp_overlay.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalLibraryDirectories>lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
@@ -205,14 +205,14 @@
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <ImportLibrary>$(OutDir)proxydll.lib</ImportLibrary>
+      <ImportLibrary>$(IntDir)d3d9_sp_overlay.lib</ImportLibrary>
       <AdditionalLibraryDirectories>lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dark Souls|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;PROXYDLL_EXPORTS;_SP_DARK_SOULS_1_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;PROXYDLL_EXPORTS;_SP_DARK_SOULS_1_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
@@ -228,7 +228,7 @@
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <ImportLibrary>$(OutDir)proxydll.lib</ImportLibrary>
+      <ImportLibrary>$(IntDir)d3d9_sp_overlay.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalLibraryDirectories>lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
@@ -252,7 +252,7 @@
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <ImportLibrary>$(OutDir)proxydll.lib</ImportLibrary>
+      <ImportLibrary>$(IntDir)d3d9_sp_overlay.lib</ImportLibrary>
       <AdditionalLibraryDirectories>lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
@@ -263,6 +263,7 @@
   <ItemGroup>
     <ClInclude Include="include\D3DFont.h" />
     <ClInclude Include="include\SpD3D9.h" />
+    <ClInclude Include="include\SpD3D9Exports.h" />
     <ClInclude Include="include\SpD3D9OInputHandler.h" />
     <ClInclude Include="include\SpD3D9Interface.h" />
     <ClInclude Include="include\SpD3D9Device.h" />
@@ -276,10 +277,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\D3DFont.cpp" />
+    <ClCompile Include="src\SpD3D9Exports.cpp" />
     <ClCompile Include="src\SpD3D9OConsole.cpp" />
     <ClCompile Include="src\SpD3D9Interface.cpp" />
     <ClCompile Include="src\SpD3D9Device.cpp" />
     <ClCompile Include="src\proxydll.cpp" />
+    <ClCompile Include="src\SpD3D9OConsoleCommands.cpp" />
     <ClCompile Include="src\SpD3D9OInputHandler.cpp" />
     <ClCompile Include="src\SpD3D9OTextFeed.cpp" />
     <ClCompile Include="src\SpD3D9Overlay.cpp" />

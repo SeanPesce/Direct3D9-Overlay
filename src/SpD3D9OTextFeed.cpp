@@ -417,17 +417,8 @@ void SpD3D9OTextFeed::update_info_header()
 	}
 
 
-	// Add elements from plugins
-	typedef void(__stdcall *info_bar_func_T)(std::string *);
-	extern std::vector<info_bar_func_T> dll_info_bar_funcs;
-
-	std::string info_bar_plugin_element;
-	for (info_bar_func_T func : dll_info_bar_funcs)
-	{
-		info_bar_plugin_element.clear();
-		func(&info_bar_plugin_element);
-		info_string.append(info_bar_plugin_element);
-	}
+	// Add live info bar elements from plugins
+	info_string.append(info_bar_plugin_elements);
 	
 
 	if (show_info_bar & SP_D3D9O_INFO_BAR_TITLE)
@@ -795,3 +786,4 @@ void SpD3D9OTextFeed::draw()
 	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 
 }
+

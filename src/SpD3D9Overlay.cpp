@@ -465,10 +465,6 @@ void CALLBACK update_fps_count(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwT
 
 void SpD3D9Overlay::draw(IDirect3DSwapChain9 *swap_chain)
 {
-	#if (defined _SP_USE_DETOUR_DISPATCH_MSG_INPUT_ || defined _SP_USE_WIN_HOOK_EX_INPUT_)
-		MSG msg;
-		PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
-	#endif // _SP_USE_DETOUR_DISPATCH_MSG_INPUT_ || _SP_USE_WIN_HOOK_EX_INPUT_
 
 	if (!enabled_elements)
 	{
@@ -537,16 +533,30 @@ void SpD3D9Overlay::draw(IDirect3DSwapChain9 *swap_chain)
 
 	_SP_D3D9_CHECK_FAILED_(device->BeginScene()); // Begin drawing the overlay
 
-	if (enabled_elements & SP_D3D9O_CONSOLE_ENABLED)
+
+	// Add elements from plugins
+	typedef void(__stdcall *plugin_draw_ol_func_T)(std::string *);
+	extern std::vector<plugin_draw_ol_func_T> plugin_draw_overlay_funcs;
+
+	std::string info_bar_plugin_element;
+	for (auto draw_func : plugin_draw_overlay_funcs)
 	{
-		// Draw console
-		console->draw();
+		info_bar_plugin_element.clear();
+		draw_func(&info_bar_plugin_element);
+		text_feed->info_bar_plugin_elements.append(info_bar_plugin_element);
 	}
 
 	if (enabled_elements & SP_D3D9O_TEXT_FEED_ENABLED)
 	{
 		// Draw text feed
 		text_feed->draw();
+	}
+	text_feed->info_bar_plugin_elements.clear();
+
+	if (enabled_elements & SP_D3D9O_CONSOLE_ENABLED)
+	{
+		// Draw console
+		console->draw();
 	}
 
 	_SP_D3D9_CHECK_FAILED_(device->EndScene()); // Finished drawing the overlay

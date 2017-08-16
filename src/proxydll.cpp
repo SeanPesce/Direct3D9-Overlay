@@ -93,6 +93,11 @@ void InitInstance(HANDLE hModule)
 {
 	OutputDebugString("PROXYDLL: InitInstance called.\r\n");
 	
+	extern void register_default_console_commands();
+	register_default_console_commands();
+	extern __declspec(dllexport) unsigned long long default_msg_duration;
+	default_msg_duration = _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_;
+
 	// Initialization
 	generic_dll_count = 0;
 	gl_hOriginalDll		= NULL;
@@ -103,6 +108,14 @@ void InitInstance(HANDLE hModule)
 	
 	// Storing Instance handle into global variable
 	gl_hThisInstance = (HINSTANCE)  hModule;
+
+	// Store DLL file name
+	char path[MAX_PATH + 1];
+	GetModuleFileName((HINSTANCE)hModule, path, sizeof(path));
+	std::string str_path = path;
+	size_t file_name_start_index = str_path.find_last_of('\\');
+	extern std::string d3d9o_dll_filename;
+	d3d9o_dll_filename = str_path.substr(++file_name_start_index);
 }
 
 // Loads the original d3d9.dll from the system directory
@@ -221,37 +234,45 @@ HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section
 			if (initialize_func != NULL)
 			{
 				// External DLL has an initialization function that must be called
-				extern std::vector<initialization_func_T> dll_init_funcs;
-				dll_init_funcs.push_back(initialize_func);
+				extern std::vector<initialization_func_T> plugin_init_funcs;
+				plugin_init_funcs.push_back(initialize_func);
 			}
 
-			// Check if external DLL utilizes keybinds and/or overlay
-			typedef void (__stdcall *load_keybinds_T)(std::list<SP_KEY_FUNCTION> *new_keybinds, bool *audio_feedback);
-			load_keybinds_T load_keybinds_func = (load_keybinds_T)GetProcAddress(new_dll_instance, "load_keybinds");
-
-			if (load_keybinds_func != NULL)
+			typedef void(__stdcall *main_loop_func_T)();
+			main_loop_func_T main_loop_func = (main_loop_func_T)GetProcAddress(new_dll_instance, "main_loop");
+			if (main_loop_func != NULL)
 			{
-				// External DLL utilizes keybinds
-				load_keybinds_func(&keybinds, &user_pref_audio_feedback_enabled);
+				// External DLL has a function that must be continuously called from the main thread loop
+				extern std::vector<void(__stdcall *)()> plugin_main_loop_funcs;
+				plugin_main_loop_funcs.push_back(main_loop_func);
 			}
 
-			typedef void (__stdcall *set_device_wrapper_T)(SpD3D9Device **new_device, bool *verbose_output);
-			set_device_wrapper_T set_device_wrapper_func = (set_device_wrapper_T)GetProcAddress(new_dll_instance, "set_device_wrapper");
-
-			if (set_device_wrapper_func != NULL)
+			typedef void(__stdcall *plugin_draw_ol_func_T)(std::string *);
+			plugin_draw_ol_func_T draw_overlay_func = (plugin_draw_ol_func_T)GetProcAddress(new_dll_instance, "draw_overlay"); // Plugin function for drawing overlay elements and adding extra info to the text feed info header
+			if (draw_overlay_func != NULL)
 			{
-				// External DLL utilizes overlay
-				set_device_wrapper_func(&gl_pSpD3D9Device, &user_pref_verbose_output_enabled);
+				// External DLL implements extra overlay or info bar elements
+				extern std::vector<plugin_draw_ol_func_T> plugin_draw_overlay_funcs;
+				plugin_draw_overlay_funcs.push_back(draw_overlay_func);
 			}
 
-			typedef void(__stdcall *info_bar_func_T)(std::string *);
-			info_bar_func_T info_bar_func = (info_bar_func_T)GetProcAddress(new_dll_instance, "add_info_bar_element"); // Load function for adding info bar elements
-
-			if (info_bar_func != NULL)
+			typedef void(__stdcall *plugin_get_raw_input_data_func_T)(RAWINPUT *, PUINT);
+			plugin_get_raw_input_data_func_T get_raw_input_func = (plugin_get_raw_input_data_func_T)GetProcAddress(new_dll_instance, "get_raw_input_data");
+			if (get_raw_input_func != NULL)
 			{
-				// External DLL implements info bar elements
-				extern std::vector<info_bar_func_T> dll_info_bar_funcs;
-				dll_info_bar_funcs.push_back(info_bar_func);
+				// External DLL reads raw input data
+				extern std::vector<void(__stdcall *)(RAWINPUT *, PUINT)> plugin_get_raw_input_data_funcs;
+				plugin_get_raw_input_data_funcs.push_back(get_raw_input_func);
+			}
+
+
+			typedef bool(__stdcall *plugin_disable_input_func_T)();
+			plugin_disable_input_func_T disable_input_func = (plugin_disable_input_func_T)GetProcAddress(new_dll_instance, "disable_player_input");
+			if (disable_input_func != NULL)
+			{
+				// External DLL can disable player input
+				extern std::vector<bool(__stdcall *)()> plugin_disable_player_input_funcs;
+				plugin_disable_player_input_funcs.push_back(disable_input_func);
 			}
 
 			return new_dll_instance;

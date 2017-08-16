@@ -39,9 +39,9 @@ void input_loop()
 			else
 			{
 				#ifdef _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
-				gl_input_handler->di8_keyboard->SetCooperativeLevel(*(gl_pSpD3D9Device->overlay->game_window), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+				SpD3D9OInputHandler::get()->di8_keyboard->SetCooperativeLevel(*(gl_pSpD3D9Device->overlay->game_window), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
 
-				if (SUCCEEDED(gl_input_handler->di8_keyboard->Acquire()))
+				if (SUCCEEDED(SpD3D9OInputHandler::get()->di8_keyboard->Acquire()))
 				{
 					gl_pSpD3D9Device->overlay->console->get_input();
 					continue;
@@ -56,6 +56,12 @@ void input_loop()
 				gl_pSpD3D9Device->overlay->console->get_input();
 			}
 
+			// Call plugin functions for the main loop
+			for (auto plugin_main_loop_func : plugin_main_loop_funcs)
+			{
+				plugin_main_loop_func();
+			}
+
 			Sleep(1);
 		}
 		else
@@ -63,11 +69,6 @@ void input_loop()
 			// Game window is not active
 			Sleep(100);
 		}
-	}
-
-	if (gl_input_handler != NULL)
-	{
-		delete gl_input_handler;
 	}
 }
 
@@ -85,9 +86,9 @@ void initialize_mod(bool first_time_setup)
 		return;
 	}
 
-	if (gl_input_handler == NULL)
+	if (SpD3D9OInputHandler::get() == NULL)
 	{
-		gl_input_handler = new SpD3D9OInputHandler();
+		// Handle error
 	}
 
 	// Set overlay text feed position, style, and font size
@@ -125,7 +126,7 @@ void initialize_mod(bool first_time_setup)
 	if (first_time_setup)
 	{
 		// Call external DLL plugin initialization functions
-		for (initialization_func_T init_func : dll_init_funcs)
+		for (initialization_func_T init_func : plugin_init_funcs)
 		{
 			init_func();
 		}
@@ -550,3 +551,4 @@ void SP_beep(DWORD frequency, DWORD duration)
 		Sleep(duration);
 	}
 }
+

@@ -103,6 +103,7 @@ public:
 	D3DXCOLOR shadow_color;
 	D3DXCOLOR outline_color;
 	int show_info_bar = _SP_D3D9O_TF_DEFAULT_INFO_BAR_; // Denotes whether to display each info bar attribute
+	std::string info_bar_plugin_elements = ""; // Plugin additions to the info header
 
 	// Constructor/destructor
 	SpD3D9OTextFeed(SpD3D9Overlay *new_overlay);
@@ -139,8 +140,6 @@ private:
 		void SpD3D9OTextFeed::update_position(); // Updates text feed position based on boundaries and number of messages
 	#endif
 };
-
-
 
 
 #endif // _SP_D3D9O_TEXT_FEED_H_

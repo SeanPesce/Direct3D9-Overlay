@@ -104,6 +104,8 @@ extern SpD3D9Device *gl_pSpD3D9Device;
 class SpD3D9OInputHandler
 {
 	public:
+		static SpD3D9OInputHandler* get();
+		
 
 #ifdef _SP_USE_DETOUR_DISPATCH_MSG_INPUT_
 		tDispatchMessage oDispatchMessage; // Original DispatchMessage function
@@ -118,7 +120,6 @@ class SpD3D9OInputHandler
 #ifdef _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 		IDirectInput8 *dinput8 = NULL; // DirectInput Interface
 		IDirectInputDevice8 *di8_keyboard = NULL; // Keyboard device
-		// byte key_states[256]; // For getting current keyboard device state
 		DIDEVICEOBJECTDATA kb_data_buffer[_SP_DINPUT8_DEVICE_BUFFER_SIZE_]; // For getting keyboard buffered data
 		void SpD3D9OInputHandler::get_dinput_data();
 		void SpD3D9OInputHandler::flush_keyboard_input_buffer();
@@ -144,13 +145,12 @@ class SpD3D9OInputHandler
 		bool alt = false; // alt is currently held down
 		bool win = false; // Windows key is currently held down
 
-		// Constructor/destructor
-		SpD3D9OInputHandler();
+		// Destructor
 		~SpD3D9OInputHandler();
 	private:
-		
+		static SpD3D9OInputHandler *instance; // Sole instance of this singleton class
+		SpD3D9OInputHandler(); // Private constructor because this is a singleton class
 };
-
 
 
 #ifdef _SP_USE_DETOUR_GET_RAW_INPUT_DATA_INPUT_

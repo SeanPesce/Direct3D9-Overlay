@@ -82,9 +82,12 @@ int dspw_overlay_adjustment; // Used to adjust the overlay to avoid clipping wit
 // Input-related variables
 extern SHORT key_state[256]; // Key state buffer to hold the states of all 256 virtual keys
 typedef void(__stdcall *initialization_func_T)();
-std::vector<initialization_func_T> dll_init_funcs; // Initialization functions for loaded DLLs
-typedef void(__stdcall *info_bar_func_T)(std::string *);
-std::vector<info_bar_func_T> dll_info_bar_funcs; // Functions for adding live-updating strings to the text feed info bar from loaded DLLs
+std::vector<initialization_func_T> plugin_init_funcs; // Initialization functions for loaded plugin DLLs
+std::vector<void(__stdcall *)()> plugin_main_loop_funcs; // Main loop functions for loaded plugin DLLs
+std::vector<void(__stdcall *)(RAWINPUT *, PUINT)> plugin_get_raw_input_data_funcs; // Raw input data parsing functions for plugin DLLs
+std::vector<bool(__stdcall *)()> plugin_disable_player_input_funcs; // Allows plugins to disable player input
+typedef void(__stdcall *plugin_draw_ol_func_T)(std::string *);
+std::vector<plugin_draw_ol_func_T> plugin_draw_overlay_funcs; // Plugin functions for drawing overlay elements and adding extra info to the text feed info header
 bool input_loop_paused;
 bool input_loop_enabled; // Controls whether the main loop that detects player input is enabled/disabled
 
@@ -103,5 +106,9 @@ int decrease_text_feed_font_size(); // Decrease overlay text feed font size
 int print_overlay_test_message(); // Print test message to overlay text feed
 void SP_beep(DWORD frequency, DWORD duration, bool wait); // Beeps at the specified frequency for a specified duration(in milliseconds) if audio feedback is enabled. If audio is disabled and wait==true, the thread is put to sleep for the specified duration instead.
 void SP_beep(DWORD frequency, DWORD duration); // Beeps at the specified frequency for a specified duration(in milliseconds) if audio feedback is enabled. If audio is disabled, the thread is put to sleep for the specified duration instead.
+
+
+
+
 
 #endif // _SP_D3D9_MOD_TEMPLATE_H_

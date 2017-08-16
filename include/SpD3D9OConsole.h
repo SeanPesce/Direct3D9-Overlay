@@ -52,6 +52,7 @@ public:
 
 	unsigned int caret_position = 0; // Position of cursor in current command
 	unsigned int command_log_position = 0; // Used to obtain previous commands with the up/down keys
+	unsigned int autocomplete_limit = 5; // Maximum number of autocomplete suggestions to show
 
 	// Constructor/destructor
 	SpD3D9OConsole(SpD3D9Overlay *new_overlay);
@@ -72,9 +73,12 @@ public:
 		void SpD3D9OConsole::handle_text_input(WPARAM wParam);
 	#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 	static int register_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message);
+	static void get_autocomplete_options(const char *str, unsigned int suggestion_count, std::vector<std::string> *matches);
 
 	static std::vector<SP_D3D9O_CONSOLE_COMMAND> commands;		// Set of available console commands and corresponding functions
+	static seqan::StringSet<seqan::String<char>> commands_set;	// Set of available console command strings
 	static seqan::Index<seqan::StringSet<seqan::String<char>>> *commands_index;
+	static seqan::Finder<seqan::Index<seqan::StringSet<seqan::String<char>>>> commands_finder;
 	static int SpD3D9OConsole::get_console_command_index(const char *command); // Obtains the position (index) of a command, (Note: not the ID)
 
 private:
@@ -82,9 +86,6 @@ private:
 	char caret = '_'; // 
 	int caret_blink_delay = 500;  // Speed at which the cursor blinks, in milliseconds
 	DWORD next_caret_blink = 0; // Time of next caret toggle
-
-	static seqan::StringSet<seqan::String<char>> commands_set;	// Set of available console command strings
-	static seqan::Finder<seqan::Index<seqan::StringSet<seqan::String<char>>>> commands_finder;
 };
 
 

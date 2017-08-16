@@ -106,17 +106,18 @@ void SpD3D9OConsole::draw()
 	{
 		// Handle error
 	}
-	D3DRECT background = { 0, 0, window_rect.right - window_rect.left, (long)((font_height  * (output_log_displayed_lines+1))*1.5) };
+	long console_height = (long)((font_height  * (output_log_displayed_lines + 1))*1.5);
+	D3DRECT background = { 0, 0, window_rect.right - window_rect.left, console_height };
 	overlay->device->Clear(1, &background, D3DCLEAR_TARGET, background_color, 0, 0);
 
-
+	// Build console output log string
 	std::string output_string = "";
 	for (int i = output_log_displayed_lines - 1; i >= 0; i--)
 	{
 		output_string.append(output_log.at(output_log.size()-(1+i))).append("\n");
 	}
 
-	// Draw console text
+	// Determine whether to draw caret
 	DWORD current_time = GetTickCount();
 	if (current_time >= next_caret_blink)
 	{
@@ -124,6 +125,7 @@ void SpD3D9OConsole::draw()
 		next_caret_blink = current_time + caret_blink_delay;
 	}
 
+	// Add current command
 	std::string cur_cmd = command;
 	if (show_caret)
 	{
@@ -136,6 +138,35 @@ void SpD3D9OConsole::draw()
 	cur_cmd.insert(0, prompt.c_str());
 	output_string.append(cur_cmd);
 
+	// Get autocomplete options
+	if (command.length() > 0)
+	{
+		std::vector<std::string> autocomplete_matches;
+		cur_cmd = command;
+		get_autocomplete_options(cur_cmd.c_str(), autocomplete_limit, &autocomplete_matches);
+		std::string prompt_alignment_spaces;
+		for (int i = 0; i < prompt.length(); i++)
+		{
+			prompt_alignment_spaces += ' ';
+		}
+		int longest_autocomplete = 0;
+		for (auto match : autocomplete_matches)
+		{
+			if (match.length() > longest_autocomplete)
+			{
+				longest_autocomplete = match.length();
+			}
+			output_string.append("\n").append(prompt_alignment_spaces).append(match);
+		}
+
+		// Draw background for autocomplete dropdown
+		long prompt_width = (long)(font_height * prompt.length());
+		background = { prompt_width, console_height, prompt_width + (font_height * longest_autocomplete), (long)((font_height  * (output_log_displayed_lines + 1 + autocomplete_matches.size()))*1.5) };
+		overlay->device->Clear(1, &background, D3DCLEAR_TARGET, background_color, 0, 0);
+	}
+
+
+	// Render the console
 	font->BeginDrawing();
 	font->DrawText(0.0, 0.0, font_color, output_string.c_str(), 0, 0);
 	font->EndDrawing();
@@ -146,16 +177,17 @@ void SpD3D9OConsole::draw()
 void SpD3D9OConsole::print(const char *new_message)
 {
 	std::string message = new_message;
-	
+	std::string line;
+
 	int newline_pos;
 
 	if ((newline_pos = message.find('\n')) != std::string::npos)
 	{
 		do
 		{
-			std::string line = message.substr(0, newline_pos-1);
+			line = message.substr(0, newline_pos);
 			output_log.push_back(line.c_str());
-			message.erase(0, newline_pos);
+			message.erase(0, newline_pos+1);
 		} while ((newline_pos = message.find('\n')) != std::string::npos);
 		output_log.push_back(message.c_str());
 	}
@@ -165,6 +197,7 @@ void SpD3D9OConsole::print(const char *new_message)
 		output_log.push_back(message.c_str());
 	}
 }
+
 
 
 
@@ -410,6 +443,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 {
 	DWORD last_err;
 	std::string exec_cmd; // Only used when executing a command
+	std::vector<std::string> match; // Only used if tab key is pressed
 
 	if (is_open() && !SpD3D9OInputHandler::get()->handled)        // If the console is visible, take input
 	{
@@ -481,6 +515,17 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 					{
 						command.erase(caret_position, 1);
 					}
+				}
+				show_caret = true;
+				next_caret_blink = GetTickCount() + caret_blink_delay;
+				SpD3D9OInputHandler::get()->handled = true;
+				break;
+			case VK_TAB:
+				get_autocomplete_options(command.c_str(), 1, &match);
+				if (match.size() > 0)
+				{
+					command = match.at(0);
+					caret_position = command.length();
 				}
 				show_caret = true;
 				next_caret_blink = GetTickCount() + caret_blink_delay;
@@ -899,6 +944,31 @@ int SpD3D9OConsole::get_console_command_index(const char *command)
 
 	return command_index;
 }
+
+
+
+void SpD3D9OConsole::get_autocomplete_options(const char *str, unsigned int max_matches, std::vector<std::string> *matches)
+{
+	matches->clear();
+
+	if (max_matches == 0)
+	{
+		return;
+	}
+
+	int found = 0; // Number of matches found thus far
+	seqan::String<char> search_string(str);
+	while (seqan::find(commands_finder, search_string) && found < max_matches)
+	{
+		if (seqan::position(commands_finder).i2 == 0 && (seqan::length(seqan::value(commands_set, seqan::position(commands_finder).i1)) != std::string(str).length()))
+		{
+			matches->push_back(commands.at(seqan::position(commands_finder).i1).command);
+			found++;
+		}
+	}
+	seqan::clear(commands_finder);
+}
+
 
 
 void to_lower(char *string)

@@ -26,7 +26,8 @@ To utilize the overlay from an external DLL, the external DLL must export the `s
 
 ## Credits:  
 
-*  **Microsoft** for the [DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=8109)  
+*  **Microsoft** for the [DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=8109) and [Detours library](https://www.microsoft.com/en-us/research/project/detours/)  
+*  **[SeQan](https://www.seqan.de/)**, a library I used for more efficient string searches  
 *  **Atom0s**, **Topblast**, and **Renkokuken** (Sakuri) from [UnknownCheats.me](https://www.unknowncheats.me) for the [modified CD3DFont class](https://www.unknowncheats.me/forum/d3d-tutorials-and-source/74839-modified-cd3dfont-d3d9-shadows-light-effect.html), which is much more efficient (performance-wise) than Direct3D9's built-in ID3DXFont class.  
 *  **[Mumble](https://wiki.mumble.info/wiki/Main_Page)** VoIP [overlay source code](https://github.com/mumble-voip/mumble), which I used as a [reference](https://github.com/mumble-voip/mumble/blob/73fe4578bc01b0ef8e8742d7ce5d172b9b9c0f5b/overlay/d3d9.cpp) to create a suitable render state block when drawing my overlay  
 

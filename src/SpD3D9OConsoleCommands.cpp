@@ -3,10 +3,12 @@
 
 #include "stdafx.h"
 #include "SpD3D9OConsole.h"
+#include "Shellapi.h"
 #include <cstdlib>
 #include <climits>
 #include <sstream>
 #include <iomanip> // std::hex
+#include <algorithm> // std::find
 
 
 extern SpD3D9Device *gl_pSpD3D9Device;
@@ -38,6 +40,7 @@ void error_code_to_string(DWORD last_error, std::string *message)
 }
 
 
+// Terminates the process
 void cc_exit(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
@@ -60,16 +63,64 @@ void cc_close(std::vector<std::string> args, std::string *output)
 }
 
 
+// Lists all available console commands/aliases
 void cc_all_commands(std::vector<std::string> args, std::string *output)
 {
+	int lines = 0;
 	for (auto cmd : SpD3D9OConsole::commands)
 	{
-		output->append("\"").append(cmd.command).append("\"\n");
+		output->append("    ").append(cmd.command);
+		lines++;
+		if (lines < SpD3D9OConsole::commands.size())
+		{
+			output->append("\n");
+		}
 	}
-	output->erase(output->length() - 1, 1);
 }
 
 
+// Clears the console output
+void cc_clear(std::vector<std::string> args, std::string *output)
+{
+	for (int i = 0; i < gl_pSpD3D9Device->overlay->console->output_log_displayed_lines; i++)
+	{
+		output->append("\n");
+	}
+}
+
+
+// Prints the help string for a given command
+void cc_help(std::vector<std::string> args, std::string *output)
+{
+	int index;
+	std::string query = "help";
+
+	if (args.size() >= 1)
+	{
+		query = args.at(0);
+	}
+
+	index = SpD3D9OConsole::get_console_command_index(query.c_str());
+
+	if (index != -1)
+	{
+		if (SpD3D9OConsole::commands.at(index).help_message.length() > 0)
+		{
+			output->append(SpD3D9OConsole::commands.at(index).help_message);
+		}
+		else
+		{
+			output->append("Command \"").append(query).append("\" has no help message.");
+		}
+	}
+	else
+	{
+		output->append("ERROR: \"").append(query).append("\" is not a recognized console command.");
+	}
+}
+
+
+// Creates an alias for an existing command
 void cc_alias(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() < 2)
@@ -127,7 +178,67 @@ void cc_alias(std::vector<std::string> args, std::string *output)
 }
 
 
+// Returns a list of commands that contain the given string
+void cc_search_command(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() < 1 || args.at(0).length() < 1)
+	{
+		output->append("ERROR: No search term was specified.");
+	}
+	else
+	{
+		std::vector<unsigned int> found_ids; // Used to make sure no commands are returned twice
+		seqan::String<char> search_str(args.at(0));
+		while (seqan::find(SpD3D9OConsole::commands_finder, search_str))
+		{
+			if (found_ids.size() == 0)
+			{
+				output->append("Search results:\n");
+			}
+			unsigned int id = seqan::positionToId(SpD3D9OConsole::commands_set, seqan::position(SpD3D9OConsole::commands_finder).i1);
+			if (std::find(found_ids.begin(), found_ids.end(), id) == found_ids.end())
+			{
+				output->append("    ").append(std::string(seqan::toCString(seqan::valueById(SpD3D9OConsole::commands_set, id)))).append("\n");
+				found_ids.push_back(id);
+			}
+		}
+		seqan::clear(SpD3D9OConsole::commands_finder);
+		if (found_ids.size() > 0)
+		{
+			output->erase(output->length() - 1, 1); // Remove extra newline
+		}
+		else
+		{
+			output->append("0 results.");
+		}
+	}
+}
 
+
+// Sets the maximum number of autocomplete suggestions (0 = off)
+void cc_autocomplete_limit(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		long new_lim = strtol(args.at(0).c_str(), NULL, 10);
+		if (args.at(0).length() == 1 && args.at(0).c_str()[0] == '0')
+		{
+			gl_pSpD3D9Device->overlay->console->autocomplete_limit = 0;
+		}
+		else if (new_lim == 0L || new_lim == LONG_MAX || new_lim == LONG_MIN)
+		{
+			output->append("ERROR: Invalid autocomplete suggestion limit specified.\n");
+		}
+		else
+		{
+			gl_pSpD3D9Device->overlay->console->autocomplete_limit = (unsigned int)new_lim;
+		}
+	}
+	output->append("autocomplete_limit = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->autocomplete_limit));
+}
+
+
+// Pastes clipboard text data into the console input field
 void cc_paste(std::vector<std::string> args, std::string *output)
 {
 	DWORD err = 0;
@@ -201,7 +312,7 @@ void cc_paste(std::vector<std::string> args, std::string *output)
 }
 
 
-
+// Prints to text feed
 void cc_print(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
@@ -215,7 +326,18 @@ void cc_print(std::vector<std::string> args, std::string *output)
 }
 
 
+// Changes the console input prompt string
+void cc_input_prompt(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		gl_pSpD3D9Device->overlay->console->prompt = args.at(0);
+	}
+	output->append("Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"");
+}
 
+
+// Loads a DLL
 void cc_load_library(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
@@ -243,7 +365,7 @@ void cc_load_library(std::vector<std::string> args, std::string *output)
 }
 
 
-
+// Unloads a DLL
 void cc_free_library(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
@@ -301,7 +423,31 @@ void cc_free_library(std::vector<std::string> args, std::string *output)
 }
 
 
+// Opens the specified URL in the system's default web browser
+void cc_open_web_page(std::vector<std::string> args, std::string *output)
+{
+	DWORD err;
+	std::string err_msg;
+	if (args.size() < 1)
+	{
+		output->append("ERROR: No URL specified");
+	}
+	else
+	{
+		if ((err = (DWORD)ShellExecute(0, 0, args.at(0).c_str(), 0, 0, SW_SHOW)) < 32)
+		{
+			error_code_to_string(err, &err_msg);
+			// Try adding "http://"
+			if (((DWORD)ShellExecute(0, 0, std::string(args.at(0)).insert(0,"http://").c_str(), 0, 0, SW_SHOW)) < 32)
+			{
+				output->append("ERROR: Unable to open URL \"").append(args.at(0)).append("\"\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
+			}
+		}
+	}
+}
 
+
+// Beeps for the specified frequency and duration
 void cc_beep(std::vector<std::string> args, std::string *output)
 {
 	DWORD frequency = 500;
@@ -337,14 +483,21 @@ void cc_beep(std::vector<std::string> args, std::string *output)
 
 void register_default_console_commands()
 {
-	SpD3D9OConsole::register_command("exit", cc_exit, "exit [exit code]");
-	SpD3D9OConsole::register_command("quit", cc_exit, "exit [exit code]");
-	SpD3D9OConsole::register_command("close", cc_close, "Closes the console window");
-	SpD3D9OConsole::register_command("alias", cc_alias, "alias <ALIAS|COMMAND> <ALIAS|COMMAND>");
-	SpD3D9OConsole::register_command("paste", cc_paste, "Copies ANSI text data from the clipboard to the console input");
-	SpD3D9OConsole::register_command("beep", cc_beep, "beep <frequency> <duration>");
-	SpD3D9OConsole::register_command("commands", cc_all_commands, "Lists all available console commands");
-	SpD3D9OConsole::register_command("load_library", cc_load_library, "load_library <filename>");
-	SpD3D9OConsole::register_command("unload_library", cc_free_library, "unload_library <filename|HMODULE>");
-	SpD3D9OConsole::register_command("free_library", cc_free_library, "free_library <filename|HMODULE>");
+	SpD3D9OConsole::register_command("help", cc_help, "help [command]\n    Prints the help message for the given command.");
+	SpD3D9OConsole::register_command("exit", cc_exit, "exit [exit code]\n    Exits the game.");
+	SpD3D9OConsole::register_command("quit", cc_exit, "quit [exit code]\n    Exits the game.");
+	SpD3D9OConsole::register_command("commands", cc_all_commands, "commands\n    Lists all available console commands");
+	SpD3D9OConsole::register_command("search_command", cc_search_command, "search_command <query>\n    Returns a list of available commands that contain the given query string.");
+	SpD3D9OConsole::register_command("close", cc_close, "close\n    Closes the console overlay.");
+	SpD3D9OConsole::register_command("clear", cc_clear, "clear\n    Clears console output.");
+	SpD3D9OConsole::register_command("alias", cc_alias, "alias <ALIAS|COMMAND> <ALIAS|COMMAND>\n    Creates an alias for an existing console command/alias.");
+	SpD3D9OConsole::register_command("paste", cc_paste, "paste\n    Copies ANSI text data from the clipboard to the console input");
+	SpD3D9OConsole::register_command("beep", cc_beep, "beep <frequency> <duration>\n    Generates a beeping sound at the given frequency (hz) for the given duration (milliseconds).\n    Execution is halted until the beep is completed.");
+	SpD3D9OConsole::register_command("load_library", cc_load_library, "load_library <filename>\n    Loads the specified dynamic link library (DLL) file.");
+	SpD3D9OConsole::register_command("unload_library", cc_free_library, "unload_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
+	SpD3D9OConsole::register_command("free_library", cc_free_library, "free_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
+	SpD3D9OConsole::register_command("autocomplete_limit", cc_autocomplete_limit, "autocomplete_limit [new_limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
+	SpD3D9OConsole::register_command("web", cc_open_web_page, "web <URL>\n    Opens a web page in the system default web browser.");
+	SpD3D9OConsole::register_command("print", cc_print, "print <message>\n    Prints a message to the overlay text feed.");
+	SpD3D9OConsole::register_command("input_prompt", cc_input_prompt, "input_prompt [prompt]\n    Sets the console input prompt string.");
 }

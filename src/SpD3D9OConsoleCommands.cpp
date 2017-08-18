@@ -327,13 +327,33 @@ void cc_print(std::vector<std::string> args, std::string *output)
 
 
 // Changes the console input prompt string
-void cc_input_prompt(std::vector<std::string> args, std::string *output)
+void cc_console_prompt(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
 		gl_pSpD3D9Device->overlay->console->prompt = args.at(0);
 	}
 	output->append("Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"");
+}
+
+
+// Changes the console input caret character
+void cc_console_caret(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		if (args.at(0).length() == 1)
+		{
+			gl_pSpD3D9Device->overlay->console->caret = args.at(0).c_str()[0];
+		}
+		else
+		{
+			output->append("ERROR: Invalid argument (Caret must be a single character)\n");
+		}
+	}
+	output->append("Caret character = '");
+	*output += gl_pSpD3D9Device->overlay->console->caret;
+	output->append("'");
 }
 
 
@@ -499,5 +519,6 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("autocomplete_limit", cc_autocomplete_limit, "autocomplete_limit [new_limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
 	SpD3D9OConsole::register_command("web", cc_open_web_page, "web <URL>\n    Opens a web page in the system default web browser.");
 	SpD3D9OConsole::register_command("print", cc_print, "print <message>\n    Prints a message to the overlay text feed.");
-	SpD3D9OConsole::register_command("input_prompt", cc_input_prompt, "input_prompt [prompt]\n    Sets the console input prompt string.");
+	SpD3D9OConsole::register_command("console_prompt", cc_console_prompt, "console_prompt [prompt]\n    Sets the console input prompt string.");
+	SpD3D9OConsole::register_command("console_caret", cc_console_caret, "console_caret [caret]\n    Sets the console input caret character.");
 }

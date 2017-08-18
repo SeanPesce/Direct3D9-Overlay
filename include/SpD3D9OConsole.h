@@ -36,6 +36,7 @@ public:
 	SpD3D9Overlay *overlay = NULL; // D3D9 overlay that this console belongs to
 
 	std::string prompt = ">";
+	char caret = '_';
 	std::string command = ""; // Current command being typed
 
 	CD3DFont *font = NULL;
@@ -43,6 +44,11 @@ public:
 	D3DXCOLOR font_color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);	// White
 	std::string font_family = "Courier New";
 	D3DXCOLOR background_color = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f); // Black
+	D3DXCOLOR border_color = D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f); // Gray
+	unsigned int border_width = 3;
+	D3DXCOLOR autocomplete_background_color = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f); // Black
+	D3DXCOLOR autocomplete_border_color = D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f); // Gray
+	unsigned int autocomplete_border_width = 1;
 
 	std::vector<std::string> command_log; // Log of console commands previously entered
 	std::vector<std::string> output_log; // Log of console commands previously entered and their resulting outputs
@@ -51,6 +57,8 @@ public:
 	unsigned int command_log_capacity = _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_; // Number of console commands to keep logged (oldest are deleted when max is hit)
 
 	unsigned int caret_position = 0; // Position of cursor in current command
+	unsigned int input_display_start = 0;
+	unsigned int input_display_end = 0;
 	unsigned int command_log_position = 0; // Used to obtain previous commands with the up/down keys
 	unsigned int autocomplete_limit = 5; // Maximum number of autocomplete suggestions to show
 
@@ -83,9 +91,10 @@ public:
 
 private:
 	bool show_caret = false;
-	char caret = '_'; // 
 	int caret_blink_delay = 500;  // Speed at which the cursor blinks, in milliseconds
 	DWORD next_caret_blink = 0; // Time of next caret toggle
+
+	void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_chars);
 };
 
 

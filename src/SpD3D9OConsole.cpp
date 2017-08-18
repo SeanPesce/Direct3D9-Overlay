@@ -100,21 +100,50 @@ void SpD3D9OConsole::get_input()
 
 void SpD3D9OConsole::draw()
 {
-	// Draw console background
+
+	// Get window dimensions
 	RECT window_rect;
 	if (!GetClientRect(*overlay->game_window, &window_rect))
 	{
 		// Handle error
 	}
+
+	// Create background/border rectangles
 	long console_height = (long)((font_height  * (output_log_displayed_lines + 1))*1.5);
-	D3DRECT background = { 0, 0, window_rect.right - window_rect.left, console_height };
-	overlay->device->Clear(1, &background, D3DCLEAR_TARGET, background_color, 0, 0);
+	D3DRECT border = { 0, 0, window_rect.right - window_rect.left, console_height+(2*border_width) };
+	D3DRECT background = { border_width, border_width, (window_rect.right - window_rect.left)- border_width, console_height + border_width };
+
+
+	// Calculate maximum number of characters & lines that can be displayed on-screen
+	//unsigned int max_lines = (unsigned int)((/*(float)*/console_height / 1.5f) / /*(float)*/font_height);
+	unsigned int max_chars = (background.x2 - background.x1) / font_height; // Maximum characters per line
+	int max_input_chars = max_chars - prompt.length();
+	if (caret_position == command.length())
+	{
+		max_input_chars--;
+	}
+
+	set_input_string_display_limits(max_input_chars);
+
+	if (prompt.length() > (max_chars - 1))
+	{
+		prompt = prompt.substr(0, max_chars - 1);
+	}
+
 
 	// Build console output log string
 	std::string output_string = "";
 	for (int i = output_log_displayed_lines - 1; i >= 0; i--)
 	{
-		output_string.append(output_log.at(output_log.size()-(1+i))).append("\n");
+		std::string *current_line = &output_log.at(output_log.size() - (1 + i));
+		if (current_line->length() > max_chars)
+		{
+			output_string.append(std::string(*current_line).substr(0, max_chars)).append("\n");
+		}
+		else
+		{
+			output_string.append(*current_line).append("\n");
+		}
 	}
 
 	// Determine whether to draw caret
@@ -127,21 +156,28 @@ void SpD3D9OConsole::draw()
 
 	// Add current command
 	std::string cur_cmd = command;
-	if (show_caret)
+	if (show_caret && (caret_position < command.length()))
 	{
-		if (caret_position != command.length())
-		{
-			cur_cmd.erase(caret_position, 1);
-		}
+		cur_cmd.erase(caret_position, 1);
 		cur_cmd.insert(caret_position, 1, caret);
+	}
+	if (cur_cmd.length() > max_input_chars)
+	{
+		cur_cmd = cur_cmd.substr(input_display_start, max_input_chars);
+	}
+	if (show_caret && (caret_position >= command.length()))
+	{
+		cur_cmd += caret;
 	}
 	cur_cmd.insert(0, prompt.c_str());
 	output_string.append(cur_cmd);
 
+
 	// Get autocomplete options
+	std::vector<std::string> autocomplete_matches;
+	int longest_autocomplete = 0;
 	if (command.length() > 0)
 	{
-		std::vector<std::string> autocomplete_matches;
 		cur_cmd = command;
 		get_autocomplete_options(cur_cmd.c_str(), autocomplete_limit, &autocomplete_matches);
 		std::string prompt_alignment_spaces;
@@ -149,7 +185,6 @@ void SpD3D9OConsole::draw()
 		{
 			prompt_alignment_spaces += ' ';
 		}
-		int longest_autocomplete = 0;
 		for (auto match : autocomplete_matches)
 		{
 			if (match.length() > longest_autocomplete)
@@ -158,17 +193,27 @@ void SpD3D9OConsole::draw()
 			}
 			output_string.append("\n").append(prompt_alignment_spaces).append(match);
 		}
+	}
 
-		// Draw background for autocomplete dropdown
+
+	// Draw console background & border
+	overlay->device->Clear(1, &border, D3DCLEAR_TARGET, border_color, 0, 0);
+	overlay->device->Clear(1, &background, D3DCLEAR_TARGET, background_color, 0, 0);
+
+	// Draw background for autocomplete dropdown
+	if (autocomplete_matches.size() > 0)
+	{
 		long prompt_width = (long)(font_height * prompt.length());
-		background = { prompt_width, console_height, prompt_width + (font_height * longest_autocomplete), (long)((font_height  * (output_log_displayed_lines + 1 + autocomplete_matches.size()))*1.5) };
-		overlay->device->Clear(1, &background, D3DCLEAR_TARGET, background_color, 0, 0);
+		background = { prompt_width + (int)border_width, console_height + (int)border_width, prompt_width + (int)border_width + (font_height * longest_autocomplete), (long)((font_height  * (output_log_displayed_lines + 1 + autocomplete_matches.size()))*1.5) + (int)border_width };
+		border = { background.x1 - (int)autocomplete_border_width, background.y1, background.x2 + (int)autocomplete_border_width, background.y2 + (int)autocomplete_border_width };
+		overlay->device->Clear(1, &border, D3DCLEAR_TARGET, autocomplete_border_color, 0, 0);
+		overlay->device->Clear(1, &background, D3DCLEAR_TARGET, autocomplete_background_color, 0, 0);
 	}
 
 
 	// Render the console
 	font->BeginDrawing();
-	font->DrawText(0.0, 0.0, font_color, output_string.c_str(), 0, 0);
+	font->DrawText((float)border_width, (float)border_width, font_color, output_string.c_str(), 0, 0);
 	font->EndDrawing();
 }
 
@@ -643,6 +688,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				break;
 			#endif // _SP_USE_DETOUR_GET_RAW_INPUT_DATA_INPUT_
 		} // switch(wParam)
+		//set_input_string_display_limits();
 	} // if(is_open())
 }
 
@@ -969,6 +1015,50 @@ void SpD3D9OConsole::get_autocomplete_options(const char *str, unsigned int max_
 	seqan::clear(commands_finder);
 }
 
+
+
+void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_input_chars)
+{
+	if (command.length() > max_input_chars)
+	{
+		if (caret_position > input_display_end)
+		{
+			if (caret_position == command.length())
+			{
+				input_display_end = command.length() - 1;
+				input_display_start = input_display_end - (max_input_chars - 1);
+			}
+			else
+			{
+				input_display_start += (caret_position - input_display_end);
+				input_display_end = caret_position;
+			}
+		}
+		else if (caret_position < input_display_start)
+		{
+			input_display_end -= (input_display_start - caret_position);
+			input_display_start = caret_position;
+		}
+		
+		if ((caret_position == command.length()) || (((command.length() - 1) - input_display_start) < (max_input_chars - 1)))
+		{
+			input_display_end = command.length() - 1;
+			input_display_start = input_display_end - (max_input_chars - 1);
+		}
+	}
+	else
+	{
+		input_display_start = 0;
+		if (command.length() == 0)
+		{
+			input_display_end = 0;
+		}
+		else
+		{
+			input_display_end = command.length() - 1;
+		}
+	}
+}
 
 
 void to_lower(char *string)

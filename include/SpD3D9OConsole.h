@@ -18,8 +18,25 @@
 #endif
 
 #define _CLOSE_CONSOLE_KEY_ VK_ESCAPE // Escape key
+
 #define _SP_D3D9O_C_DEFAULT_OUTPUT_LOG_CAPACITY_ 100
 #define _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_ 20
+#define _SP_D3D9O_C_DEFAULT_PROMPT_ ">"
+#define _SP_D3D9O_C_DEFAULT_CARET_ '_'
+#define _SP_D3D9O_C_DEFAULT_BLINK_DELAY_ 500
+#define _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_ _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_
+#define _SP_D3D9O_C_DEFAULT_FONT_FAMILY_ "Courier New"
+#define _SP_D3D9O_C_DEFAULT_FONT_FLAGS_ 0	// D3DFONT_BOLD, etc
+#define _SP_D3D9O_C_DEFAULT_FONT_COLOR_ D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);	// White
+#define _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f); // Black
+#define _SP_D3D9O_C_DEFAULT_BORDER_COLOR_ D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f); // Gray
+#define _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_ 3
+#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f); // Black
+#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_COLOR_ D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f); // Gray
+#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_ 1
+#define _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_ 15
+#define _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_ 5
+
 #define _SP_D3D9O_C_INVALID_CONSOLE_COMMAND_CHARS_ " \t\n\r"
 
 typedef struct SP_D3D9O_CONSOLE_COMMAND {
@@ -35,24 +52,25 @@ class SpD3D9OConsole
 public:
 	SpD3D9Overlay *overlay = NULL; // D3D9 overlay that this console belongs to
 
-	std::string prompt = ">";
-	char caret = '_';
+	std::string prompt = _SP_D3D9O_C_DEFAULT_PROMPT_;
+	char caret = _SP_D3D9O_C_DEFAULT_CARET_;
+	int caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
 	std::string command = ""; // Current command being typed
 
 	CD3DFont *font = NULL;
-	int font_height = _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_;
-	D3DXCOLOR font_color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);	// White
-	std::string font_family = "Courier New";
-	D3DXCOLOR background_color = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f); // Black
-	D3DXCOLOR border_color = D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f); // Gray
-	unsigned int border_width = 3;
-	D3DXCOLOR autocomplete_background_color = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f); // Black
-	D3DXCOLOR autocomplete_border_color = D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f); // Gray
-	unsigned int autocomplete_border_width = 1;
+	int font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;
+	D3DXCOLOR font_color = _SP_D3D9O_C_DEFAULT_FONT_COLOR_;
+	std::string font_family = _SP_D3D9O_C_DEFAULT_FONT_FAMILY_;
+	D3DXCOLOR background_color = _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_;
+	D3DXCOLOR border_color = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
+	unsigned int border_width = _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_;
+	D3DXCOLOR autocomplete_background_color = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_;
+	D3DXCOLOR autocomplete_border_color = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
+	unsigned int autocomplete_border_width = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_;
 
 	std::vector<std::string> command_log; // Log of console commands previously entered
 	std::vector<std::string> output_log; // Log of console commands previously entered and their resulting outputs
-	unsigned int output_log_displayed_lines = 15; // Number of lines of previous output to display
+	unsigned int output_log_displayed_lines = _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_; // Number of lines of previous output to display
 	unsigned int output_log_capacity = _SP_D3D9O_C_DEFAULT_OUTPUT_LOG_CAPACITY_; // Number of lines of output to keep in memory (oldest are deleted when max is hit)
 	unsigned int command_log_capacity = _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_; // Number of console commands to keep logged (oldest are deleted when max is hit)
 
@@ -60,7 +78,7 @@ public:
 	unsigned int input_display_start = 0;
 	unsigned int input_display_end = 0;
 	unsigned int command_log_position = 0; // Used to obtain previous commands with the up/down keys
-	unsigned int autocomplete_limit = 5; // Maximum number of autocomplete suggestions to show
+	unsigned int autocomplete_limit = _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_; // Maximum number of autocomplete suggestions to show
 
 	// Constructor/destructor
 	SpD3D9OConsole(SpD3D9Overlay *new_overlay);
@@ -91,9 +109,9 @@ public:
 
 private:
 	bool show_caret = false;
-	int caret_blink_delay = 500;  // Speed at which the cursor blinks, in milliseconds
 	DWORD next_caret_blink = 0; // Time of next caret toggle
 
+	void SpD3D9OConsole::update_font(); // Update text to new font family/size/flags/etc
 	void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_chars);
 };
 

@@ -40,7 +40,7 @@ SpD3D9OConsole::SpD3D9OConsole(SpD3D9Overlay *new_overlay)
 	}
 
 	// Inititalize font interface
-	font = new CD3DFont(font_family.c_str(), font_height, 0);
+	font = new CD3DFont(font_family.c_str(), font_height, _SP_D3D9O_C_DEFAULT_FONT_FLAGS_);
 	font->InitializeDeviceObjects(overlay->device->m_pIDirect3DDevice9);
 	font->RestoreDeviceObjects();
 }
@@ -100,6 +100,10 @@ void SpD3D9OConsole::get_input()
 
 void SpD3D9OConsole::draw()
 {
+	if ((unsigned int)font->GetFontHeight() != font_height)
+	{
+		update_font();
+	}
 
 	// Get window dimensions
 	RECT window_rect;
@@ -109,14 +113,18 @@ void SpD3D9OConsole::draw()
 	}
 
 	// Create background/border rectangles
-	long console_height = (long)((font_height  * (output_log_displayed_lines + 1))*1.5);
+	SIZE char_size;
+	font->GetTextExtent("|", &char_size);
+	long console_height = (long)(char_size.cy  * (output_log_displayed_lines + 1));
+	//long console_height = (long)((font_height  * (output_log_displayed_lines + 1))*1.5);
+	
 	D3DRECT border = { 0, 0, window_rect.right - window_rect.left, console_height+(2*border_width) };
 	D3DRECT background = { border_width, border_width, (window_rect.right - window_rect.left)- border_width, console_height + border_width };
 
 
 	// Calculate maximum number of characters & lines that can be displayed on-screen
-	//unsigned int max_lines = (unsigned int)((/*(float)*/console_height / 1.5f) / /*(float)*/font_height);
-	unsigned int max_chars = (background.x2 - background.x1) / font_height; // Maximum characters per line
+	//unsigned int max_lines = (unsigned int)((/*(float)*/console_height / 1.5f) / /*(float)*/char_size.cx);
+	unsigned int max_chars = (background.x2 - background.x1) / char_size.cx; // Maximum characters per line
 	int max_input_chars = max_chars - prompt.length();
 	if (caret_position == command.length())
 	{
@@ -148,7 +156,7 @@ void SpD3D9OConsole::draw()
 
 	// Determine whether to draw caret
 	DWORD current_time = GetTickCount();
-	if (current_time >= next_caret_blink)
+	if (caret_blink_delay != 0 && current_time >= next_caret_blink)
 	{
 		show_caret = !show_caret;
 		next_caret_blink = current_time + caret_blink_delay;
@@ -203,8 +211,8 @@ void SpD3D9OConsole::draw()
 	// Draw background for autocomplete dropdown
 	if (autocomplete_matches.size() > 0)
 	{
-		long prompt_width = (long)(font_height * prompt.length());
-		background = { prompt_width + (int)border_width, console_height + (int)border_width, prompt_width + (int)border_width + (font_height * longest_autocomplete), (long)((font_height  * (output_log_displayed_lines + 1 + autocomplete_matches.size()))*1.5) + (int)border_width };
+		long prompt_width = (long)(char_size.cx * prompt.length());
+		background = { prompt_width + (int)border_width, console_height + (int)border_width, prompt_width + (int)border_width + (char_size.cx * longest_autocomplete), (long)(char_size.cy  * (output_log_displayed_lines + 1 + autocomplete_matches.size())) + (int)border_width };
 		border = { background.x1 - (int)autocomplete_border_width, background.y1, background.x2 + (int)autocomplete_border_width, background.y2 + (int)autocomplete_border_width };
 		overlay->device->Clear(1, &border, D3DCLEAR_TARGET, autocomplete_border_color, 0, 0);
 		overlay->device->Clear(1, &background, D3DCLEAR_TARGET, autocomplete_background_color, 0, 0);
@@ -883,6 +891,22 @@ int SpD3D9OConsole::register_command(const char *new_command, void(*function)(st
 }
 
 
+void SpD3D9OConsole::update_font()
+{
+
+	if (font != NULL)
+	{
+		delete font;
+		font = NULL;
+	}
+
+	font = new CD3DFont(_SP_D3D9O_C_DEFAULT_FONT_FAMILY_, font_height, _SP_D3D9O_C_DEFAULT_FONT_FLAGS_);
+
+	font->InitializeDeviceObjects(overlay->device->m_pIDirect3DDevice9);
+	font->RestoreDeviceObjects();
+}
+
+
 // Pastes clipboard data into console input
 DWORD SpD3D9OConsole::paste()
 {
@@ -1003,7 +1027,9 @@ void SpD3D9OConsole::get_autocomplete_options(const char *str, unsigned int max_
 	}
 
 	int found = 0; // Number of matches found thus far
-	seqan::String<char> search_string(str);
+	std::string lower_str = str;
+	to_lower((char *)lower_str.c_str());
+	seqan::String<char> search_string(lower_str.c_str());
 	while (seqan::find(commands_finder, search_string) && found < max_matches)
 	{
 		if (seqan::position(commands_finder).i2 == 0 && (seqan::length(seqan::value(commands_set, seqan::position(commands_finder).i1)) != std::string(str).length()))

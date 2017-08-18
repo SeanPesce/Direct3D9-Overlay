@@ -234,7 +234,7 @@ void cc_autocomplete_limit(std::vector<std::string> args, std::string *output)
 			gl_pSpD3D9Device->overlay->console->autocomplete_limit = (unsigned int)new_lim;
 		}
 	}
-	output->append("autocomplete_limit = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->autocomplete_limit));
+	output->append("Console autocomplete suggestion limit = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->autocomplete_limit));
 }
 
 
@@ -326,6 +326,41 @@ void cc_print(std::vector<std::string> args, std::string *output)
 }
 
 
+// Enables/disables the console
+void cc_console_enabled(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		if (args.at(0).length() == 1 && (args.at(0).c_str()[0] == '1' || args.at(0).c_str()[0] == '0'))
+		{
+			switch (args.at(0).c_str()[0])
+			{
+				case '0':
+					gl_pSpD3D9Device->overlay->console->toggle();
+					break;
+				case '1':
+					break;
+				default:
+					break;
+			}
+		}
+		else
+		{
+			output->append("ERROR: Console value must be either 1 or 0 (1 = open, 0 = hidden)\n");
+		}
+	}
+	
+	if (gl_pSpD3D9Device->overlay->console->is_open())
+	{
+		output->append("Console = open");
+	}
+	else
+	{
+		output->append("Console = hidden");
+	}
+}
+
+
 // Changes the console input prompt string
 void cc_console_prompt(std::vector<std::string> args, std::string *output)
 {
@@ -354,6 +389,130 @@ void cc_console_caret(std::vector<std::string> args, std::string *output)
 	output->append("Caret character = '");
 	*output += gl_pSpD3D9Device->overlay->console->caret;
 	output->append("'");
+}
+
+
+// Changes the console input caret blink delay
+void cc_console_caret_blink(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		long new_speed = strtol(args.at(0).c_str(), NULL, 10);
+		if ((new_speed >= 0) && ((new_speed == 0 && args.at(0).c_str()[0] == '0') || (new_speed != 0 && new_speed != LONG_MAX && new_speed != LONG_MIN)))
+		{
+			gl_pSpD3D9Device->overlay->console->caret_blink_delay = new_speed;
+		}
+		else
+		{
+			output->append("ERROR: Invalid argument (Caret blink delay must be a non-negative integer value)\n");
+		}
+	}
+	
+	if (gl_pSpD3D9Device->overlay->console->caret_blink_delay > 0)
+	{
+		output->append("Caret blink delay = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->caret_blink_delay)).append(" milliseconds");
+	}
+	else
+	{
+		output->append("Caret blinking disabled.");
+	}
+}
+
+
+// Changes the console border thickness
+void cc_console_border_width(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		long new_width = strtol(args.at(0).c_str(), NULL, 10);
+		if ((new_width >= 0) && ((new_width == 0 && args.at(0).c_str()[0] == '0') || (new_width != 0 && new_width != LONG_MAX && new_width != LONG_MIN)))
+		{
+			gl_pSpD3D9Device->overlay->console->border_width = new_width;
+			if (new_width == 0)
+			{
+				gl_pSpD3D9Device->overlay->console->autocomplete_border_width = 0;
+			}
+			else
+			{
+				gl_pSpD3D9Device->overlay->console->autocomplete_border_width = 1;
+			}
+		}
+		else
+		{
+			output->append("ERROR: Invalid argument (Width must be a non-negative integer value)\n");
+		}
+	}
+	output->append("Console border width = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->border_width)).append(" pixels");
+}
+
+
+// Changes the console font size
+void cc_console_font_size(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		long new_font_size = strtol(args.at(0).c_str(), NULL, 10);
+		if (new_font_size > 0 && new_font_size != LONG_MAX && new_font_size != LONG_MIN)
+		{
+			gl_pSpD3D9Device->overlay->console->font_height = new_font_size;
+		}
+		else
+		{
+			output->append("ERROR: Invalid argument (Font size must be a positive integer value)\n");
+		}
+	}
+	output->append("Console font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->font_height));
+}
+
+
+// Restores developer default settings for the console
+void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string *output)
+{
+	gl_pSpD3D9Device->overlay->console->toggle();
+
+	gl_pSpD3D9Device->overlay->console->prompt = _SP_D3D9O_C_DEFAULT_PROMPT_;
+	gl_pSpD3D9Device->overlay->console->caret = _SP_D3D9O_C_DEFAULT_CARET_;
+	gl_pSpD3D9Device->overlay->console->caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
+	gl_pSpD3D9Device->overlay->console->font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;
+	gl_pSpD3D9Device->overlay->console->font_color = _SP_D3D9O_C_DEFAULT_FONT_COLOR_;
+	gl_pSpD3D9Device->overlay->console->background_color = _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_;
+	gl_pSpD3D9Device->overlay->console->border_color = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
+	gl_pSpD3D9Device->overlay->console->border_width = _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_;
+	gl_pSpD3D9Device->overlay->console->autocomplete_background_color = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_;
+	gl_pSpD3D9Device->overlay->console->autocomplete_border_color = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
+	gl_pSpD3D9Device->overlay->console->autocomplete_border_width = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_;
+	gl_pSpD3D9Device->overlay->console->output_log_displayed_lines = _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_; // Number of lines of previous output to display
+	gl_pSpD3D9Device->overlay->console->output_log_capacity = _SP_D3D9O_C_DEFAULT_OUTPUT_LOG_CAPACITY_; // Number of lines of output to keep in memory (oldest are deleted when max is hit)
+	gl_pSpD3D9Device->overlay->console->command_log_capacity = _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_; // Number of console commands to keep logged (oldest are deleted when max is hit)
+	gl_pSpD3D9Device->overlay->console->autocomplete_limit = _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_; // Maximum number of autocomplete suggestions to show
+
+	if (gl_pSpD3D9Device->overlay->console->output_log_capacity < gl_pSpD3D9Device->overlay->console->output_log_displayed_lines)
+	{
+		gl_pSpD3D9Device->overlay->console->output_log_capacity = gl_pSpD3D9Device->overlay->console->output_log_displayed_lines;
+	}
+	for (int i = 0; i < gl_pSpD3D9Device->overlay->console->output_log_displayed_lines; i++)
+	{
+		gl_pSpD3D9Device->overlay->console->output_log.push_back("");
+	}
+
+	gl_pSpD3D9Device->overlay->console->toggle();
+
+	output->append("Restored console developer default settings:\n");
+	output->append("    Font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->font_height)).append("\n");
+	output->append("    Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"\n");
+	output->append("    Caret character = '");
+	*output += gl_pSpD3D9Device->overlay->console->caret;
+	output->append("'\n");
+	if (gl_pSpD3D9Device->overlay->console->caret_blink_delay > 0)
+	{
+		output->append("    Caret blink delay = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->caret_blink_delay)).append(" milliseconds\n");
+	}
+	else
+	{
+		output->append("    Caret blinking disabled.\n");
+	}
+	output->append("    Autocomplete suggestion limit = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->autocomplete_limit)).append("\n");
+	output->append("    Border width = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->border_width)).append(" pixels");
 }
 
 
@@ -516,9 +675,14 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("load_library", cc_load_library, "load_library <filename>\n    Loads the specified dynamic link library (DLL) file.");
 	SpD3D9OConsole::register_command("unload_library", cc_free_library, "unload_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
 	SpD3D9OConsole::register_command("free_library", cc_free_library, "free_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
-	SpD3D9OConsole::register_command("autocomplete_limit", cc_autocomplete_limit, "autocomplete_limit [new_limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
 	SpD3D9OConsole::register_command("web", cc_open_web_page, "web <URL>\n    Opens a web page in the system default web browser.");
 	SpD3D9OConsole::register_command("print", cc_print, "print <message>\n    Prints a message to the overlay text feed.");
+	SpD3D9OConsole::register_command("console", cc_console_enabled, "console [is_open]\n    Opens/closes the console (1 = open, 0 = hidden).");
+	SpD3D9OConsole::register_command("console_restore_developer_default_settings", cc_console_restore_dev_defaults, "console_restore_developer_default_settings\n    Restores all console settings to developer-preferred values.");
+	SpD3D9OConsole::register_command("console_font_size", cc_console_font_size, "console_font_size [size]\n    Sets the console overlay font size.");
+	SpD3D9OConsole::register_command("console_autocomplete_limit", cc_autocomplete_limit, "autocomplete_limit [limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
 	SpD3D9OConsole::register_command("console_prompt", cc_console_prompt, "console_prompt [prompt]\n    Sets the console input prompt string.");
 	SpD3D9OConsole::register_command("console_caret", cc_console_caret, "console_caret [caret]\n    Sets the console input caret character.");
+	SpD3D9OConsole::register_command("console_caret_blink", cc_console_caret_blink, "console_caret_blink [blink_delay]\n    Sets the console input caret blink delay time (in milliseconds).");
+	SpD3D9OConsole::register_command("console_border_width", cc_console_border_width, "console_border_width [width]\n    Sets the console border width.");
 }

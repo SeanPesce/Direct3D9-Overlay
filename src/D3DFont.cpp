@@ -1096,3 +1096,8 @@ HRESULT CD3DFont::ClearStaticBuffer( void ) {
 
 	return S_OK;	
 }
+
+float CD3DFont::GetFontHeight()
+{
+	return m_fFontHeight;
+}

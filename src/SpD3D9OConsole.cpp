@@ -781,7 +781,8 @@ void SpD3D9OConsole::execute_command(const char *new_command)
 	}
 	to_lower((char *)command_name.c_str());
 	std::vector<std::string> args;
-	parse_args(command_args.c_str(), &args);
+	std::string output_file;
+	char output_action = parse_args(command_args.c_str(), &args, &output_file);
 
 	int command_index = -1;
 	seqan::String<char> cmd(command_name);
@@ -799,7 +800,29 @@ void SpD3D9OConsole::execute_command(const char *new_command)
 	{
 		std::string command_output = "";
 		commands.at(command_index).function(args, &command_output);
-		if (command_output.size() > 0)
+		if (output_action != 0)
+		{
+			switch (output_action)
+			{
+				case 'a':
+					if (file_append_text(output_file.c_str(), command_output.c_str()))
+					{
+						// Failed to append file
+						print(std::string("ERROR: Failed to append output file \"").append(output_file).append("\"").c_str());
+					}
+					break;
+				case 'o':
+					if (file_write_text(output_file.c_str(), command_output.c_str()))
+					{
+						// Failed to write file
+						print(std::string("ERROR: Failed to write output file \"").append(output_file).append("\"").c_str());
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		else if(command_output.size() > 0)
 		{
 			print(command_output.c_str());
 		}
@@ -1114,48 +1137,153 @@ void trim(std::string *string, const char *new_mask)
 }
 
 
-void parse_args(const char *args_c_str, std::vector<std::string> *args)
+// Parses command arguments and, if output should be redirected to a file, returns 'o' (overwrite) or 'a' (append)
+char parse_args(const char *args_c_str, std::vector<std::string> *args, std::string *output_file)
 {
 	args->clear();
+	int c = 0; // Index of character being parsed
+	std::string arg;
+	std::vector<bool> is_string_arg;
 
-	std::string args_str = args_c_str;
-	trim(&args_str);
-
-	while(args_str.c_str()[0] != '\0')
+	while (args_c_str[c] != '\0')
 	{
-		if (args_str.c_str()[0] == '\'' || args_str.c_str()[0] == '"')
+		switch (args_c_str[c])
 		{
-			char quote = args_str.c_str()[0];
-			int pos = args_str.find_first_of(quote, 1);
-			while (pos != std::string::npos && args_str.c_str()[pos - 1] == '\\')
-			{
-				args_str.erase(pos-1, 1);
-				pos = args_str.find_first_of(quote, pos);
-			}
-			if (pos != std::string::npos)
-			{
-				args->push_back(args_str.substr(1, pos-1));
-				args_str.erase(0, pos+1);
-				trim(&args_str);
-				continue;
-			}
+			case '\0':
+				break;
+			// Whitespace chars:
+			case ' ':
+			case '\t':
+			case '\n':
+			case '\r':
+				c++; // Ignore character
+				break;
+			default:
+				is_string_arg.push_back(resolve_arg(args_c_str, &c, &arg));
+				args->push_back(arg.c_str());
+				arg.clear();
+				break;
 		}
-
-
-		int pos = args_str.find_first_of(" \r\n\t");
-		if (pos == std::string::npos)
-		{
-			args->push_back(args_str);
-			break;
-		}
-		else
-		{
-			args->push_back(args_str.substr(0, pos));
-			args_str.erase(0, pos);
-			trim(&args_str);
-			continue;
-		}
-		
 	}
-	
+
+	if (args->size() > 0)
+	{
+		/*if ((!is_string_arg.at(args->size() - 1)) && (args->at(args->size() - 1).length() == 1) && (args->at(args->size() - 1).c_str()[0] == '&'))
+		{
+			// Run command in separate thread ("&")
+			is_string_arg.pop_back();
+			args->pop_back();
+
+		}*/
+		
+		if ((args->size() > 1) && (!is_string_arg.at(args->size() - 2)) && (args->at(args->size() - 2).length() >= 1) && (args->at(args->size() - 2).c_str()[0] == '>'))
+		{
+			if (args->at(args->size() - 2).length() == 1)
+			{
+				// Pipe output to file with filename args->at(args->size() - 1) (">" = overwrite file)
+				output_file->clear();
+				output_file->append(args->at(args->size() - 1));
+				is_string_arg.pop_back();
+				is_string_arg.pop_back();
+				args->pop_back();
+				args->pop_back();
+				return 'o';
+			}
+			else if ((args->at(args->size() - 2).length() == 2) && (args->at(args->size() - 2).c_str()[1] == '>'))
+			{
+				// Pipe output to file with filename args->at(args->size() - 1) (">>" = append file)
+				output_file->clear();
+				output_file->append(args->at(args->size() - 1));
+				is_string_arg.pop_back();
+				is_string_arg.pop_back();
+				args->pop_back();
+				args->pop_back();
+				return 'a';
+			}
+			
+		}
+	}
+
+	return 0;
+}
+
+
+bool resolve_arg(const char *args_c_str, int *index, std::string *arg)
+{
+	char quote; // Only used for string arguments
+	bool escape = false;  // Only used for string arguments
+
+	bool break_loop = false;
+
+	switch (args_c_str[*index])
+	{
+		case '\'':
+		case '"':
+			// Build string argument
+			quote = args_c_str[*index];
+			(*index)++;
+			while (args_c_str[*index] != '\0' && !break_loop)
+			{
+				switch (args_c_str[*index])
+				{
+					case '\0':
+						break_loop = true;
+						break;
+					case '\\':
+						// Escape character
+						if (!escape)
+						{
+							escape = true;
+						}
+						else
+						{
+							escape = false;
+							(*arg) += args_c_str[*index];
+						}
+						(*index)++;
+						break;
+					default:
+						if (args_c_str[*index] == quote && !escape)
+						{
+							// End of argument
+							(*index)++;
+							break_loop = true;
+						}
+						else
+						{
+							escape = false;
+							(*arg) += args_c_str[*index];
+							(*index)++;
+						}
+						break;
+				}
+			}
+			return true; // Return value indicates that this is a string argument
+			break;
+		default:
+			// Build non-string argument
+			while (args_c_str[*index] != '\0' && !break_loop)
+			{
+				switch (args_c_str[*index])
+				{
+					case '\0':
+					// Whitespace chars:
+					case ' ':
+					case '\t':
+					case '\n':
+					case '\r':
+					// Quote chars:
+					case '\'':
+					case '"':
+						break_loop = true;
+						break;
+					default:
+						(*arg) += args_c_str[*index];
+						(*index)++;
+						break;
+				}
+			}
+			return false; // Return value indicates that this is not a string argument
+			break;
+	}
 }

@@ -120,6 +120,7 @@ int open_console(); // Opens console
 
 void to_lower(char *string); // Converts a C string to lowercase
 void trim(std::string *string, const char *new_mask = " \r\n\t"); // Trims whitespace from ends of string
-void parse_args(const char *args_c_str, std::vector<std::string> *args); // Breaks an argument string into argument tokens
+char parse_args(const char *args_c_str, std::vector<std::string> *args, std::string *output_file); // Breaks an argument string into argument tokens
+bool resolve_arg(const char *args_c_str, int *index, std::string *arg);
 
 #endif // _SP_D3D9O_CONSOLE_H_

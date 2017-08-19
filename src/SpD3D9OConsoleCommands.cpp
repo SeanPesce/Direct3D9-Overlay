@@ -313,7 +313,7 @@ void cc_paste(std::vector<std::string> args, std::string *output)
 
 
 // Prints to text feed
-void cc_print(std::vector<std::string> args, std::string *output)
+void cc_print_text_feed(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
@@ -660,6 +660,20 @@ void cc_beep(std::vector<std::string> args, std::string *output)
 	Beep(frequency, duration);
 }
 
+
+// Prints each argument on a separate line
+void cc_echo(std::vector<std::string> args, std::string *output)
+{
+	for (auto arg : args)
+	{
+		output->append(arg).append("\n");
+	}
+	if (output->length() > 0)
+	{
+		output->erase(output->length() - 1, 1); // Remove extra newline
+	}
+}
+
 void register_default_console_commands()
 {
 	SpD3D9OConsole::register_command("help", cc_help, "help [command]\n    Prints the help message for the given command.");
@@ -676,7 +690,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("unload_library", cc_free_library, "unload_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
 	SpD3D9OConsole::register_command("free_library", cc_free_library, "free_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
 	SpD3D9OConsole::register_command("web", cc_open_web_page, "web <URL>\n    Opens a web page in the system default web browser.");
-	SpD3D9OConsole::register_command("print", cc_print, "print <message>\n    Prints a message to the overlay text feed.");
+	SpD3D9OConsole::register_command("print_text_feed", cc_print_text_feed, "print_text_feed <message>\n    Prints a message to the overlay text feed.");
 	SpD3D9OConsole::register_command("console", cc_console_enabled, "console [is_open]\n    Opens/closes the console (1 = open, 0 = hidden).");
 	SpD3D9OConsole::register_command("console_restore_developer_default_settings", cc_console_restore_dev_defaults, "console_restore_developer_default_settings\n    Restores all console settings to developer-preferred values.");
 	SpD3D9OConsole::register_command("console_font_size", cc_console_font_size, "console_font_size [size]\n    Sets the console overlay font size.");
@@ -685,4 +699,5 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("console_caret", cc_console_caret, "console_caret [caret]\n    Sets the console input caret character.");
 	SpD3D9OConsole::register_command("console_caret_blink", cc_console_caret_blink, "console_caret_blink [blink_delay]\n    Sets the console input caret blink delay time (in milliseconds).");
 	SpD3D9OConsole::register_command("console_border_width", cc_console_border_width, "console_border_width [width]\n    Sets the console border width.");
+	SpD3D9OConsole::register_command("echo", cc_echo, "echo [args]\n    Prints each argument on a separate line.");
 }

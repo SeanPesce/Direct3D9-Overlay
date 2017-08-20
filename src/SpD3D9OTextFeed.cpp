@@ -235,6 +235,13 @@ void SpD3D9OTextFeed::set_title(const char *new_title)
 }
 
 
+void SpD3D9OTextFeed::get_title(std::string *title_buff)
+{
+	title_buff->clear();
+	title_buff->append(info_title);
+}
+
+
 
 void SpD3D9OTextFeed::update_font_height()
 {

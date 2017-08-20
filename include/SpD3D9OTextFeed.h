@@ -118,6 +118,7 @@ public:
 	void SpD3D9OTextFeed::set_bounds(RECT *window_boundaries); // Initializes screenspace boundaries for each text style
 	void SpD3D9OTextFeed::set_font_height(unsigned int new_text_height); // Set font height
 	void SpD3D9OTextFeed::set_title(const char *new_title); // Set info bar title message
+	void SpD3D9OTextFeed::get_title(std::string *title_buff); // Get info bar title message
 	void SpD3D9OTextFeed::clean_feed(); // Removes expired messages
 
 

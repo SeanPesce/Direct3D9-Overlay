@@ -14,6 +14,11 @@
 extern SpD3D9Device *gl_pSpD3D9Device;
 
 
+// Constants
+const char *ERROR_TXT_FEED_DISABLED = "ERROR: Text feed is not enabled (use the command \"text_feed 1\" to enable)";
+const char *ERROR_TOO_FEW_ARGUMENTS = "ERROR: Not enough arguments";
+
+
 void error_code_to_string(DWORD last_error, std::string *message)
 {
 	message->clear();
@@ -244,6 +249,11 @@ void cc_help(std::vector<std::string> args, std::string *output)
 
 	if (index != -1)
 	{
+		if (SpD3D9OConsole::commands.at(index).alias_for.length() > 0)
+		{
+			output->append("(\"").append(query).append("\" is an alias for \"").append(SpD3D9OConsole::commands.at(index).alias_for).append("\")\n");
+		}
+
 		if (SpD3D9OConsole::commands.at(index).help_message.length() > 0)
 		{
 			output->append(SpD3D9OConsole::commands.at(index).help_message);
@@ -303,7 +313,7 @@ void cc_alias(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() < 2)
 	{
-		output->append("ERROR: Too few arguments");
+		output->append(ERROR_TOO_FEW_ARGUMENTS);
 		return;
 	}
 
@@ -327,7 +337,7 @@ void cc_alias(std::vector<std::string> args, std::string *output)
 		command = &args.at(0);
 	}
 
-	int ret = SpD3D9OConsole::register_command(alias->c_str(), SpD3D9OConsole::commands.at(index).function, SpD3D9OConsole::commands.at(index).help_message.c_str());
+	int ret = SpD3D9OConsole::register_command(alias->c_str(), SpD3D9OConsole::commands.at(index).function, SpD3D9OConsole::commands.at(index).help_message.c_str(), command->c_str());
 	if (ret == 0)
 	{
 		output->append("SUCCESS: Created alias \"").append(*alias).append("\" for command \"").append(*command).append("\"");
@@ -361,7 +371,7 @@ void cc_search_command(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() < 1 || args.at(0).length() < 1)
 	{
-		output->append("ERROR: No search term was specified.");
+		output->append(ERROR_TOO_FEW_ARGUMENTS);
 	}
 	else
 	{
@@ -519,6 +529,36 @@ void cc_console_enabled(std::vector<std::string> args, std::string *output)
 }
 
 
+// Sets console input echo
+void cc_console_echo(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				gl_pSpD3D9Device->overlay->console->echo = false;
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->console->echo = true;
+				break;
+			default:
+				output->append("ERROR: Console echo value must be either 1 or 0 (1 = on, 0 = off)\n");
+				break;
+		}
+	}
+
+	if (gl_pSpD3D9Device->overlay->console->echo)
+	{
+		output->append("echo = on");
+	}
+	else
+	{
+		output->append("echo = off");
+	}
+}
+
+
 // Changes the console input prompt string
 void cc_console_prompt(std::vector<std::string> args, std::string *output)
 {
@@ -527,6 +567,96 @@ void cc_console_prompt(std::vector<std::string> args, std::string *output)
 		gl_pSpD3D9Device->overlay->console->prompt = args.at(0);
 	}
 	output->append("Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"");
+}
+
+
+// Enables/disables the username element of the console input prompt
+void cc_console_prompt_user(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				gl_pSpD3D9Device->overlay->console->prompt_elements &= (~SP_D3D9O_PROMPT_USER);
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->console->prompt_elements |= (SP_D3D9O_PROMPT_USER);
+				break;
+			default:
+				output->append("ERROR: Console prompt username value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				break;
+		}
+	}
+
+	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_USER)
+	{
+		output->append("Show user profile name in console prompt = enabled");
+	}
+	else
+	{
+		output->append("Show user profile name in console prompt = disabled");
+	}
+}
+
+
+// Enables/disables the hostname element of the console input prompt
+void cc_console_prompt_host(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				gl_pSpD3D9Device->overlay->console->prompt_elements &= (~SP_D3D9O_PROMPT_HOSTNAME);
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->console->prompt_elements |= (SP_D3D9O_PROMPT_HOSTNAME);
+				break;
+			default:
+				output->append("ERROR: Console prompt hostname value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				break;
+		}
+	}
+
+	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_HOSTNAME)
+	{
+		output->append("Show hostname in console prompt = enabled");
+	}
+	else
+	{
+		output->append("Show hostname in console prompt = disabled");
+	}
+}
+
+
+// Enables/disables the current working directory element of the console input prompt
+void cc_console_prompt_cwd(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				gl_pSpD3D9Device->overlay->console->prompt_elements &= (~SP_D3D9O_PROMPT_CWD);
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->console->prompt_elements |= (SP_D3D9O_PROMPT_CWD);
+				break;
+			default:
+				output->append("ERROR: Console prompt working directory value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				break;
+		}
+	}
+
+	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_CWD)
+	{
+		output->append("Show working directory in console prompt = enabled");
+	}
+	else
+	{
+		output->append("Show working directory in console prompt = disabled");
+	}
 }
 
 
@@ -628,7 +758,9 @@ void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string 
 {
 	gl_pSpD3D9Device->overlay->console->toggle();
 
+	gl_pSpD3D9Device->overlay->console->echo = _SP_D3D9O_C_DEFAULT_ECHO_VALUE_;
 	gl_pSpD3D9Device->overlay->console->prompt = _SP_D3D9O_C_DEFAULT_PROMPT_;
+	gl_pSpD3D9Device->overlay->console->prompt_elements = _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_;
 	gl_pSpD3D9Device->overlay->console->caret = _SP_D3D9O_C_DEFAULT_CARET_;
 	gl_pSpD3D9Device->overlay->console->caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
 	gl_pSpD3D9Device->overlay->console->font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;
@@ -656,6 +788,14 @@ void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string 
 	gl_pSpD3D9Device->overlay->console->toggle();
 
 	output->append("Restored console developer default settings:\n");
+	if (gl_pSpD3D9Device->overlay->console->echo)
+	{
+		output->append("    echo = on\n");
+	}
+	else
+	{
+		output->append("    echo = off\n");
+	}
 	output->append("    Font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->font_height)).append("\n");
 	output->append("    Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"\n");
 	output->append("    Caret character = '");
@@ -670,7 +810,31 @@ void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string 
 		output->append("    Caret blinking disabled.\n");
 	}
 	output->append("    Autocomplete suggestion limit = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->autocomplete_limit)).append("\n");
-	output->append("    Border width = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->border_width)).append(" pixels");
+	output->append("    Border width = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->border_width)).append(" pixels\n");
+	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_USER)
+	{
+		output->append("    Show user profile name in prompt = enabled\n");
+	}
+	else
+	{
+		output->append("    Show user profile name in prompt = disabled\n");
+	}
+	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_HOSTNAME)
+	{
+		output->append("    Show hostname in prompt = enabled\n");
+	}
+	else
+	{
+		output->append("    Show hostname in prompt = disabled\n");
+	}
+	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_CWD)
+	{
+		output->append("    Show working directory in prompt = enabled");
+	}
+	else
+	{
+		output->append("    Show working directory in prompt = disabled");
+	}
 }
 
 
@@ -799,7 +963,7 @@ void cc_text_feed_info_date(std::vector<std::string> args, std::string *output)
 	}
 	else
 	{
-		output->append("ERROR: Text feed is not enabled (use the command \"text_feed 1\" to enable)");
+		output->append(ERROR_TXT_FEED_DISABLED);
 	}
 }
 
@@ -836,7 +1000,7 @@ void cc_text_feed_info_time(std::vector<std::string> args, std::string *output)
 	}
 	else
 	{
-		output->append("ERROR: Text feed is not enabled (use the command \"text_feed 1\" to enable)");
+		output->append(ERROR_TXT_FEED_DISABLED);
 	}
 }
 
@@ -873,7 +1037,7 @@ void cc_text_feed_info_fps(std::vector<std::string> args, std::string *output)
 	}
 	else
 	{
-		output->append("ERROR: Text feed is not enabled (use the command \"text_feed 1\" to enable)");
+		output->append(ERROR_TXT_FEED_DISABLED);
 	}
 }
 
@@ -904,7 +1068,7 @@ void cc_text_feed_print(std::vector<std::string> args, std::string *output)
 	}
 	else
 	{
-		output->append("ERROR: Not enough arguments");
+		output->append(ERROR_TOO_FEW_ARGUMENTS);
 	}
 }
 
@@ -920,7 +1084,7 @@ void cc_text_feed_cycle_position(std::vector<std::string> args, std::string *out
 	}
 	else
 	{
-		output->append("ERROR: Text feed is not enabled.");
+		output->append(ERROR_TXT_FEED_DISABLED);
 	}
 }
 
@@ -933,7 +1097,7 @@ void cc_text_feed_position(std::vector<std::string> args, std::string *output)
 	}
 	else
 	{
-		output->append("Text feed is not enabled.");
+		output->append(ERROR_TXT_FEED_DISABLED);
 	}
 }
 
@@ -949,7 +1113,7 @@ void cc_text_feed_cycle_style(std::vector<std::string> args, std::string *output
 	}
 	else
 	{
-		output->append("ERROR: Text feed is not enabled.");
+		output->append(ERROR_TXT_FEED_DISABLED);
 	}
 }
 
@@ -962,7 +1126,7 @@ void cc_text_feed_style(std::vector<std::string> args, std::string *output)
 	}
 	else
 	{
-		output->append("Text feed is not enabled.");
+		output->append(ERROR_TXT_FEED_DISABLED);
 	}
 }
 
@@ -1038,7 +1202,7 @@ void cc_load_library(std::vector<std::string> args, std::string *output)
 	}
 	else
 	{
-		output->append("ERROR: No library specified");
+		output->append(ERROR_TOO_FEW_ARGUMENTS);
 	}
 }
 
@@ -1124,7 +1288,7 @@ void cc_free_library(std::vector<std::string> args, std::string *output)
 	}
 	else
 	{
-		output->append("ERROR: No library specified");
+		output->append(ERROR_TOO_FEW_ARGUMENTS);
 	}
 }
 
@@ -1136,21 +1300,69 @@ void cc_open_web_page(std::vector<std::string> args, std::string *output)
 	std::string err_msg;
 	if (args.size() < 1)
 	{
-		output->append("ERROR: No URL specified");
+		output->append(ERROR_TOO_FEW_ARGUMENTS);
 	}
 	else
 	{
-		if ((err = (DWORD)ShellExecute(0, 0, args.at(0).c_str(), 0, 0, SW_SHOW)) < 32)
+		std::string arg0 = args.at(0);
+		to_lower((char *)arg0.c_str());
+		std::string http_prefix = "http://";
+		std::string https_prefix = "https://";
+		std::string url = "";
+
+		// Make sure URL is a valid https url
+		if (arg0.length() < http_prefix.length())
+		{
+			url.append(https_prefix).append(arg0);
+		}
+		else if (strcmp(std::string(arg0).substr(0, http_prefix.length()).c_str(), http_prefix.c_str()) == 0)
+		{
+			// Change http to https prefix
+			url.append(arg0);
+			url.insert(4, "s");
+		}
+		else if (strcmp(std::string(arg0).substr(0, https_prefix.length()).c_str(), https_prefix.c_str()) != 0)
+		{
+			url.append(https_prefix).append(arg0);
+		}
+		else
+		{
+			url.append(arg0);
+		}
+		
+		// Load the verified URL
+		if ((err = (DWORD)ShellExecute(0, 0, url.c_str(), 0, 0, SW_SHOW)) < 32)
 		{
 			error_code_to_string(err, &err_msg);
-			// Try adding "http://"
-			if (((DWORD)ShellExecute(0, 0, std::string(args.at(0)).insert(0,"https://").c_str(), 0, 0, SW_SHOW)) < 32)
-			{
-				output->append("ERROR: Unable to open URL \"").append(args.at(0)).append("\"\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
-			}
+			output->append("ERROR: Unable to open URL \"").append(args.at(0)).append("\"\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
 		}
 	}
 }
+
+
+// Executes a command using the system shell
+/*void cc_shell(std::vector<std::string> args, std::string *output)
+{
+	DWORD err;
+	std::string err_msg;
+	if (args.size() > 0)
+	{
+		std::string shell_cmd(args.at(0));
+		shell_cmd.append(" > d3d9_shell_cmd_output.tmp");
+
+		//if ((err = (DWORD)ShellExecute(0, 0, NULL, 0, 0, SW_SHOW)) < 32)
+		{
+			error_code_to_string(err, &err_msg);
+			output->append("ERROR: Unable to execute command \"").append(args.at(0)).append("\"\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
+		}
+
+		
+	}
+	else
+	{
+		output->append("ERROR: No shell command specified");
+	}
+}*/
 
 
 // Beeps for the specified frequency and duration
@@ -1202,6 +1414,7 @@ void cc_echo(std::vector<std::string> args, std::string *output)
 }
 
 
+
 DWORD WINAPI cc_run_thread(LPVOID lpParam)
 {
 	char *cmd = (char *)lpParam;
@@ -1232,15 +1445,18 @@ void cc_run(std::vector<std::string> args, std::string *output)
 	}
 	else
 	{
-		output->append("ERROR: No file specified");
+		output->append(ERROR_TOO_FEW_ARGUMENTS);
 	}
 }
 
 void register_default_console_commands()
 {
+	std::string dummy_string; // Used for creating aliases at startup
+
 	SpD3D9OConsole::register_command("help", cc_help, "help [command]\n    Prints the help message for the given command.");
+	cc_alias({ "h", "help" }, &dummy_string);
 	SpD3D9OConsole::register_command("exit", cc_exit, "exit [exit code]\n    Exits the game.");
-	SpD3D9OConsole::register_command("quit", cc_exit, "quit [exit code]\n    Exits the game.");
+	cc_alias({ "quit", "exit" }, &dummy_string);
 	SpD3D9OConsole::register_command("commands", cc_all_commands, "commands\n    Lists all available console commands");
 	SpD3D9OConsole::register_command("search_command", cc_search_command, "search_command <query>\n    Returns a list of available commands that contain the given query string.");
 	SpD3D9OConsole::register_command("close", cc_close, "close\n    Closes the console overlay.");
@@ -1252,20 +1468,25 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("paste", cc_paste, "paste\n    Copies ANSI text data from the clipboard to the console input");
 	SpD3D9OConsole::register_command("beep", cc_beep, "beep <frequency> <duration>\n    Generates a beeping sound at the given frequency (hz) for the given duration (milliseconds).\n    Execution is halted until the beep is completed.");
 	SpD3D9OConsole::register_command("load_library", cc_load_library, "load_library <filename>\n    Loads the specified dynamic link library (DLL) file.");
-	SpD3D9OConsole::register_command("unload_library", cc_free_library, "unload_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
 	SpD3D9OConsole::register_command("free_library", cc_free_library, "free_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
+	cc_alias({ "unload_library", "free_library" }, &dummy_string);
+	//SpD3D9OConsole::register_command("shell", cc_shell, "shell <URL>\n    Executes a shell command in the system default shell.");
 	SpD3D9OConsole::register_command("web", cc_open_web_page, "web <URL>\n    Opens a web page in the system default web browser.");
 	SpD3D9OConsole::register_command("console", cc_console_enabled, "console [is_open]\n    Opens/closes the console (1 = open, 0 = hidden).");
 	SpD3D9OConsole::register_command("console_restore_developer_default_settings", cc_console_restore_dev_defaults, "console_restore_developer_default_settings\n    Restores all console settings to developer-preferred values.");
+	SpD3D9OConsole::register_command("console_echo", cc_console_echo, "console_echo [is_open]\n    Enables/disables console input echo (1 = on, 0 = off).");
 	SpD3D9OConsole::register_command("console_font_size", cc_console_font_size, "console_font_size [size]\n    Sets the console overlay font size.");
 	SpD3D9OConsole::register_command("console_autocomplete_limit", cc_autocomplete_limit, "autocomplete_limit [limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
 	SpD3D9OConsole::register_command("console_prompt", cc_console_prompt, "console_prompt [prompt]\n    Sets the console input prompt string.");
+	SpD3D9OConsole::register_command("console_prompt_user", cc_console_prompt_user, "console_prompt_user [is_enabled]\n    Enables/disables the username element of the console input prompt.");
+	SpD3D9OConsole::register_command("console_prompt_hostname", cc_console_prompt_host, "console_prompt_hostname [is_enabled]\n    Enables/disables the hostname element of the console input prompt.");
+	SpD3D9OConsole::register_command("console_prompt_cwd", cc_console_prompt_cwd, "console_prompt_cwd [is_enabled]\n    Enables/disables the working directory element of the console input prompt.");
 	SpD3D9OConsole::register_command("console_caret", cc_console_caret, "console_caret [caret]\n    Sets the console input caret character.");
 	SpD3D9OConsole::register_command("console_caret_blink", cc_console_caret_blink, "console_caret_blink [blink_delay]\n    Sets the console input caret blink delay time (in milliseconds).");
 	SpD3D9OConsole::register_command("console_border_width", cc_console_border_width, "console_border_width [width]\n    Sets the console border width.");
 	SpD3D9OConsole::register_command("echo", cc_echo, "echo [args]\n    Prints each argument on a separate line.");
 	SpD3D9OConsole::register_command("run", cc_run, "run <file>\n    Opens or runs a file using the system resolver.");
-	SpD3D9OConsole::register_command("open", cc_run, "open <file>\n    Opens or runs a file using the system resolver.");
+	cc_alias({ "open", "run" }, &dummy_string);
 	SpD3D9OConsole::register_command("text_feed", cc_text_feed_enabled, "text_feed [is_enabled]\n    Enables/disables the overlay text feed (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("text_feed_info_bar", cc_text_feed_info_bar, "text_feed_info_bar [is_enabled]\n    Enables/disables the overlay text feed info bar (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("text_feed_date", cc_text_feed_info_date, "text_feed_date [is_enabled]\n    Enables/disables the date element of the overlay text feed info bar (1 = enabled, 0 = disabled).");

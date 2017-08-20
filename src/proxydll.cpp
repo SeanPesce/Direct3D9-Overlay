@@ -103,17 +103,49 @@ void InitInstance(HANDLE hModule)
 	gl_pSpD3D9Interface	= NULL;
 	gl_pSpD3D9Device	= NULL;
 	gl_pSpD3D9SwapChain	= NULL;
+
+	// Get user and computer names
+	char buff[MAX_PATH + 1];
+	DWORD buff_size = MAX_PATH + 1;
+	if (!GetComputerName(buff, &buff_size))
+	{
+		// Handle error
+		hostname = "?Host?";
+	}
+	else
+	{
+		hostname = buff;
+	}
+	buff_size = MAX_PATH + 1;
+	buff[0] = '\0';
+	if (!GetUserName(buff, &buff_size))
+	{
+		// Handle error
+		local_username = "?User?";
+	}
+	else
+	{
+		local_username = buff;
+	}
+	buff_size = MAX_PATH + 1;
+	buff[0] = '\0';
+	extern std::string d3d9o_dll_filename;
+	if (!GetModuleFileName(NULL, buff, buff_size))
+	{
+		// Handle error
+		game_exe_dir = "?Path?";
+		d3d9o_dll_filename = "?DLL?";
+	}
+	else
+	{
+		std::string game_exe_path = buff;
+		size_t file_name_start = game_exe_path.find_last_of('\\');
+		game_exe_dir = game_exe_path.substr(0, file_name_start);
+		d3d9o_dll_filename = game_exe_path.substr(++file_name_start);
+	}
 	
 	// Storing Instance handle into global variable
 	gl_hThisInstance = (HINSTANCE)  hModule;
-
-	// Store DLL file name
-	char path[MAX_PATH + 1];
-	GetModuleFileName((HINSTANCE)hModule, path, sizeof(path));
-	std::string str_path = path;
-	size_t file_name_start_index = str_path.find_last_of('\\');
-	extern std::string d3d9o_dll_filename;
-	d3d9o_dll_filename = str_path.substr(++file_name_start_index);
 }
 
 // Loads the original d3d9.dll from the system directory

@@ -60,6 +60,9 @@ DWORD mod_thread_id;	// Mod thread ID
 std::string d3d9_dll_chain; // Filename of the d3d9.dll wrapper to chain with (if any)
 bool d3d9_dll_chain_failed; // Indicated that a d3d9.dll wrapper chain was specified, but failed to load
 unsigned int generic_dll_count; // Number of generic DLLs loaded at runtime
+std::string hostname;
+std::string local_username;
+std::string game_exe_dir;
 
 // User preferences
 bool user_pref_overlay_text_feed_enabled;

@@ -21,6 +21,7 @@
 
 #define _SP_D3D9O_C_DEFAULT_OUTPUT_LOG_CAPACITY_ 100
 #define _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_ 20
+#define _SP_D3D9O_C_DEFAULT_ECHO_VALUE_ true
 #define _SP_D3D9O_C_DEFAULT_PROMPT_ ">"
 #define _SP_D3D9O_C_DEFAULT_CARET_ '_'
 #define _SP_D3D9O_C_DEFAULT_BLINK_DELAY_ 500
@@ -36,14 +37,24 @@
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_ 1
 #define _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_ 15
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_ 5
+#define _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_ (SP_D3D9O_PROMPT_ELEMENTS_DISABLED)
 
 #define _SP_D3D9O_C_INVALID_CONSOLE_COMMAND_CHARS_ " \t\n\r"
+
+// Denotes whether to display each element of the input prompt
+enum SP_D3D9O_CONSOLE_PROMPT_ENUM {
+	SP_D3D9O_PROMPT_ELEMENTS_DISABLED = 0,
+	SP_D3D9O_PROMPT_USER = 1, // User profile
+	SP_D3D9O_PROMPT_HOSTNAME = 2, // Computer name
+	SP_D3D9O_PROMPT_CWD = 4 // Current working directory	// @TODO
+};
 
 typedef struct SP_D3D9O_CONSOLE_COMMAND {
 	std::string command = "";
 	void(*function)(std::vector<std::string>, std::string *) = NULL;
 	std::string help_message = "";
 	int id = -1; // ID of command in commands_set
+	std::string alias_for = "";
 } SP_D3D9O_CONSOLE_COMMAND;
 
 
@@ -51,8 +62,10 @@ class SpD3D9OConsole
 {
 public:
 	SpD3D9Overlay *overlay = NULL; // D3D9 overlay that this console belongs to
-
+	
+	bool echo = _SP_D3D9O_C_DEFAULT_ECHO_VALUE_;
 	std::string prompt = _SP_D3D9O_C_DEFAULT_PROMPT_;
+	int prompt_elements = _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_;
 	char caret = _SP_D3D9O_C_DEFAULT_CARET_;
 	int caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
 	std::string command = ""; // Current command being typed
@@ -88,6 +101,7 @@ public:
 	bool SpD3D9OConsole::toggle();
 	bool SpD3D9OConsole::is_open();
 	void SpD3D9OConsole::draw();
+	void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt); // Adds extra prompt elements, if enabled (username, hostname, working directory, etc)
 	void SpD3D9OConsole::print(const char *new_message); // Prints text to output log
 	void SpD3D9OConsole::execute_command(const char *new_command);
 	DWORD SpD3D9OConsole::copy(); // Copies current un-submitted console input to the clipboard
@@ -98,7 +112,7 @@ public:
 		void SpD3D9OConsole::handle_key_press(WPARAM wParam);
 		void SpD3D9OConsole::handle_text_input(WPARAM wParam);
 	#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
-	static int register_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message);
+	static int register_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for = "");
 	static void get_autocomplete_options(const char *str, unsigned int suggestion_count, std::vector<std::string> *matches);
 
 	static std::vector<SP_D3D9O_CONSOLE_COMMAND> commands;		// Set of available console commands and corresponding functions

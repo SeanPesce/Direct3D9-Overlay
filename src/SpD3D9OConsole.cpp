@@ -133,11 +133,22 @@ void SpD3D9OConsole::draw()
 
 	set_input_string_display_limits(max_input_chars);
 
+
+	// Concatenate prompt if it's too long
 	if (prompt.length() > (max_chars - 1))
 	{
 		prompt = prompt.substr(0, max_chars - 1);
 	}
 
+	// Add elements to prompt
+	std::string full_prompt;
+	add_prompt_elements(&full_prompt);
+
+	// Concatenate extended prompt if it's too long
+	if (full_prompt.length() > (max_chars - 1))
+	{
+		full_prompt = full_prompt.substr(0, max_chars - 1);
+	}
 
 	// Build console output log string
 	std::string output_string = "";
@@ -177,7 +188,7 @@ void SpD3D9OConsole::draw()
 	{
 		cur_cmd += caret;
 	}
-	cur_cmd.insert(0, prompt.c_str());
+	cur_cmd.insert(0, full_prompt.c_str());
 	output_string.append(cur_cmd);
 
 
@@ -189,7 +200,7 @@ void SpD3D9OConsole::draw()
 		cur_cmd = command;
 		get_autocomplete_options(cur_cmd.c_str(), autocomplete_limit, &autocomplete_matches);
 		std::string prompt_alignment_spaces;
-		for (int i = 0; i < prompt.length(); i++)
+		for (int i = 0; i < full_prompt.length(); i++)
 		{
 			prompt_alignment_spaces += ' ';
 		}
@@ -211,7 +222,7 @@ void SpD3D9OConsole::draw()
 	// Draw background for autocomplete dropdown
 	if (autocomplete_matches.size() > 0)
 	{
-		long prompt_width = (long)(char_size.cx * prompt.length());
+		long prompt_width = (long)(char_size.cx * full_prompt.length());
 		background = { prompt_width + (int)border_width, console_height + (int)border_width, prompt_width + (int)border_width + (char_size.cx * longest_autocomplete), (long)(char_size.cy  * (output_log_displayed_lines + 1 + autocomplete_matches.size())) + (int)border_width };
 		border = { background.x1 - (int)autocomplete_border_width, background.y1, background.x2 + (int)autocomplete_border_width, background.y2 + (int)autocomplete_border_width };
 		overlay->device->Clear(1, &border, D3DCLEAR_TARGET, autocomplete_border_color, 0, 0);
@@ -226,7 +237,41 @@ void SpD3D9OConsole::draw()
 }
 
 
+void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt)
+{
+	if (prompt_elements & SP_D3D9O_PROMPT_USER)
+	{
+		extern std::string local_username;
+		full_prompt->append(local_username);
+		if (prompt_elements & SP_D3D9O_PROMPT_HOSTNAME)
+		{
+			full_prompt->append("@");
+		}
+		else if (prompt_elements & SP_D3D9O_PROMPT_CWD)
+		{
+			full_prompt->append(" | ");
+		}
+	}
+	if (prompt_elements & SP_D3D9O_PROMPT_HOSTNAME)
+	{
+		extern std::string hostname;
+		full_prompt->append(hostname);
+		if (prompt_elements & SP_D3D9O_PROMPT_CWD)
+		{
+			full_prompt->append(" | ");
+		}
+	}
+	if (prompt_elements & SP_D3D9O_PROMPT_CWD)
+	{
+		extern std::string game_exe_dir;
+		full_prompt->append(game_exe_dir);
+	}
+	full_prompt->append(prompt);
+}
 
+
+
+// Prints a message to the console output
 void SpD3D9OConsole::print(const char *new_message)
 {
 	std::string message = new_message;
@@ -253,7 +298,7 @@ void SpD3D9OConsole::print(const char *new_message)
 
 
 
-
+// Checks if console is currently open
 bool SpD3D9OConsole::is_open()
 {
 	return ((overlay->enabled_elements & SP_D3D9O_CONSOLE_ENABLED) != 0); // Weirdness to avoid compiler warnings
@@ -287,6 +332,7 @@ bool SpD3D9OConsole::toggle()
 
 
 
+// Opens the console
 int open_console()
 {
 	extern SpD3D9Device *gl_pSpD3D9Device;
@@ -607,7 +653,13 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 					command_log.push_back(command);
 					command_log_position = (unsigned int)command_log.size();
 					exec_cmd = command;
-					print(command.insert(0, prompt).c_str());
+					if (echo)
+					{
+						// Add elements to prompt
+						std::string full_prompt;
+						add_prompt_elements(&full_prompt);
+						print(command.insert(0, full_prompt).c_str());
+					}
 					command.clear();
 					caret_position = 0;
 
@@ -687,6 +739,17 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				}
 				else if (c != '\0')
 				{
+					if (SpD3D9OInputHandler::get()->capslock && wParam >= 0x41 && wParam <= 0x5A) // Capslock is on and key is a letter
+					{
+						if (SpD3D9OInputHandler::get()->shift)
+						{
+							c = SpD3D9OInputHandler::get()->convert_char[wParam];
+						}
+						else
+						{
+							c = SpD3D9OInputHandler::get()->convert_shift_char[wParam];
+						}
+					}
 					command.insert(caret_position, 1, c);
 					caret_position++;
 					show_caret = true;
@@ -834,7 +897,7 @@ void SpD3D9OConsole::execute_command(const char *new_command)
 }
 
 
-int SpD3D9OConsole::register_command(const char *new_command, void(*function)(std::vector<std::string>, std::string *), const char *help_message) // Static function
+int SpD3D9OConsole::register_command(const char *new_command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for) // Static function
 {
 	if (new_command == NULL || help_message == NULL || function == NULL)
 	{
@@ -899,6 +962,7 @@ int SpD3D9OConsole::register_command(const char *new_command, void(*function)(st
 	new_cmd.function = function;
 	new_cmd.help_message = help_message;
 	new_cmd.id = seqan::positionToId(commands_set, seqan::length(commands_set) - 1);
+	new_cmd.alias_for = alias_for;
 
 	commands.push_back(new_cmd);
 	if (commands_index != NULL)

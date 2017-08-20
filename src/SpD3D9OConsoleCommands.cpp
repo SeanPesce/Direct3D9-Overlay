@@ -40,6 +40,146 @@ void error_code_to_string(DWORD last_error, std::string *message)
 }
 
 
+void get_text_feed_pos_str(std::string *str)
+{
+	str->clear();
+	switch (gl_pSpD3D9Device->overlay->text_feed->position)
+	{
+		case (DT_NOCLIP | DT_TOP | DT_LEFT):
+			str->append("Text feed position = top center");
+			break;
+		case (DT_NOCLIP | DT_TOP | DT_CENTER):
+			str->append("Text feed position = top right");
+			break;
+		case (DT_NOCLIP | DT_TOP | DT_RIGHT):
+			str->append("Text feed position = center left");
+			break;
+		case (DT_NOCLIP | DT_VCENTER | DT_LEFT):
+			str->append("Text feed position = center left");
+			break;
+		case (DT_NOCLIP | DT_VCENTER | DT_CENTER):
+			str->append("Text feed position = center");
+			break;
+		case (DT_NOCLIP | DT_VCENTER | DT_RIGHT):
+			str->append("Text feed position = center right");
+			break;
+		case (DT_NOCLIP | DT_BOTTOM | DT_LEFT):
+			str->append("Text feed position = bottom left");
+			break;
+		case (DT_NOCLIP | DT_BOTTOM | DT_CENTER):
+			str->append("Text feed position = bottom center");
+			break;
+		case (DT_NOCLIP | DT_BOTTOM | DT_RIGHT):
+		default:
+			str->append("Text feed position = bottom right");
+			break;
+	}
+}
+
+
+void get_text_feed_style_str(std::string *str)
+{
+	switch (gl_pSpD3D9Device->overlay->text_feed->style)
+	{
+		case SP_D3D9O_OUTLINED_TEXT:
+			str->append("Text feed font style = outlined");
+			break;
+		case SP_D3D9O_SHADOWED_TEXT:
+			str->append("Text feed font style = shadowed");
+			break;
+		case SP_D3D9O_PLAIN_TEXT:
+			str->append("Text feed font style = plain");
+			break;
+	}
+}
+
+
+// Returns true if the given string represents a number value of zero
+bool string_is_zero(const char *c_str)
+{
+	if (c_str == NULL)
+	{
+		return false;
+	}
+
+	std::string str(c_str);
+	trim(&str);
+
+	if (str.length() == 0)
+	{
+		return false;
+	}
+	
+	for (int i = 0; i < str.length(); i++)
+	{
+		if (i != 1 && str.c_str()[i] != '0')
+		{
+			return false;
+		}
+		else if (i == 1 && str.c_str()[i] != '0')
+		{
+			if (str.length() == 2 || (str.c_str()[i] != 'x' && str.c_str()[i] != 'X'))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+
+// Return value: 1 = true, 0 = false, -1 = invalid argument
+int parse_toggle_arg(const char *c_arg)
+{
+	if (c_arg == NULL)
+	{
+		return -1;
+	}
+
+	std::string arg(c_arg);
+	trim(&arg);
+
+	if (arg.length() < 1)
+	{
+		return -1;
+	}
+	else if (arg.length() == 1)
+	{
+		switch (arg.c_str()[0])
+		{
+			case '1':
+				return 1;
+				break;
+			case '0':
+				return 0;
+				break;
+			default:
+				return -1;
+				break;
+		}
+	}
+	
+	to_lower((char *)arg.c_str());
+
+	if ((strcmp(arg.c_str(), "true") == 0) || (strcmp(arg.c_str(), "on") == 0) || (strcmp(arg.c_str(), "enable") == 0) || (strcmp(arg.c_str(), "enabled") == 0))
+	{
+		return 1;
+	}
+	else if((strcmp(arg.c_str(), "false") == 0) || (strcmp(arg.c_str(), "off") == 0) || (strcmp(arg.c_str(), "disable") == 0) || (strcmp(arg.c_str(), "disabled") == 0) || string_is_zero(arg.c_str()))
+	{
+		return 0;
+	}
+
+	long parsed_val = strtol(arg.c_str(), NULL, 0);
+	if (parsed_val == 1)
+	{
+		return true;
+	}
+
+	return -1;
+}
+
+
 // Terminates the process
 void cc_exit(std::vector<std::string> args, std::string *output)
 {
@@ -116,6 +256,44 @@ void cc_help(std::vector<std::string> args, std::string *output)
 	else
 	{
 		output->append("ERROR: \"").append(query).append("\" is not a recognized console command.");
+	}
+}
+
+
+// Prints the current date
+void cc_date(std::vector<std::string> args, std::string *output)
+{
+	if (append_current_date_string(output, false, SP_DATE_MMDDYYYY))
+	{
+		output->clear();
+		output->append("ERROR: Failed to obtain current date");
+	}
+}
+
+// Prints the current time
+void cc_time(std::vector<std::string> args, std::string *output)
+{
+	if(append_current_timestamp_string(output, false))
+	{
+		output->clear();
+		output->append("ERROR: Failed to obtain current time");
+	}
+}
+
+// Prints the current date and time
+void cc_date_time(std::vector<std::string> args, std::string *output)
+{
+	if (append_current_date_string(output, false, SP_DATE_MMDDYYYY))
+	{
+		output->clear();
+		output->append("ERROR: Failed to obtain current date");
+		return;
+	}
+	output->append("  ");
+	if (append_current_timestamp_string(output, false))
+	{
+		output->clear();
+		output->append("ERROR: Failed to obtain current time");
 	}
 }
 
@@ -312,41 +490,21 @@ void cc_paste(std::vector<std::string> args, std::string *output)
 }
 
 
-// Prints to text feed
-void cc_print_text_feed(std::vector<std::string> args, std::string *output)
-{
-	if (args.size() > 0)
-	{
-		gl_pSpD3D9Device->overlay->text_feed->print(args.at(0).c_str());
-	}
-	else
-	{
-		output->append("ERROR: Too few arguments");
-	}
-}
-
-
 // Enables/disables the console
 void cc_console_enabled(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
-		if (args.at(0).length() == 1 && (args.at(0).c_str()[0] == '1' || args.at(0).c_str()[0] == '0'))
+		switch (parse_toggle_arg(args.at(0).c_str()))
 		{
-			switch (args.at(0).c_str()[0])
-			{
-				case '0':
-					gl_pSpD3D9Device->overlay->console->toggle();
-					break;
-				case '1':
-					break;
-				default:
-					break;
-			}
-		}
-		else
-		{
-			output->append("ERROR: Console value must be either 1 or 0 (1 = open, 0 = hidden)\n");
+			case 0:
+				gl_pSpD3D9Device->overlay->console->toggle();
+				break;
+			case 1:
+				break;
+			default:
+				output->append("ERROR: Console value must be either 1 or 0 (1 = open, 0 = hidden)\n");
+				break;
 		}
 	}
 	
@@ -516,6 +674,297 @@ void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string 
 }
 
 
+// Enables/disables overlay text feed
+void cc_text_feed_enabled(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				gl_pSpD3D9Device->overlay->text_feed->set_enabled(false);
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->text_feed->set_enabled(true);
+				break;
+			default:
+				output->append("ERROR: Text feed value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				break;
+		}
+	}
+
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		output->append("Text feed = enabled");
+	}
+	else
+	{
+		output->append("Text feed = disabled");
+	}
+}
+
+// Changes the text feed font size
+void cc_text_feed_font_size(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		long new_font_size = strtol(args.at(0).c_str(), NULL, 10);
+		if (new_font_size > 0 && new_font_size != LONG_MAX && new_font_size != LONG_MIN)
+		{
+			gl_pSpD3D9Device->overlay->text_feed->set_font_height(new_font_size);
+			output->append("Text feed font size = ").append(std::to_string(new_font_size));
+		}
+		else
+		{
+			output->append("ERROR: Invalid argument (Font size must be a positive integer value)\n");
+			output->append("Text feed font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->text_feed->font_height));
+		}
+	}
+	else
+	{
+		output->append("Text feed font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->text_feed->font_height));
+	}
+}
+
+
+// Enables/disables overlay text feed info bar
+void cc_text_feed_info_bar(std::vector<std::string> args, std::string *output)
+{
+	extern int user_pref_show_text_feed_info_bar;
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				gl_pSpD3D9Device->overlay->text_feed->show_info_bar = SP_D3D9O_INFO_BAR_DISABLED;
+				break;
+			case 1:
+				if (user_pref_show_text_feed_info_bar)
+				{
+					gl_pSpD3D9Device->overlay->text_feed->show_info_bar = user_pref_show_text_feed_info_bar;
+				}
+				else
+				{
+					gl_pSpD3D9Device->overlay->text_feed->show_info_bar = SP_D3D9O_INFO_BAR_TITLE;
+				}
+				break;
+			default:
+				output->append("ERROR: Text feed info bar value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				break;
+		}
+	}
+
+	if (gl_pSpD3D9Device->overlay->text_feed->show_info_bar)
+	{
+		output->append("Text feed info bar = enabled");
+	}
+	else
+	{
+		output->append("Text feed info bar = disabled");
+	}
+}
+
+
+// Enables/disables overlay text feed info bar date element
+void cc_text_feed_info_date(std::vector<std::string> args, std::string *output)
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		if (args.size() > 0)
+		{
+			switch (parse_toggle_arg(args.at(0).c_str()))
+			{
+			case 0:
+				gl_pSpD3D9Device->overlay->text_feed->show_info_bar &= (~SP_D3D9O_INFO_BAR_DATE);
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->text_feed->show_info_bar |= SP_D3D9O_INFO_BAR_DATE;
+				break;
+			default:
+				output->append("ERROR: Text feed date value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				break;
+			}
+		}
+
+		if (gl_pSpD3D9Device->overlay->text_feed->show_info_bar & SP_D3D9O_INFO_BAR_DATE)
+		{
+			output->append("Text feed info bar date = enabled");
+		}
+		else
+		{
+			output->append("Text feed info bar date = disabled");
+		}
+	}
+	else
+	{
+		output->append("ERROR: Text feed is not enabled (use the command \"text_feed 1\" to enable)");
+	}
+}
+
+
+// Enables/disables overlay text feed info bar time element
+void cc_text_feed_info_time(std::vector<std::string> args, std::string *output)
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		if (args.size() > 0)
+		{
+			switch (parse_toggle_arg(args.at(0).c_str()))
+			{
+			case 0:
+				gl_pSpD3D9Device->overlay->text_feed->show_info_bar &= (~SP_D3D9O_INFO_BAR_TIME);
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->text_feed->show_info_bar |= SP_D3D9O_INFO_BAR_TIME;
+				break;
+			default:
+				output->append("ERROR: Text feed time value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				break;
+			}
+		}
+
+		if (gl_pSpD3D9Device->overlay->text_feed->show_info_bar & SP_D3D9O_INFO_BAR_TIME)
+		{
+			output->append("Text feed info bar time = enabled");
+		}
+		else
+		{
+			output->append("Text feed info bar time = disabled");
+		}
+	}
+	else
+	{
+		output->append("ERROR: Text feed is not enabled (use the command \"text_feed 1\" to enable)");
+	}
+}
+
+
+// Enables/disables overlay text feed info bar FPS counter element
+void cc_text_feed_info_fps(std::vector<std::string> args, std::string *output)
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		if (args.size() > 0)
+		{
+			switch (parse_toggle_arg(args.at(0).c_str()))
+			{
+			case 0:
+				gl_pSpD3D9Device->overlay->text_feed->show_info_bar &= (~SP_D3D9O_INFO_BAR_FPS);
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->text_feed->show_info_bar |= SP_D3D9O_INFO_BAR_FPS;
+				break;
+			default:
+				output->append("ERROR: Text feed FPS counter value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				break;
+			}
+		}
+
+		if (gl_pSpD3D9Device->overlay->text_feed->show_info_bar & SP_D3D9O_INFO_BAR_FPS)
+		{
+			output->append("Text feed info bar FPS counter = enabled");
+		}
+		else
+		{
+			output->append("Text feed info bar FPS counter = disabled");
+		}
+	}
+	else
+	{
+		output->append("ERROR: Text feed is not enabled (use the command \"text_feed 1\" to enable)");
+	}
+}
+
+
+// Changes the text feed title
+void cc_text_feed_title(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		gl_pSpD3D9Device->overlay->text_feed->set_title(args.at(0).c_str());
+		output->append("Text feed title = \"").append(args.at(0).c_str()).append("\"");
+	}
+	else
+	{
+		std::string title;
+		gl_pSpD3D9Device->overlay->text_feed->get_title(&title);
+		output->append("Text feed title = \"").append(title).append("\"");
+	}
+}
+
+
+// Prints to text feed
+void cc_text_feed_print(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		gl_pSpD3D9Device->overlay->text_feed->print(args.at(0).c_str());
+	}
+	else
+	{
+		output->append("ERROR: Not enough arguments");
+	}
+}
+
+
+// Cycles between 9 preset text feed positions
+void cc_text_feed_cycle_position(std::vector<std::string> args, std::string *output)
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		extern int next_overlay_text_position();
+		next_overlay_text_position();
+		get_text_feed_pos_str(output);
+	}
+	else
+	{
+		output->append("ERROR: Text feed is not enabled.");
+	}
+}
+
+
+void cc_text_feed_position(std::vector<std::string> args, std::string *output)
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		get_text_feed_pos_str(output);
+	}
+	else
+	{
+		output->append("Text feed is not enabled.");
+	}
+}
+
+
+// Cycles through the 3 text feed text styles (plain, shadowed, outlined)
+void cc_text_feed_cycle_style(std::vector<std::string> args, std::string *output)
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		extern int next_overlay_text_style();
+		next_overlay_text_style();
+		get_text_feed_style_str(output);
+	}
+	else
+	{
+		output->append("ERROR: Text feed is not enabled.");
+	}
+}
+
+
+void cc_text_feed_style(std::vector<std::string> args, std::string *output)
+{
+	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+	{
+		get_text_feed_style_str(output);
+	}
+	else
+	{
+		output->append("Text feed is not enabled.");
+	}
+}
+
+
 // Loads a DLL
 void cc_load_library(std::vector<std::string> args, std::string *output)
 {
@@ -617,7 +1066,7 @@ void cc_open_web_page(std::vector<std::string> args, std::string *output)
 		{
 			error_code_to_string(err, &err_msg);
 			// Try adding "http://"
-			if (((DWORD)ShellExecute(0, 0, std::string(args.at(0)).insert(0,"http://").c_str(), 0, 0, SW_SHOW)) < 32)
+			if (((DWORD)ShellExecute(0, 0, std::string(args.at(0)).insert(0,"https://").c_str(), 0, 0, SW_SHOW)) < 32)
 			{
 				output->append("ERROR: Unable to open URL \"").append(args.at(0)).append("\"\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
 			}
@@ -674,6 +1123,41 @@ void cc_echo(std::vector<std::string> args, std::string *output)
 	}
 }
 
+
+DWORD WINAPI cc_run_thread(LPVOID lpParam)
+{
+	char *cmd = (char *)lpParam;
+	int result = system(cmd);
+	delete cmd;
+	return result;
+}
+// Opens a file with the system resolver
+void cc_run(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		char *cmd = new char[args.at(0).length()+1];
+		strcpy_s(cmd, sizeof(char) * (args.at(0).length() + 1), args.at(0).c_str());
+		cmd[args.at(0).length()] = '\0';
+		DWORD thread_id;
+		HANDLE thread_handle = CreateThread(
+			NULL,				// Default security attributes
+			0,					// Use default stack size
+			cc_run_thread,		// Thread function name
+			cmd,				// Argument to thread function
+			0,					// Use default creation flags
+			&thread_id);		// Returns the thread identifier
+
+		std::stringstream hex_stream;
+		hex_stream << std::hex << thread_handle;
+		output->append("Running \"").append(args.at(0)).append("\"\nHandle = 0x").append(hex_stream.str()).append("; Thread ID = ").append(std::to_string(thread_id));
+	}
+	else
+	{
+		output->append("ERROR: No file specified");
+	}
+}
+
 void register_default_console_commands()
 {
 	SpD3D9OConsole::register_command("help", cc_help, "help [command]\n    Prints the help message for the given command.");
@@ -683,6 +1167,9 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("search_command", cc_search_command, "search_command <query>\n    Returns a list of available commands that contain the given query string.");
 	SpD3D9OConsole::register_command("close", cc_close, "close\n    Closes the console overlay.");
 	SpD3D9OConsole::register_command("clear", cc_clear, "clear\n    Clears console output.");
+	SpD3D9OConsole::register_command("date", cc_date, "date\n    Prints the current date (in MM/DD/YYYY format).");
+	SpD3D9OConsole::register_command("date_time", cc_date_time, "date_time\n    Prints the current date (in MM/DD/YYYY format) and 24-hour time.");
+	SpD3D9OConsole::register_command("time", cc_time, "time\n    Prints the current 24-hour time.");
 	SpD3D9OConsole::register_command("alias", cc_alias, "alias <ALIAS|COMMAND> <ALIAS|COMMAND>\n    Creates an alias for an existing console command/alias.");
 	SpD3D9OConsole::register_command("paste", cc_paste, "paste\n    Copies ANSI text data from the clipboard to the console input");
 	SpD3D9OConsole::register_command("beep", cc_beep, "beep <frequency> <duration>\n    Generates a beeping sound at the given frequency (hz) for the given duration (milliseconds).\n    Execution is halted until the beep is completed.");
@@ -690,7 +1177,6 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("unload_library", cc_free_library, "unload_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
 	SpD3D9OConsole::register_command("free_library", cc_free_library, "free_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
 	SpD3D9OConsole::register_command("web", cc_open_web_page, "web <URL>\n    Opens a web page in the system default web browser.");
-	SpD3D9OConsole::register_command("print_text_feed", cc_print_text_feed, "print_text_feed <message>\n    Prints a message to the overlay text feed.");
 	SpD3D9OConsole::register_command("console", cc_console_enabled, "console [is_open]\n    Opens/closes the console (1 = open, 0 = hidden).");
 	SpD3D9OConsole::register_command("console_restore_developer_default_settings", cc_console_restore_dev_defaults, "console_restore_developer_default_settings\n    Restores all console settings to developer-preferred values.");
 	SpD3D9OConsole::register_command("console_font_size", cc_console_font_size, "console_font_size [size]\n    Sets the console overlay font size.");
@@ -700,4 +1186,18 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("console_caret_blink", cc_console_caret_blink, "console_caret_blink [blink_delay]\n    Sets the console input caret blink delay time (in milliseconds).");
 	SpD3D9OConsole::register_command("console_border_width", cc_console_border_width, "console_border_width [width]\n    Sets the console border width.");
 	SpD3D9OConsole::register_command("echo", cc_echo, "echo [args]\n    Prints each argument on a separate line.");
+	SpD3D9OConsole::register_command("run", cc_run, "run <file>\n    Opens or runs a file using the system resolver.");
+	SpD3D9OConsole::register_command("open", cc_run, "open <file>\n    Opens or runs a file using the system resolver.");
+	SpD3D9OConsole::register_command("text_feed", cc_text_feed_enabled, "text_feed [is_enabled]\n    Enables/disables the overlay text feed (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("text_feed_info_bar", cc_text_feed_info_bar, "text_feed_info_bar [is_enabled]\n    Enables/disables the overlay text feed info bar (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("text_feed_date", cc_text_feed_info_date, "text_feed_date [is_enabled]\n    Enables/disables the date element of the overlay text feed info bar (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("text_feed_time", cc_text_feed_info_time, "text_feed_time [is_enabled]\n    Enables/disables the time element of the overlay text feed info bar (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("text_feed_fps", cc_text_feed_info_fps, "text_feed_fps [is_enabled]\n    Enables/disables the FPS counter element of the overlay text feed info bar (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("text_feed_print", cc_text_feed_print, "text_feed_print <message>\n    Prints a message to the overlay text feed.");
+	SpD3D9OConsole::register_command("text_feed_font_size", cc_text_feed_font_size, "text_feed_font_size [size]\n    Sets the overlay text feed font size.");
+	SpD3D9OConsole::register_command("text_feed_title", cc_text_feed_title, "text_feed_title [title]\n    Sets the overlay text feed title message (only shown if text feed info bar is enabled).");
+	SpD3D9OConsole::register_command("text_feed_position", cc_text_feed_position, "text_feed_position\n    Returns the current overlay text feed position.");
+	SpD3D9OConsole::register_command("text_feed_style", cc_text_feed_style, "text_feed_style\n    Returns the current overlay text feed style (plain, outlined, shadowed).");
+	SpD3D9OConsole::register_command("text_feed_cycle_position", cc_text_feed_cycle_position, "text_feed_cycle_position\n    Cycles through the 9 text feed position presets.");
+	SpD3D9OConsole::register_command("text_feed_cycle_style", cc_text_feed_cycle_style, "text_feed_cycle_style\n    Cycles through the 3 text feed font style presets (plain, outlined, shadowed).");
 }

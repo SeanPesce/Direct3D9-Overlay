@@ -144,6 +144,7 @@ class SpD3D9OInputHandler
 		bool ctrl = false; // Ctrl is currently held down
 		bool alt = false; // alt is currently held down
 		bool win = false; // Windows key is currently held down
+		bool capslock = false; // Caplock is currently on
 
 		// Destructor
 		~SpD3D9OInputHandler();

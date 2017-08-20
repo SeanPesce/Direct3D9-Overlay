@@ -594,6 +594,19 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 	// Get return value of original function:
 	UINT return_value = SpD3D9OInputHandler::get()->oGetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
+
+	// Check if capslock is on
+	SHORT capslock_status = GetKeyState(VK_CAPITAL);
+	if (capslock_status & 1)
+	{
+		SpD3D9OInputHandler::get()->capslock = true;
+	}
+	else
+	{
+		SpD3D9OInputHandler::get()->capslock = false;
+	}
+
+
 	if (pData == NULL || return_value == (UINT)-1)
 	{
 		return return_value;

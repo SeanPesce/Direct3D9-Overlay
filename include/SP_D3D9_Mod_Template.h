@@ -75,19 +75,12 @@ extern int user_pref_dspw_ol_offset;
 
 // Overlay-related variables
 extern SpD3D9Device* gl_pSpD3D9Device; // Pointer to the IDirect3DDevice9 wrapper that contains the overlay
-int current_overlay_text_size;
+int current_text_feed_font_size;
 SP_D3D9O_TEXT_COLOR_ENUM test_message_color;
 int dspw_overlay_adjustment; // Used to adjust the overlay to avoid clipping with the PvP Watchdog overlay
 
 // Input-related variables
 extern SHORT key_state[256]; // Key state buffer to hold the states of all 256 virtual keys
-typedef void(__stdcall *initialization_func_T)();
-std::vector<initialization_func_T> plugin_init_funcs; // Initialization functions for loaded plugin DLLs
-std::vector<void(__stdcall *)()> plugin_main_loop_funcs; // Main loop functions for loaded plugin DLLs
-std::vector<void(__stdcall *)(RAWINPUT *, PUINT)> plugin_get_raw_input_data_funcs; // Raw input data parsing functions for plugin DLLs
-std::vector<bool(__stdcall *)()> plugin_disable_player_input_funcs; // Allows plugins to disable player input
-typedef void(__stdcall *plugin_draw_ol_func_T)(std::string *);
-std::vector<plugin_draw_ol_func_T> plugin_draw_overlay_funcs; // Plugin functions for drawing overlay elements and adding extra info to the text feed info header
 bool input_loop_paused;
 bool input_loop_enabled; // Controls whether the main loop that detects player input is enabled/disabled
 

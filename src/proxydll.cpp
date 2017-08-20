@@ -95,8 +95,6 @@ void InitInstance(HANDLE hModule)
 	
 	extern void register_default_console_commands();
 	register_default_console_commands();
-	extern __declspec(dllexport) unsigned long long default_msg_duration;
-	default_msg_duration = _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_;
 
 	// Initialization
 	generic_dll_count = 0;
@@ -208,8 +206,6 @@ unsigned int load_generic_dlls_from_settings_file(const char *file_name, const c
 // Loads a single DLL specified by the given settings file, section, and key parameters
 HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section, const char *key, char *buffer, unsigned int buffer_size)
 {
-	extern std::list<SP_KEY_FUNCTION> keybinds;
-
 	// Clear the buffer
 	buffer[0] = '\0';
 
@@ -228,52 +224,8 @@ HINSTANCE load_dll_from_settings_file(const char *file_name, const char *section
 		{
 			// Successfully loaded the DLL
 
-			typedef void(__stdcall *initialization_func_T)();
-			initialization_func_T initialize_func = (initialization_func_T)GetProcAddress(new_dll_instance, "initialize_plugin");
-
-			if (initialize_func != NULL)
-			{
-				// External DLL has an initialization function that must be called
-				extern std::vector<initialization_func_T> plugin_init_funcs;
-				plugin_init_funcs.push_back(initialize_func);
-			}
-
-			typedef void(__stdcall *main_loop_func_T)();
-			main_loop_func_T main_loop_func = (main_loop_func_T)GetProcAddress(new_dll_instance, "main_loop");
-			if (main_loop_func != NULL)
-			{
-				// External DLL has a function that must be continuously called from the main thread loop
-				extern std::vector<void(__stdcall *)()> plugin_main_loop_funcs;
-				plugin_main_loop_funcs.push_back(main_loop_func);
-			}
-
-			typedef void(__stdcall *plugin_draw_ol_func_T)(std::string *);
-			plugin_draw_ol_func_T draw_overlay_func = (plugin_draw_ol_func_T)GetProcAddress(new_dll_instance, "draw_overlay"); // Plugin function for drawing overlay elements and adding extra info to the text feed info header
-			if (draw_overlay_func != NULL)
-			{
-				// External DLL implements extra overlay or info bar elements
-				extern std::vector<plugin_draw_ol_func_T> plugin_draw_overlay_funcs;
-				plugin_draw_overlay_funcs.push_back(draw_overlay_func);
-			}
-
-			typedef void(__stdcall *plugin_get_raw_input_data_func_T)(RAWINPUT *, PUINT);
-			plugin_get_raw_input_data_func_T get_raw_input_func = (plugin_get_raw_input_data_func_T)GetProcAddress(new_dll_instance, "get_raw_input_data");
-			if (get_raw_input_func != NULL)
-			{
-				// External DLL reads raw input data
-				extern std::vector<void(__stdcall *)(RAWINPUT *, PUINT)> plugin_get_raw_input_data_funcs;
-				plugin_get_raw_input_data_funcs.push_back(get_raw_input_func);
-			}
-
-
-			typedef bool(__stdcall *plugin_disable_input_func_T)();
-			plugin_disable_input_func_T disable_input_func = (plugin_disable_input_func_T)GetProcAddress(new_dll_instance, "disable_player_input");
-			if (disable_input_func != NULL)
-			{
-				// External DLL can disable player input
-				extern std::vector<bool(__stdcall *)()> plugin_disable_player_input_funcs;
-				plugin_disable_player_input_funcs.push_back(disable_input_func);
-			}
+			// Register DLL plugin functions (if they exist)
+			SpD3D9Overlay::load_plugin_funcs(new_dll_instance, file_name);
 
 			return new_dll_instance;
 		}

@@ -56,10 +56,16 @@ void input_loop()
 				gl_pSpD3D9Device->overlay->console->get_input();
 			}
 
-			// Call plugin functions for the main loop
-			for (auto plugin_main_loop_func : plugin_main_loop_funcs)
+			if (SpD3D9Overlay::run_plugin_funcs)
 			{
-				plugin_main_loop_func();
+				// Call plugin functions for the main loop
+				for (auto plugin : SpD3D9Overlay::loaded_libraries)
+				{
+					if (plugin.main_loop_func != NULL)
+					{
+						plugin.main_loop_func();
+					}
+				}
 			}
 
 			Sleep(1);
@@ -97,12 +103,12 @@ void initialize_mod(bool first_time_setup)
 	if (first_time_setup)
 	{
 		gl_pSpD3D9Device->overlay->text_feed->set_font_height(user_pref_overlay_text_size);
-		current_overlay_text_size = user_pref_overlay_text_size;
+		current_text_feed_font_size = user_pref_overlay_text_size;
 		test_message_color = _SP_D3D9O_TF_DEFAULT_COLOR_; // Initialize test message text color to white (color changes every time the message is printed
 	}
 	else
 	{
-		gl_pSpD3D9Device->overlay->text_feed->set_font_height(current_overlay_text_size);
+		gl_pSpD3D9Device->overlay->text_feed->set_font_height(current_text_feed_font_size);
 	}
 
 	// Enable/disable overlay text
@@ -126,9 +132,15 @@ void initialize_mod(bool first_time_setup)
 	if (first_time_setup)
 	{
 		// Call external DLL plugin initialization functions
-		for (initialization_func_T init_func : plugin_init_funcs)
+		if (SpD3D9Overlay::run_plugin_funcs)
 		{
-			init_func();
+			for (auto plugin : SpD3D9Overlay::loaded_libraries)
+			{
+				if (plugin.init_func != NULL)
+				{
+					plugin.init_func();
+				}
+			}
 		}
 	}
 
@@ -398,11 +410,11 @@ int reset_text_feed_font_size()
 {
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
-		current_overlay_text_size = user_pref_overlay_text_size;
-		gl_pSpD3D9Device->overlay->text_feed->set_font_height(current_overlay_text_size);
+		current_text_feed_font_size = user_pref_overlay_text_size;
+		gl_pSpD3D9Device->overlay->text_feed->set_font_height(current_text_feed_font_size);
 		if (user_pref_verbose_output_enabled)
 		{
-			print_ol_feed(std::string(_SP_D3D9_OL_TXT_SIZE_RESET_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			print_ol_feed(std::string(_SP_D3D9_OL_TXT_SIZE_RESET_MESSAGE_).append(std::to_string(current_text_feed_font_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		SP_beep(500, _SP_D3D9_DEFAULT_BEEP_DURATION_);
 		Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
@@ -417,10 +429,10 @@ int increase_text_feed_font_size()
 {
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
-		gl_pSpD3D9Device->overlay->text_feed->set_font_height(++current_overlay_text_size);
+		gl_pSpD3D9Device->overlay->text_feed->set_font_height(++current_text_feed_font_size);
 		if (user_pref_verbose_output_enabled)
 		{
-			print_ol_feed(std::string(_SP_D3D9_OL_TXT_SIZE_INCREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+			print_ol_feed(std::string(_SP_D3D9_OL_TXT_SIZE_INCREASED_MESSAGE_).append(std::to_string(current_text_feed_font_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 		}
 		SP_beep(500, _SP_D3D9_DEFAULT_BEEP_DURATION_);
 		Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);
@@ -435,13 +447,13 @@ int decrease_text_feed_font_size()
 {
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
-		if (current_overlay_text_size > 1) // Check if current font size is already the smallest supported
+		if (current_text_feed_font_size > 1) // Check if current font size is already the smallest supported
 		{
 			// Decrease overlay text feed font size
-			gl_pSpD3D9Device->overlay->text_feed->set_font_height(--current_overlay_text_size);
+			gl_pSpD3D9Device->overlay->text_feed->set_font_height(--current_text_feed_font_size);
 			if (user_pref_verbose_output_enabled)
 			{
-				print_ol_feed(std::string(_SP_D3D9_OL_TXT_SIZE_DECREASED_MESSAGE_).append(std::to_string(current_overlay_text_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
+				print_ol_feed(std::string(_SP_D3D9_OL_TXT_SIZE_DECREASED_MESSAGE_).append(std::to_string(current_text_feed_font_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);
 			}
 			SP_beep(500, _SP_D3D9_DEFAULT_BEEP_DURATION_);
 			Sleep(_SP_D3D9_KEYPRESS_WAIT_TIME_);

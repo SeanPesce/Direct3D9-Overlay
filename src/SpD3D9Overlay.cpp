@@ -4,6 +4,10 @@
 #include "SpD3D9Overlay.h"
 
 
+// Initialize static member data
+bool SpD3D9Overlay::run_plugin_funcs = true;
+std::list<SP_D3D9_PLUGIN> SpD3D9Overlay::loaded_libraries;
+
 
 SpD3D9Overlay::SpD3D9Overlay(SpD3D9Interface *new_interface, SpD3D9Device *new_device, HWND new_focus_window, D3DPRESENT_PARAMETERS *present_params)
 {
@@ -534,16 +538,19 @@ void SpD3D9Overlay::draw(IDirect3DSwapChain9 *swap_chain)
 	_SP_D3D9_CHECK_FAILED_(device->BeginScene()); // Begin drawing the overlay
 
 
-	// Add elements from plugins
-	typedef void(__stdcall *plugin_draw_ol_func_T)(std::string *);
-	extern std::vector<plugin_draw_ol_func_T> plugin_draw_overlay_funcs;
-
+	// Add overlay elements from plugins
 	std::string info_bar_plugin_element;
-	for (auto draw_func : plugin_draw_overlay_funcs)
+	if (SpD3D9Overlay::run_plugin_funcs)
 	{
-		info_bar_plugin_element.clear();
-		draw_func(&info_bar_plugin_element);
-		text_feed->info_bar_plugin_elements.append(info_bar_plugin_element);
+		for (auto plugin : SpD3D9Overlay::loaded_libraries)
+		{
+			if (plugin.draw_overlay_func != NULL)
+			{
+				info_bar_plugin_element.clear();
+				plugin.draw_overlay_func(&info_bar_plugin_element);
+				text_feed->info_bar_plugin_elements.append(info_bar_plugin_element);
+			}
+		}
 	}
 
 	if (enabled_elements & SP_D3D9O_TEXT_FEED_ENABLED)
@@ -569,4 +576,49 @@ void SpD3D9Overlay::draw(IDirect3DSwapChain9 *swap_chain)
 	current_state_block->Release();
 	render_target->Release();
 	back_buffer->Release();
+}
+
+
+// Loads exported DLL plugin functions for execution
+void SpD3D9Overlay::load_plugin_funcs(HINSTANCE new_dll_instance, const char* new_dll_name)
+{
+	if (new_dll_instance == NULL)
+	{
+		return;
+	}
+
+	// Disable plugin funcs while new plugins are being loaded
+	SpD3D9Overlay::run_plugin_funcs = false;
+
+	SP_D3D9_PLUGIN plugin;
+
+	plugin.module = new_dll_instance;
+	plugin.name = new_dll_name;
+
+	typedef void(__stdcall *initialization_func_T)();
+	plugin.init_func = (initialization_func_T)GetProcAddress(new_dll_instance, "initialize_plugin");
+
+	typedef void(__stdcall *main_loop_func_T)();
+	plugin.main_loop_func = (main_loop_func_T)GetProcAddress(new_dll_instance, "main_loop");
+
+	typedef void(__stdcall *plugin_draw_ol_func_T)(std::string *);
+	plugin.draw_overlay_func = (plugin_draw_ol_func_T)GetProcAddress(new_dll_instance, "draw_overlay"); // Plugin function for drawing overlay elements and adding extra info to the text feed info header
+
+	typedef void(__stdcall *plugin_get_raw_input_data_func_T)(RAWINPUT *, PUINT);
+	plugin.get_raw_input_data_func = (plugin_get_raw_input_data_func_T)GetProcAddress(new_dll_instance, "get_raw_input_data");
+
+	typedef bool(__stdcall *plugin_disable_input_func_T)();
+	plugin.disable_player_input_func = (plugin_disable_input_func_T)GetProcAddress(new_dll_instance, "disable_player_input");
+
+	typedef void(__stdcall *present_func_T)(const RECT *, const RECT *, HWND, const RGNDATA *, DWORD);
+	plugin.present_func = (present_func_T)GetProcAddress(new_dll_instance, "present");
+
+	typedef void(__stdcall *end_scene_func_T)();
+	plugin.end_scene_func = (end_scene_func_T)GetProcAddress(new_dll_instance, "end_scene");
+
+
+	SpD3D9Overlay::loaded_libraries.push_back(plugin);
+
+	// Re-enable plugin functions
+	SpD3D9Overlay::run_plugin_funcs = true;
 }

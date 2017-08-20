@@ -116,6 +116,22 @@ const char SP_D3D9O_TEXT_COLOR_TABLE_CHARS[_SP_D3D9O_TEXT_COLOR_COUNT_] =
 };
 #endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 
+
+// Struct that holds plugin library data
+typedef struct SP_D3D9_PLUGIN {
+	HMODULE module = NULL; // Starting address of the plugin DLL
+	std::string name = ""; // Module name (file name of the DLL)
+	void(__stdcall *init_func)() = NULL; // Called once after overlay is initialized
+	void(__stdcall *main_loop_func)() = NULL; // Called from the main thread loop; allows plugin to run repetitive code without creating new threads
+	void(__stdcall *get_raw_input_data_func)(RAWINPUT *, PUINT) = NULL; // Called from hooked GetRawInputData, allowing plugins to receive player input
+	bool(__stdcall *disable_player_input_func)() = NULL;  // Allows plugin to disable player input
+	void(__stdcall *draw_overlay_func)(std::string *) = NULL; // Function for drawing overlay elements and adding extra info to the text feed info header
+	void(__stdcall *present_func)(const RECT *, const RECT *, HWND, const RGNDATA *, DWORD) = NULL; // Called from the Present() member func of the D3D9 device and/or SwapChain
+	void(__stdcall *end_scene_func)() = NULL; // Called from D3D9 EndScene() function
+} SP_D3D9_PLUGIN;
+
+
+
 class SpD3D9Overlay
 {
 public:
@@ -136,6 +152,10 @@ public:
 	IDirect3DStateBlock9 *overlay_state_block = NULL; // State block applied before drawing overlay
 	unsigned int fps_count = 0;
 	unsigned int fps_timer_id = 0; // ID of timer used to update FPS count once per second
+
+	static bool run_plugin_funcs;
+	static std::list<SP_D3D9_PLUGIN> loaded_libraries;
+	static void SpD3D9Overlay::load_plugin_funcs(HINSTANCE new_dll_instance, const char* new_dll_name); // Loads exported DLL plugin functions for execution (if the library has them)
 
 	// Constructor/destructor
 	SpD3D9Overlay(SpD3D9Interface *new_interface, SpD3D9Device *new_device, HWND new_focus_window, D3DPRESENT_PARAMETERS *present_params);

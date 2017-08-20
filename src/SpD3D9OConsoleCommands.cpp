@@ -711,6 +711,8 @@ void cc_text_feed_font_size(std::vector<std::string> args, std::string *output)
 		long new_font_size = strtol(args.at(0).c_str(), NULL, 10);
 		if (new_font_size > 0 && new_font_size != LONG_MAX && new_font_size != LONG_MIN)
 		{
+			extern int current_text_feed_font_size;
+			current_text_feed_font_size = new_font_size;
 			gl_pSpD3D9Device->overlay->text_feed->set_font_height(new_font_size);
 			output->append("Text feed font size = ").append(std::to_string(new_font_size));
 		}
@@ -983,7 +985,55 @@ void cc_load_library(std::vector<std::string> args, std::string *output)
 		{
 			std::stringstream hex_stream;
 			hex_stream << std::hex << hmod;
-			output->append("SUCCESS: Library was loaded (Base addres = 0x").append(hex_stream.str()).append(")");
+
+			// Load plugin functions (if any)
+			SpD3D9Overlay::load_plugin_funcs(hmod, args.at(0).c_str());
+
+			output->append("SUCCESS: Library was loaded (").append(args.at(0).c_str()).append(" base address = 0x").append(hex_stream.str()).append(")");
+
+			std::list<SP_D3D9_PLUGIN>::const_iterator plugin;
+			for (plugin = SpD3D9Overlay::loaded_libraries.begin(); plugin != SpD3D9Overlay::loaded_libraries.end(); plugin++)
+			{
+				if (plugin->module == hmod)
+				{
+					std::string func_list = "";
+					if (plugin->init_func != NULL)
+					{
+						func_list.append("\n    initialize_plugin");
+						plugin->init_func();
+					}
+					if (plugin->main_loop_func != NULL)
+					{
+						func_list.append("\n    main_loop");
+					}
+					if (plugin->draw_overlay_func != NULL)
+					{
+						func_list.append("\n    draw_overlay");
+					}
+					if (plugin->present_func != NULL)
+					{
+						func_list.append("\n    present");
+					}
+					if (plugin->end_scene_func != NULL)
+					{
+						func_list.append("\n    end_scene");
+					}
+					if (plugin->get_raw_input_data_func != NULL)
+					{
+						func_list.append("\n    get_raw_input_data");
+					}
+					if (plugin->disable_player_input_func != NULL)
+					{
+						func_list.append("\n    disable_player_input");
+					}
+
+					if (func_list.length() > 0)
+					{
+						output->append("\n").append(args.at(0).c_str()).append(" is an overlay plugin. Found function(s):").append(func_list);
+					}
+					break;
+				}
+			}
 		}
 	}
 	else
@@ -1013,6 +1063,20 @@ void cc_free_library(std::vector<std::string> args, std::string *output)
 			}
 			else
 			{
+				// Remove library from plugin list, if necessary
+				SpD3D9Overlay::run_plugin_funcs = false;
+				Sleep(20);
+
+				std::list<SP_D3D9_PLUGIN>::const_iterator plugin;
+				for (plugin = SpD3D9Overlay::loaded_libraries.begin(); plugin != SpD3D9Overlay::loaded_libraries.end(); plugin++)
+				{
+					if (plugin->module == hmod)
+					{
+						SpD3D9Overlay::loaded_libraries.erase(plugin);
+					}
+				}
+
+				SpD3D9Overlay::run_plugin_funcs = true;
 				output->append("SUCCESS: Library was unloaded");
 			}
 			return;
@@ -1025,7 +1089,21 @@ void cc_free_library(std::vector<std::string> args, std::string *output)
 			hmod = (HMODULE)hmod_L;
 			if (FreeLibrary(hmod))
 			{
-				// Successfully unloaded the library
+				// Remove library from plugin list, if necessary
+				SpD3D9Overlay::run_plugin_funcs = false;
+				Sleep(20);
+
+				std::list<SP_D3D9_PLUGIN>::const_iterator plugin;
+				for (plugin = SpD3D9Overlay::loaded_libraries.begin(); plugin != SpD3D9Overlay::loaded_libraries.end(); plugin++)
+				{
+					if (plugin->module == hmod)
+					{
+						SpD3D9Overlay::loaded_libraries.erase(plugin);
+					}
+				}
+
+				SpD3D9Overlay::run_plugin_funcs = true;
+
 				output->append("SUCCESS: Library was unloaded");
 				return;
 			}

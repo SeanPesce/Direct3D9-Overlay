@@ -109,6 +109,17 @@ HRESULT SpD3D9SwapChain::Present(const RECT *pSourceRect, const RECT *pDestRect,
 		real_device = NULL;
 	}
 
+	// Call plugin present() functions
+	if (SpD3D9Overlay::run_plugin_funcs)
+	{
+		for (auto plugin : SpD3D9Overlay::loaded_libraries)
+		{
+			if (plugin.present_func != NULL)
+			{
+				plugin.present_func(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
+			}
+		}
+	}
 
 	(*present_calls)++;
 	HRESULT hres = m_pD3D9_swap_chain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);

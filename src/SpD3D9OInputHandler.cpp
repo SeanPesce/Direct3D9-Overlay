@@ -27,6 +27,7 @@
 #include "stdafx.h"
 #include "SpD3D9OInputHandler.h"
 
+
 #ifdef _SP_USING_DETOURS_
 	#include <detours.h>
 #endif // _SP_USING_DETOURS_
@@ -607,10 +608,15 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 	RAWINPUT *raw_input = (RAWINPUT *)pData;
 
 	// Send raw input data to overlay plugins
-	extern std::vector<void(__stdcall *)(RAWINPUT *, PUINT)> plugin_get_raw_input_data_funcs;
-	for (auto raw_input_data_func : plugin_get_raw_input_data_funcs)
+	if (SpD3D9Overlay::run_plugin_funcs)
 	{
-		raw_input_data_func(raw_input, pcbSize);
+		for (auto plugin : SpD3D9Overlay::loaded_libraries)
+		{
+			if (plugin.get_raw_input_data_func != NULL)
+			{
+				plugin.get_raw_input_data_func(raw_input, pcbSize);
+			}
+		}
 	}
 	
 	switch (raw_input->header.dwType)
@@ -730,13 +736,19 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 
 	// Check if any overlay plugins want to disable in-game player input
 	bool disable_input = false;
-	extern std::vector<bool(__stdcall *)()> plugin_disable_player_input_funcs;
-	for (auto player_input_func : plugin_disable_player_input_funcs)
+	if (SpD3D9Overlay::run_plugin_funcs)
 	{
-		disable_input = player_input_func();
-		if (disable_input)
+		for (auto plugin : SpD3D9Overlay::loaded_libraries)
 		{
-			break;
+			if (plugin.disable_player_input_func != NULL)
+			{
+				disable_input = plugin.disable_player_input_func();
+			}
+			if (disable_input)
+			{
+				// Found a plugin that disables input; no need to check the others
+				break;
+			}
 		}
 	}
 

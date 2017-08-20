@@ -229,6 +229,20 @@ HRESULT SpD3D9Device::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HW
 	// Draw overlay before presenting frame
 	overlay->draw(NULL);
 
+
+	// Call plugin present() functions
+	if (SpD3D9Overlay::run_plugin_funcs)
+	{
+		for (auto plugin : SpD3D9Overlay::loaded_libraries)
+		{
+			if (plugin.present_func != NULL)
+			{
+				plugin.present_func(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, 0);
+			}
+		}
+	}
+
+
 	present_calls++; // Increment Present() call counter for the current second
 
 	// Call original routine
@@ -369,6 +383,18 @@ HRESULT SpD3D9Device::EndScene(void)
 	// Drawing can be done here before the scene is shown to the user
 
 	overlay->end_scene_tasks();
+
+	// Call plugin end_scene() functions
+	if (SpD3D9Overlay::run_plugin_funcs)
+	{
+		for (auto plugin : SpD3D9Overlay::loaded_libraries)
+		{
+			if (plugin.end_scene_func != NULL)
+			{
+				plugin.end_scene_func();
+			}
+		}
+	}
 
 	endscene_calls++; // Increment EndScene call counter for stat-keeping
 

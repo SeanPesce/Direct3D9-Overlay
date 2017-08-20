@@ -55,7 +55,6 @@
 //////////////////// Exported library data ////////////////////
 
 __declspec(dllexport) std::string d3d9o_dll_filename;
-__declspec(dllexport) unsigned long long default_msg_duration;
 
 
 //////////////////// Exported library functions ////////////////////

@@ -873,7 +873,27 @@ void SpD3D9OConsole::execute_command(const char *new_command, std::string *outpu
 	if (command_index > -1)
 	{
 		std::string command_output = "";
-		commands.at(command_index).function(args, &command_output);
+		
+		if (commands.at(command_index).alias_for.length() > 0 && commands.at(command_index).macro_args.size() > 0)
+		{
+			// Command is a macro
+			std::vector<std::string> macro_args = commands.at(command_index).macro_args;
+			for (auto arg : args)
+			{
+				macro_args.push_back(arg);
+			}
+			if (output_action == 0)
+			{
+				output_action = check_args_output_redirect(&macro_args, &output_file);
+			}
+			commands.at(command_index).function(macro_args, &command_output);
+		}
+		else
+		{
+			// Not a macro
+			commands.at(command_index).function(args, &command_output);
+		}
+
 		if (output_action != 0)
 		{
 			switch (output_action)
@@ -1029,7 +1049,7 @@ int SpD3D9OConsole::register_command(const char *new_command, void(*function)(st
 }
 
 
-int SpD3D9OConsole::register_alias(const char *new_alias, const char *existing_command)
+int SpD3D9OConsole::register_alias(const char *new_alias, const char *existing_command, std::vector<std::string> macro_args)
 {
 	if (existing_command == NULL)
 	{
@@ -1060,8 +1080,9 @@ int SpD3D9OConsole::register_alias(const char *new_alias, const char *existing_c
 		return (int)ERROR_PROC_NOT_FOUND;
 	}
 
-	return SpD3D9OConsole::register_command(new_alias, SpD3D9OConsole::commands.at(index).function, SpD3D9OConsole::commands.at(index).help_message.c_str(), existing_cmd.c_str());
+	return SpD3D9OConsole::register_command(new_alias, SpD3D9OConsole::commands.at(index).function, SpD3D9OConsole::commands.at(index).help_message.c_str(), existing_cmd.c_str(), macro_args);
 }
+
 
 
 void SpD3D9OConsole::update_font()
@@ -1444,4 +1465,40 @@ bool resolve_arg(const char *args_c_str, int *index, std::string *arg)
 			return false; // Return value indicates that this is not a string argument
 			break;
 	}
+}
+
+
+char check_args_output_redirect(std::vector<std::string> *args, std::string *output_file)
+{
+	if ((args->size() > 1) && (args->at(args->size() - 2).length() >= 1) && (args->at(args->size() - 2).c_str()[0] == '>'))
+	{
+		if (args->at(args->size() - 2).length() == 1)
+		{
+			// Pipe output to file with filename args->at(args->size() - 1) (">" = overwrite file)
+			output_file->clear();
+			output_file->append(args->at(args->size() - 1));
+			args->pop_back();
+			args->pop_back();
+			return 'o';
+		}
+		else if ((args->at(args->size() - 2).length() == 2) && (args->at(args->size() - 2).c_str()[1] == '>'))
+		{
+			// Pipe output to file with filename args->at(args->size() - 1) (">>" = append file)
+			output_file->clear();
+			output_file->append(args->at(args->size() - 1));
+			args->pop_back();
+			args->pop_back();
+			return 'a';
+		}
+
+	}
+	else if (((args->size() > 1) && (args->at(args->size() - 1).length() == 1) && (args->at(args->size() - 1).c_str()[0] == '>'))
+		|| ((args->size() > 1) && (args->at(args->size() - 1).length() == 2) && (args->at(args->size() - 1).c_str()[0] == '>') && (args->at(args->size() - 1).c_str()[1] == '>')))
+	{
+		// Discard output
+		args->pop_back();
+		return 'd';
+	}
+
+	return 0;
 }

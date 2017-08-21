@@ -83,6 +83,31 @@ void get_text_feed_pos_str(std::string *str)
 }
 
 
+void args_to_string(std::vector<std::string> args, std::string *str)
+{
+	for (auto macro_arg : args)
+	{
+		std::string arg = macro_arg;
+
+		if (arg.length() == 0 || (arg.find_first_of(" '\n\"\t\r") != std::string::npos))
+		{
+			// Argument contains whitespace/quotes, so must be a string argument
+			int last_match = 0;
+			while ((last_match < arg.length()) && (last_match = arg.find_first_of("'", last_match)) != std::string::npos)
+			{
+				arg.insert(last_match, "\\");
+				last_match += 2; // +1 for new '\\' char, +1 to move past the '\'' char
+			}
+
+			arg.append("'");
+			arg.insert(0, "'");
+		}
+		arg.insert(0, " ");
+		str->append(arg);
+	}
+}
+
+
 void get_text_feed_style_str(std::string *str)
 {
 	switch (gl_pSpD3D9Device->overlay->text_feed->style)
@@ -252,7 +277,9 @@ void cc_help(std::vector<std::string> args, std::string *output)
 	{
 		if (SpD3D9OConsole::commands.at(index).alias_for.length() > 0)
 		{
-			output->append("(\"").append(query).append("\" is an alias for \"").append(SpD3D9OConsole::commands.at(index).alias_for).append("\")\n");
+			output->append("(\"").append(query).append("\" is an alias for \"").append(SpD3D9OConsole::commands.at(index).alias_for);
+			args_to_string(SpD3D9OConsole::commands.at(index).macro_args, output);
+			output->append("\")\n");
 		}
 
 		if (SpD3D9OConsole::commands.at(index).help_message.length() > 0)
@@ -343,51 +370,53 @@ void cc_alias(std::vector<std::string> args, std::string *output)
 		return;
 	}
 
-	std::string *alias;
-	std::string *command;
-	int index = SpD3D9OConsole::get_console_command_index(args.at(0).c_str());
-	if (index == -1)
+	int ret;
+	std::vector<std::string> macro_args; // Only used if alias contains arguments
+	if (args.size() > 2)
 	{
-		index = SpD3D9OConsole::get_console_command_index(args.at(1).c_str());
-		if (index == -1)
+		std::vector<std::string>::const_iterator arg = args.begin();
+		arg++;
+		arg++;
+		for (; arg != args.end(); arg++)
 		{
-			output->append("ERROR: Unable to create alias; the specified command was not recognized");
-			return;
+			macro_args.push_back(*arg);
 		}
-		alias = &args.at(0);
-		command = &args.at(1);
+		ret = SpD3D9OConsole::register_alias(args.at(0).c_str(), args.at(1).c_str(), macro_args);
 	}
 	else
 	{
-		alias = &args.at(1);
-		command = &args.at(0);
+		ret = SpD3D9OConsole::register_alias(args.at(0).c_str(), args.at(1).c_str());
 	}
 
-	int ret = SpD3D9OConsole::register_command(alias->c_str(), SpD3D9OConsole::commands.at(index).function, SpD3D9OConsole::commands.at(index).help_message.c_str(), command->c_str());
-	if (ret == 0)
+	switch (ret)
 	{
-		output->append("SUCCESS: Created alias \"").append(*alias).append("\" for command \"").append(*command).append("\"");
-	}
-	else
-	{
-		switch (ret)
-		{
-			case ERROR_INVALID_ADDRESS:
-				output->append("ERROR: Unable to create alias; null pointer was encountered");
-				break;
-			case ERROR_INVALID_PARAMETER:
-				output->append("ERROR: Alias cannot be an empty string");
-				break;
-			case ERROR_SXS_XML_E_BADCHARINSTRING:
-				output->append("ERROR: Alias must not contain whitespace characters.");
-				break;
-			case ERROR_DUP_NAME:
-				output->append("ERROR: There is already an existing command or alias with the specified name");
-				break;
-			default:
-				output->append("ERROR: Unable to create alias");
-				break;
-		}
+		case 0:
+			// Alias created successfully
+			output->append("SUCCESS: Created alias \"").append(args.at(0)).append("\" for command \"").append(args.at(1));
+			if (args.size() > 2)
+			{
+				args_to_string(macro_args, output);
+			}
+			output->append("\"");
+			break;
+		case ERROR_INVALID_ADDRESS:
+			output->append("ERROR: Unable to create alias; null pointer was encountered");
+			break;
+		case ERROR_INVALID_PARAMETER:
+			output->append("ERROR: Alias cannot be an empty string");
+			break;
+		case ERROR_SXS_XML_E_BADCHARINSTRING:
+			output->append("ERROR: Alias must not contain whitespace characters.");
+			break;
+		case ERROR_DUP_NAME:
+			output->append("ERROR: There is already an existing command or alias with the specified name (\"").append(args.at(0)).append("\")");
+			break;
+		case ERROR_PROC_NOT_FOUND:
+			output->append("ERROR: Unable to create alias; the specified command was not recognized (\"").append(args.at(1)).append("\")");
+			break;
+		default:
+			output->append("ERROR: Unable to create alias");
+			break;
 	}
 }
 
@@ -627,14 +656,6 @@ void cc_console_execute(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
-		output->append("Executing ").append(std::to_string(args.size())).append(" console command");
-		if (args.size() > 1)
-		{
-			output->append("s");
-		}
-		output->append(". Output:\n");
-		gl_pSpD3D9Device->overlay->console->print(output->c_str());
-		output->clear();
 		for (auto arg : args)
 		{
 			gl_pSpD3D9Device->overlay->console->execute_command(arg.c_str(), output);
@@ -644,6 +665,13 @@ void cc_console_execute(std::vector<std::string> args, std::string *output)
 			}
 			output->clear();
 		}
+
+		output->append("\nExecuted ").append(std::to_string(args.size())).append(" console command");
+		if (args.size() > 1)
+		{
+			output->append("s");
+		}
+		output->append(".");
 	}
 	else
 	{
@@ -1572,7 +1600,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("date", cc_date, "date\n    Prints the current date (in MM/DD/YYYY format).");
 	SpD3D9OConsole::register_command("date_time", cc_date_time, "date_time\n    Prints the current date (in MM/DD/YYYY format) and 24-hour time.");
 	SpD3D9OConsole::register_command("time", cc_time, "time\n    Prints the current 24-hour time.");
-	SpD3D9OConsole::register_command("alias", cc_alias, "alias <ALIAS|COMMAND> <ALIAS|COMMAND>\n    Creates an alias for an existing console command/alias.");
+	SpD3D9OConsole::register_command("alias", cc_alias, "alias <alias> <existing command> [arguments...]\n    Creates an alias for an existing console command/alias.\n    When the alias is called, the existing command is executed with the given arguments (if any).\n    If the alias is called with additional arguments, the extra arguments are added to the end of the argument list provided when the alias was created.");
 	SpD3D9OConsole::register_command("paste", cc_paste, "paste\n    Copies ANSI text data from the clipboard to the console input");
 	SpD3D9OConsole::register_command("beep", cc_beep, "beep <frequency> <duration>\n    Generates a beeping sound at the given frequency (hz) for the given duration (milliseconds).\n    Execution is halted until the beep is completed.");
 	SpD3D9OConsole::register_command("load_library", cc_load_library, "load_library <filename>\n    Loads the specified dynamic link library (DLL) file.");
@@ -1598,7 +1626,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("console_border_width", cc_console_border_width, "console_border_width [width]\n    Sets the console border width.");
 	SpD3D9OConsole::register_command("echo", cc_echo, "echo [args]\n    Prints each argument on a separate line.");
 	SpD3D9OConsole::register_command("open", cc_run, "open <file>\n    Opens or runs a file using the system resolver.");
-	//SpD3D9OConsole::register_alias("open", "run");
+	//SpD3D9OConsole::register_alias("run", "open");
 	SpD3D9OConsole::register_command("text_feed", cc_text_feed_enabled, "text_feed [is_enabled]\n    Enables/disables the overlay text feed (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("text_feed_info_bar", cc_text_feed_info_bar, "text_feed_info_bar [is_enabled]\n    Enables/disables the overlay text feed info bar (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("text_feed_date", cc_text_feed_info_date, "text_feed_date [is_enabled]\n    Enables/disables the date element of the overlay text feed info bar (1 = enabled, 0 = disabled).");

@@ -117,7 +117,7 @@ public:
 		void SpD3D9OConsole::handle_text_input(WPARAM wParam);
 	#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 	static int register_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for = "", std::vector<std::string> macro_args = {});
-	static int register_alias(const char *new_alias, const char *existing_command);
+	static int register_alias(const char *new_alias, const char *existing_command, std::vector<std::string> macro_args = {});
 	static void get_autocomplete_options(const char *str, unsigned int suggestion_count, std::vector<std::string> *matches);
 
 	static std::vector<SP_D3D9O_CONSOLE_COMMAND> commands;		// Set of available console commands and corresponding functions
@@ -141,5 +141,6 @@ void to_lower(char *string); // Converts a C string to lowercase
 void trim(std::string *string, const char *new_mask = " \r\n\t"); // Trims whitespace from ends of string
 char parse_args(const char *args_c_str, std::vector<std::string> *args, std::string *output_file); // Breaks an argument string into argument tokens
 bool resolve_arg(const char *args_c_str, int *index, std::string *arg);
+char check_args_output_redirect(std::vector<std::string> *args, std::string *output_file);
 
 #endif // _SP_D3D9O_CONSOLE_H_

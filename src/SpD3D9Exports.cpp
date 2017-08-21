@@ -37,9 +37,9 @@ __declspec(dllexport) int register_console_command(const char *command, void(*fu
 }
 
 
-__declspec(dllexport) int register_console_alias(const char *new_alias, const char *existing_command)
+__declspec(dllexport) int register_console_alias(const char *new_alias, const char *existing_command, std::vector<std::string> args)
 {
-	return SpD3D9OConsole::register_alias(new_alias, existing_command);
+	return SpD3D9OConsole::register_alias(new_alias, existing_command, args);
 }
 
 

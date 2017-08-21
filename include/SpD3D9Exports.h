@@ -62,7 +62,7 @@ __declspec(dllexport) std::string d3d9o_dll_filename;
 __declspec(dllexport) IDirect3DDevice9 *get_d3d9_device();
 __declspec(dllexport) unsigned int register_hotkey_function(unsigned int vk_hotkey, int(*function)());
 __declspec(dllexport) int register_console_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message);
-__declspec(dllexport) int register_console_alias(const char *new_alias, const char *existing_command);
+__declspec(dllexport) int register_console_alias(const char *new_alias, const char *existing_command, std::vector<std::string> args = {});
 __declspec(dllexport) int execute_console_command(const char *command, std::string *output = NULL);
 __declspec(dllexport) bool print(const char *message, unsigned long long duration = 2000, bool include_timestamp = true, SP_D3D9O_TEXT_COLOR_ENUM text_color = SP_D3D9O_TEXT_COLOR_WHITE); // Prints to text feed and console
 __declspec(dllexport) bool print_console(const char *message); // Prints only to console

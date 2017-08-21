@@ -43,6 +43,28 @@ __declspec(dllexport) int register_console_alias(const char *new_alias, const ch
 }
 
 
+__declspec(dllexport) int execute_console_command(const char *command)
+{
+	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->console != NULL)
+	{
+		if (command != NULL)
+		{
+			gl_pSpD3D9Device->overlay->console->execute_command(command);
+			return 0;
+		}
+		else
+		{
+			return ERROR_INVALID_ADDRESS;
+		}
+	}
+	else
+	{
+		// Console is not initialized
+		return PEERDIST_ERROR_NOT_INITIALIZED;
+	}
+}
+
+
 __declspec(dllexport) bool print(const char *message, unsigned long long duration, bool include_timestamp, SP_D3D9O_TEXT_COLOR_ENUM text_color)
 {
 	extern SpD3D9Device* gl_pSpD3D9Device;

@@ -229,7 +229,7 @@ void cc_all_commands(std::vector<std::string> args, std::string *output)
 
 
 // Clears the console output
-void cc_clear(std::vector<std::string> args, std::string *output)
+void cc_console_clear(std::vector<std::string> args, std::string *output)
 {
 	gl_pSpD3D9Device->overlay->console->clear();
 }
@@ -618,6 +618,36 @@ void cc_console_output(std::vector<std::string> args, std::string *output)
 	else
 	{
 		output->append("    Output stream = disabled");
+	}
+}
+
+
+// Executes each argument as a separate console command
+void cc_console_execute(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		output->append("Executing ").append(std::to_string(args.size())).append(" console command");
+		if (args.size() > 1)
+		{
+			output->append("s");
+		}
+		output->append(". Output:\n");
+		gl_pSpD3D9Device->overlay->console->print(output->c_str());
+		output->clear();
+		for (auto arg : args)
+		{
+			gl_pSpD3D9Device->overlay->console->execute_command(arg.c_str(), output);
+			if (output->length() > 0)
+			{
+				gl_pSpD3D9Device->overlay->console->print(output->c_str());
+			}
+			output->clear();
+		}
+	}
+	else
+	{
+		output->append(ERROR_TOO_FEW_ARGUMENTS);
 	}
 }
 
@@ -1537,7 +1567,6 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("commands", cc_all_commands, "commands\n    Lists all available console commands");
 	SpD3D9OConsole::register_command("search_command", cc_search_command, "search_command <query>\n    Returns a list of available commands that contain the given query string.");
 	SpD3D9OConsole::register_command("close", cc_close, "close\n    Closes the console overlay.");
-	SpD3D9OConsole::register_command("clear", cc_clear, "clear\n    Clears console output.");
 	SpD3D9OConsole::register_command("sleep", cc_sleep, "sleep <duration>\n    Pauses execution for the specified duration (in milliseconds).");
 	SpD3D9OConsole::register_alias("wait", "sleep");
 	SpD3D9OConsole::register_command("date", cc_date, "date\n    Prints the current date (in MM/DD/YYYY format).");
@@ -1553,8 +1582,11 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("web", cc_open_web_page, "web <URL>\n    Opens a web page in the system default web browser.");
 	SpD3D9OConsole::register_command("console", cc_console_enabled, "console [is_open]\n    Opens/closes the console (1 = open, 0 = hidden).");
 	SpD3D9OConsole::register_command("console_restore_developer_default_settings", cc_console_restore_dev_defaults, "console_restore_developer_default_settings\n    Restores all console settings to developer-preferred values.");
+	SpD3D9OConsole::register_command("console_clear", cc_console_clear, "console_clear\n    Clears console output.");
+	SpD3D9OConsole::register_alias("clear", "console_clear");
 	SpD3D9OConsole::register_command("console_echo", cc_console_echo, "console_echo [is_enabled]\n    Enables/disables console input echo (1 = on, 0 = off).");
 	SpD3D9OConsole::register_command("console_output", cc_console_output, "console_output [is_enabled]\n    Enables/disables console output stream (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("console_execute", cc_console_execute, "console_execute <command> [command...]\n    Executes each argument as a separate console command.");
 	SpD3D9OConsole::register_command("console_font_size", cc_console_font_size, "console_font_size [size]\n    Sets the console overlay font size.");
 	SpD3D9OConsole::register_command("console_autocomplete_limit", cc_autocomplete_limit, "autocomplete_limit [limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
 	SpD3D9OConsole::register_command("console_prompt", cc_console_prompt, "console_prompt [prompt]\n    Sets the console input prompt string.");
@@ -1565,8 +1597,8 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("console_caret_blink", cc_console_caret_blink, "console_caret_blink [blink_delay]\n    Sets the console input caret blink delay time (in milliseconds).");
 	SpD3D9OConsole::register_command("console_border_width", cc_console_border_width, "console_border_width [width]\n    Sets the console border width.");
 	SpD3D9OConsole::register_command("echo", cc_echo, "echo [args]\n    Prints each argument on a separate line.");
-	SpD3D9OConsole::register_command("run", cc_run, "run <file>\n    Opens or runs a file using the system resolver.");
-	SpD3D9OConsole::register_alias("open", "run");
+	SpD3D9OConsole::register_command("open", cc_run, "open <file>\n    Opens or runs a file using the system resolver.");
+	//SpD3D9OConsole::register_alias("open", "run");
 	SpD3D9OConsole::register_command("text_feed", cc_text_feed_enabled, "text_feed [is_enabled]\n    Enables/disables the overlay text feed (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("text_feed_info_bar", cc_text_feed_info_bar, "text_feed_info_bar [is_enabled]\n    Enables/disables the overlay text feed info bar (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("text_feed_date", cc_text_feed_info_date, "text_feed_date [is_enabled]\n    Enables/disables the date element of the overlay text feed info bar (1 = enabled, 0 = disabled).");

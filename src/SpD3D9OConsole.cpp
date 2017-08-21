@@ -830,7 +830,7 @@ void SpD3D9OConsole::handle_text_input(WPARAM wParam)
 #endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 
 
-void SpD3D9OConsole::execute_command(const char *new_command)
+void SpD3D9OConsole::execute_command(const char *new_command, std::string *output)
 {
 	std::string command = new_command;
 	trim(&command);
@@ -879,18 +879,40 @@ void SpD3D9OConsole::execute_command(const char *new_command)
 			switch (output_action)
 			{
 				case 'a':
+					// Append file with output
 					if (file_append_text(output_file.c_str(), command_output.c_str()))
 					{
 						// Failed to append file
-						print(std::string("ERROR: Failed to append output file \"").append(output_file).append("\"").c_str());
+						std::string out_str = std::string("ERROR: Failed to append output file \"").append(output_file).append("\"");
+						if (output == NULL)
+						{
+							print(out_str.c_str());
+						}
+						else
+						{
+							output->append(out_str);
+						}
 					}
 					break;
 				case 'o':
+					// Overwrite file with output
 					if (file_write_text(output_file.c_str(), command_output.c_str()))
 					{
 						// Failed to write file
-						print(std::string("ERROR: Failed to write output file \"").append(output_file).append("\"").c_str());
+						std::string out_str = std::string("ERROR: Failed to write output file \"").append(output_file).append("\"");
+						if (output == NULL)
+						{
+							print(out_str.c_str());
+						}
+						else
+						{
+							output->append(out_str);
+						}
 					}
+					break;
+				case 'd':
+					// Discard output
+					command_output.clear();
 					break;
 				default:
 					break;
@@ -898,12 +920,29 @@ void SpD3D9OConsole::execute_command(const char *new_command)
 		}
 		else if(command_output.size() > 0)
 		{
-			print(command_output.c_str());
+			if (output == NULL)
+			{
+				print(command_output.c_str());
+			}
+			else
+			{
+				output->append(command_output);
+			}
+
 		}
 	}
 	else
 	{
-		print(std::string("ERROR: Unrecognized command \"").append(command_name).append("\"").c_str());
+		std::string out_str = std::string("ERROR: Unrecognized command \"").append(command_name).append("\"");
+		if (output == NULL)
+		{
+			print(out_str.c_str());
+		}
+		else
+		{
+			output->append(out_str);
+		}
+
 	}
 }
 
@@ -1248,7 +1287,7 @@ void trim(std::string *string, const char *new_mask)
 }
 
 
-// Parses command arguments and, if output should be redirected to a file, returns 'o' (overwrite) or 'a' (append)
+// Parses command arguments and, if output should be redirected, returns 'o' (overwrite file), 'a' (append file), or 'd' (discard output)
 char parse_args(const char *args_c_str, std::vector<std::string> *args, std::string *output_file)
 {
 	args->clear();
@@ -1312,6 +1351,14 @@ char parse_args(const char *args_c_str, std::vector<std::string> *args, std::str
 				return 'a';
 			}
 			
+		}
+		else if(((args->size() > 1) && (!is_string_arg.at(args->size() - 1)) && (args->at(args->size() - 1).length() == 1) && (args->at(args->size() - 1).c_str()[0] == '>'))
+				|| ((args->size() > 1) && (!is_string_arg.at(args->size() - 1)) && (args->at(args->size() - 1).length() == 2) && (args->at(args->size() - 1).c_str()[0] == '>') && (args->at(args->size() - 1).c_str()[1] == '>')))
+		{
+			// Discard output
+			is_string_arg.pop_back();
+			args->pop_back();
+			return 'd';
 		}
 	}
 

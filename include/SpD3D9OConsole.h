@@ -106,7 +106,7 @@ public:
 	void SpD3D9OConsole::draw();
 	void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt); // Adds extra prompt elements, if enabled (username, hostname, working directory, etc)
 	void SpD3D9OConsole::print(const char *new_message); // Prints text to output log
-	void SpD3D9OConsole::execute_command(const char *new_command);
+	void SpD3D9OConsole::execute_command(const char *new_command, std::string *output = NULL);
 	void SpD3D9OConsole::clear(); // Clears console by pushing blank messages to output
 	DWORD SpD3D9OConsole::copy(); // Copies current un-submitted console input to the clipboard
 	DWORD SpD3D9OConsole::paste(); // Paste clipboard data into console input

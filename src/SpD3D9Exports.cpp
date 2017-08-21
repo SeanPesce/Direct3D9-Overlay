@@ -43,13 +43,13 @@ __declspec(dllexport) int register_console_alias(const char *new_alias, const ch
 }
 
 
-__declspec(dllexport) int execute_console_command(const char *command)
+__declspec(dllexport) int execute_console_command(const char *command, std::string *output)
 {
 	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->console != NULL)
 	{
 		if (command != NULL)
 		{
-			gl_pSpD3D9Device->overlay->console->execute_command(command);
+			gl_pSpD3D9Device->overlay->console->execute_command(command, output);
 			return 0;
 		}
 		else

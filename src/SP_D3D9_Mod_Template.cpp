@@ -162,7 +162,7 @@ void initialize_mod(bool first_time_setup)
 		}
 		else
 		{
-			print_ol_feed("DEBUG: No Direct3D 9 DLL chain specified", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9O_TEXT_COLOR_BLUE);
+			print_ol_feed("DEBUG: No Direct3D9 DLL chain specified", _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_ * 10, true, SP_D3D9O_TEXT_COLOR_BLUE);
 		}
 		// Print number of generic DLLs that were loaded at runtime
 		extern unsigned int generic_dll_count;

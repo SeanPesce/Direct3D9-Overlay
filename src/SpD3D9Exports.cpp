@@ -33,27 +33,13 @@ __declspec(dllexport) unsigned int register_hotkey_function(unsigned int vk_hotk
 
 __declspec(dllexport) int register_console_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message)
 {
-	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->console != NULL)
-	{
-		return SpD3D9OConsole::register_command(command, function, help_message);
-	}
-	else
-	{
-		return (int)PEERDIST_ERROR_NOT_INITIALIZED;
-	}
+	return SpD3D9OConsole::register_command(command, function, help_message);
 }
 
 
 __declspec(dllexport) int register_console_alias(const char *new_alias, const char *existing_command)
 {
-	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->console != NULL)
-	{
-		return SpD3D9OConsole::register_alias(new_alias, existing_command);
-	}
-	else
-	{
-		return (int)PEERDIST_ERROR_NOT_INITIALIZED;
-	}
+	return SpD3D9OConsole::register_alias(new_alias, existing_command);
 }
 
 

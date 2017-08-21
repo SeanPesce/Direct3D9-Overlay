@@ -17,6 +17,7 @@ extern SpD3D9Device *gl_pSpD3D9Device;
 // Constants
 const char *ERROR_TXT_FEED_DISABLED = "ERROR: Text feed is not enabled (use the command \"text_feed 1\" to enable)";
 const char *ERROR_TOO_FEW_ARGUMENTS = "ERROR: Not enough arguments";
+const char *ERROR_INVALID_ARGUMENT = "ERROR: Invalid argument(s)";
 
 
 void error_code_to_string(DWORD last_error, std::string *message)
@@ -304,6 +305,31 @@ void cc_date_time(std::vector<std::string> args, std::string *output)
 	{
 		output->clear();
 		output->append("ERROR: Failed to obtain current time");
+	}
+}
+
+
+// Pauses console thread execution for the specified number of milliseconds
+void cc_sleep(std::vector<std::string> args, std::string *output)
+{
+	long duration;
+
+	if (args.size() > 0)
+	{
+		duration = strtol(args.at(0).c_str(), NULL, 0);
+		if (duration > 0 && duration != LONG_MAX && duration != LONG_MIN)
+		{
+			Sleep(duration);
+			output->append(std::string("Execution paused for ").append(std::to_string(duration)).append(" milliseconds").c_str());
+		}
+		else
+		{
+			output->append(std::string(ERROR_INVALID_ARGUMENT).append(" (Duration must be a positive integer)").c_str());
+		}
+	}
+	else
+	{
+		output->append(ERROR_TOO_FEW_ARGUMENTS);
 	}
 }
 
@@ -1461,6 +1487,8 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("search_command", cc_search_command, "search_command <query>\n    Returns a list of available commands that contain the given query string.");
 	SpD3D9OConsole::register_command("close", cc_close, "close\n    Closes the console overlay.");
 	SpD3D9OConsole::register_command("clear", cc_clear, "clear\n    Clears console output.");
+	SpD3D9OConsole::register_command("sleep", cc_sleep, "sleep <duration>\n    Pauses execution for the specified duration (in milliseconds).");
+	cc_alias({ "sleep", "wait" }, &dummy_string);
 	SpD3D9OConsole::register_command("date", cc_date, "date\n    Prints the current date (in MM/DD/YYYY format).");
 	SpD3D9OConsole::register_command("date_time", cc_date_time, "date_time\n    Prints the current date (in MM/DD/YYYY format) and 24-hour time.");
 	SpD3D9OConsole::register_command("time", cc_time, "time\n    Prints the current 24-hour time.");

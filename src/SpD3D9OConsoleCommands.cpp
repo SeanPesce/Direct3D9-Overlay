@@ -231,10 +231,7 @@ void cc_all_commands(std::vector<std::string> args, std::string *output)
 // Clears the console output
 void cc_clear(std::vector<std::string> args, std::string *output)
 {
-	for (int i = 0; i < gl_pSpD3D9Device->overlay->console->output_log_displayed_lines; i++)
-	{
-		output->append("\n");
-	}
+	gl_pSpD3D9Device->overlay->console->clear();
 }
 
 
@@ -595,6 +592,36 @@ void cc_console_echo(std::vector<std::string> args, std::string *output)
 }
 
 
+// Enables/disables console output
+void cc_console_output(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				gl_pSpD3D9Device->overlay->console->output_stream = false;
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->console->output_stream = true;
+				break;
+			default:
+				output->append("ERROR: Console output stream value must be either 1 or 0 (1 = on, 0 = off)\n");
+				break;
+		}
+	}
+
+	if (gl_pSpD3D9Device->overlay->console->output_stream)
+	{
+		output->append("    Output stream = enabled");
+	}
+	else
+	{
+		output->append("    Output stream = disabled");
+	}
+}
+
+
 // Changes the console input prompt string
 void cc_console_prompt(std::vector<std::string> args, std::string *output)
 {
@@ -795,6 +822,7 @@ void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string 
 	gl_pSpD3D9Device->overlay->console->toggle();
 
 	gl_pSpD3D9Device->overlay->console->echo = _SP_D3D9O_C_DEFAULT_ECHO_VALUE_;
+	gl_pSpD3D9Device->overlay->console->output_stream = _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_;
 	gl_pSpD3D9Device->overlay->console->prompt = _SP_D3D9O_C_DEFAULT_PROMPT_;
 	gl_pSpD3D9Device->overlay->console->prompt_elements = _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_;
 	gl_pSpD3D9Device->overlay->console->caret = _SP_D3D9O_C_DEFAULT_CARET_;
@@ -831,6 +859,14 @@ void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string 
 	else
 	{
 		output->append("    echo = off\n");
+	}
+	if (gl_pSpD3D9Device->overlay->console->output_stream)
+	{
+		output->append("    Output stream = enabled\n");
+	}
+	else
+	{
+		output->append("    Output stream = disabled\n");
 	}
 	output->append("    Font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->font_height)).append("\n");
 	output->append("    Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"\n");
@@ -1510,7 +1546,8 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("web", cc_open_web_page, "web <URL>\n    Opens a web page in the system default web browser.");
 	SpD3D9OConsole::register_command("console", cc_console_enabled, "console [is_open]\n    Opens/closes the console (1 = open, 0 = hidden).");
 	SpD3D9OConsole::register_command("console_restore_developer_default_settings", cc_console_restore_dev_defaults, "console_restore_developer_default_settings\n    Restores all console settings to developer-preferred values.");
-	SpD3D9OConsole::register_command("console_echo", cc_console_echo, "console_echo [is_open]\n    Enables/disables console input echo (1 = on, 0 = off).");
+	SpD3D9OConsole::register_command("console_echo", cc_console_echo, "console_echo [is_enabled]\n    Enables/disables console input echo (1 = on, 0 = off).");
+	SpD3D9OConsole::register_command("console_output", cc_console_output, "console_output [is_enabled]\n    Enables/disables console output stream (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("console_font_size", cc_console_font_size, "console_font_size [size]\n    Sets the console overlay font size.");
 	SpD3D9OConsole::register_command("console_autocomplete_limit", cc_autocomplete_limit, "autocomplete_limit [limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
 	SpD3D9OConsole::register_command("console_prompt", cc_console_prompt, "console_prompt [prompt]\n    Sets the console input prompt string.");

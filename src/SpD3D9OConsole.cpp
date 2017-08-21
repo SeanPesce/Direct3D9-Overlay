@@ -34,10 +34,7 @@ SpD3D9OConsole::SpD3D9OConsole(SpD3D9Overlay *new_overlay)
 		output_log_capacity = output_log_displayed_lines;
 	}
 
-	for (int i = 0; i < output_log_displayed_lines; i++)
-	{
-		output_log.push_back("");
-	}
+	clear();
 
 	// Inititalize font interface
 	font = new CD3DFont(font_family.c_str(), font_height, _SP_D3D9O_C_DEFAULT_FONT_FLAGS_);
@@ -271,28 +268,42 @@ void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt)
 
 
 
+// Clears console by pushing blank messages to output
+void SpD3D9OConsole::clear()
+{
+	for (int i = 0; i < output_log_displayed_lines; i++)
+	{
+		output_log.push_back("");
+	}
+}
+
+
+
 // Prints a message to the console output
 void SpD3D9OConsole::print(const char *new_message)
 {
-	std::string message = new_message;
-	std::string line;
-
-	int newline_pos;
-
-	if ((newline_pos = message.find('\n')) != std::string::npos)
+	if (output_stream)
 	{
-		do
+		std::string message = new_message;
+		std::string line;
+
+		int newline_pos;
+
+		if ((newline_pos = message.find('\n')) != std::string::npos)
 		{
-			line = message.substr(0, newline_pos);
-			output_log.push_back(line.c_str());
-			message.erase(0, newline_pos+1);
-		} while ((newline_pos = message.find('\n')) != std::string::npos);
-		output_log.push_back(message.c_str());
-	}
-	else
-	{
-		// No newlines appear in the string
-		output_log.push_back(message.c_str());
+			do
+			{
+				line = message.substr(0, newline_pos);
+				output_log.push_back(line.c_str());
+				message.erase(0, newline_pos + 1);
+			} while ((newline_pos = message.find('\n')) != std::string::npos);
+			output_log.push_back(message.c_str());
+		}
+		else
+		{
+			// No newlines appear in the string
+			output_log.push_back(message.c_str());
+		}
 	}
 }
 

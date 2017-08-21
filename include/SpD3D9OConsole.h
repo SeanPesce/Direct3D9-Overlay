@@ -22,6 +22,7 @@
 #define _SP_D3D9O_C_DEFAULT_OUTPUT_LOG_CAPACITY_ 100
 #define _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_ 20
 #define _SP_D3D9O_C_DEFAULT_ECHO_VALUE_ true
+#define _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_ true
 #define _SP_D3D9O_C_DEFAULT_PROMPT_ ">"
 #define _SP_D3D9O_C_DEFAULT_CARET_ '_'
 #define _SP_D3D9O_C_DEFAULT_BLINK_DELAY_ 500
@@ -65,6 +66,7 @@ public:
 	SpD3D9Overlay *overlay = NULL; // D3D9 overlay that this console belongs to
 	
 	bool echo = _SP_D3D9O_C_DEFAULT_ECHO_VALUE_;
+	bool output_stream = _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_; // If disabled, printing to console does nothing
 	std::string prompt = _SP_D3D9O_C_DEFAULT_PROMPT_;
 	int prompt_elements = _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_;
 	char caret = _SP_D3D9O_C_DEFAULT_CARET_;
@@ -105,6 +107,7 @@ public:
 	void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt); // Adds extra prompt elements, if enabled (username, hostname, working directory, etc)
 	void SpD3D9OConsole::print(const char *new_message); // Prints text to output log
 	void SpD3D9OConsole::execute_command(const char *new_command);
+	void SpD3D9OConsole::clear(); // Clears console by pushing blank messages to output
 	DWORD SpD3D9OConsole::copy(); // Copies current un-submitted console input to the clipboard
 	DWORD SpD3D9OConsole::paste(); // Paste clipboard data into console input
 	#ifdef _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
@@ -113,7 +116,7 @@ public:
 		void SpD3D9OConsole::handle_key_press(WPARAM wParam);
 		void SpD3D9OConsole::handle_text_input(WPARAM wParam);
 	#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
-		static int register_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for = "", std::vector<std::string> macro_args = {});
+	static int register_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for = "", std::vector<std::string> macro_args = {});
 	static int register_alias(const char *new_alias, const char *existing_command);
 	static void get_autocomplete_options(const char *str, unsigned int suggestion_count, std::vector<std::string> *matches);
 

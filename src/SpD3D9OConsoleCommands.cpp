@@ -819,7 +819,11 @@ void cc_console_font_size(std::vector<std::string> args, std::string *output)
 // Restores developer default settings for the console
 void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string *output)
 {
-	gl_pSpD3D9Device->overlay->console->toggle();
+	bool console_open = gl_pSpD3D9Device->overlay->console->is_open();
+	if (console_open)
+	{
+		gl_pSpD3D9Device->overlay->console->toggle();
+	}
 
 	gl_pSpD3D9Device->overlay->console->echo = _SP_D3D9O_C_DEFAULT_ECHO_VALUE_;
 	gl_pSpD3D9Device->overlay->console->output_stream = _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_;
@@ -849,7 +853,10 @@ void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string 
 		gl_pSpD3D9Device->overlay->console->output_log.push_back("");
 	}
 
-	gl_pSpD3D9Device->overlay->console->toggle();
+	if (console_open)
+	{
+		gl_pSpD3D9Device->overlay->console->toggle();
+	}
 
 	output->append("Restored console developer default settings:\n");
 	if (gl_pSpD3D9Device->overlay->console->echo)

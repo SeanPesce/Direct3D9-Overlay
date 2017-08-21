@@ -205,7 +205,10 @@ void cc_exit(std::vector<std::string> args, std::string *output)
 // Closes the console
 void cc_close(std::vector<std::string> args, std::string *output)
 {
-	gl_pSpD3D9Device->overlay->console->toggle();
+	if (gl_pSpD3D9Device->overlay->console->is_open())
+	{
+		gl_pSpD3D9Device->overlay->console->toggle();
+	}
 }
 
 
@@ -534,9 +537,16 @@ void cc_console_enabled(std::vector<std::string> args, std::string *output)
 		switch (parse_toggle_arg(args.at(0).c_str()))
 		{
 			case 0:
-				gl_pSpD3D9Device->overlay->console->toggle();
+				if (gl_pSpD3D9Device->overlay->console->is_open())
+				{
+					gl_pSpD3D9Device->overlay->console->toggle();
+				}
 				break;
 			case 1:
+				if (!gl_pSpD3D9Device->overlay->console->is_open())
+				{
+					gl_pSpD3D9Device->overlay->console->toggle();
+				}
 				break;
 			default:
 				output->append("ERROR: Console value must be either 1 or 0 (1 = open, 0 = hidden)\n");
@@ -1477,18 +1487,16 @@ void cc_run(std::vector<std::string> args, std::string *output)
 
 void register_default_console_commands()
 {
-	std::string dummy_string; // Used for creating aliases at startup
-
 	SpD3D9OConsole::register_command("help", cc_help, "help [command]\n    Prints the help message for the given command.");
-	cc_alias({ "h", "help" }, &dummy_string);
+	SpD3D9OConsole::register_alias("h", "help");
 	SpD3D9OConsole::register_command("exit", cc_exit, "exit [exit code]\n    Exits the game.");
-	cc_alias({ "quit", "exit" }, &dummy_string);
+	SpD3D9OConsole::register_alias("quit", "exit");
 	SpD3D9OConsole::register_command("commands", cc_all_commands, "commands\n    Lists all available console commands");
 	SpD3D9OConsole::register_command("search_command", cc_search_command, "search_command <query>\n    Returns a list of available commands that contain the given query string.");
 	SpD3D9OConsole::register_command("close", cc_close, "close\n    Closes the console overlay.");
 	SpD3D9OConsole::register_command("clear", cc_clear, "clear\n    Clears console output.");
 	SpD3D9OConsole::register_command("sleep", cc_sleep, "sleep <duration>\n    Pauses execution for the specified duration (in milliseconds).");
-	cc_alias({ "sleep", "wait" }, &dummy_string);
+	SpD3D9OConsole::register_alias("wait", "sleep");
 	SpD3D9OConsole::register_command("date", cc_date, "date\n    Prints the current date (in MM/DD/YYYY format).");
 	SpD3D9OConsole::register_command("date_time", cc_date_time, "date_time\n    Prints the current date (in MM/DD/YYYY format) and 24-hour time.");
 	SpD3D9OConsole::register_command("time", cc_time, "time\n    Prints the current 24-hour time.");
@@ -1497,7 +1505,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("beep", cc_beep, "beep <frequency> <duration>\n    Generates a beeping sound at the given frequency (hz) for the given duration (milliseconds).\n    Execution is halted until the beep is completed.");
 	SpD3D9OConsole::register_command("load_library", cc_load_library, "load_library <filename>\n    Loads the specified dynamic link library (DLL) file.");
 	SpD3D9OConsole::register_command("free_library", cc_free_library, "free_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
-	cc_alias({ "unload_library", "free_library" }, &dummy_string);
+	SpD3D9OConsole::register_alias("unload_library", "free_library");
 	//SpD3D9OConsole::register_command("shell", cc_shell, "shell <URL>\n    Executes a shell command in the system default shell.");
 	SpD3D9OConsole::register_command("web", cc_open_web_page, "web <URL>\n    Opens a web page in the system default web browser.");
 	SpD3D9OConsole::register_command("console", cc_console_enabled, "console [is_open]\n    Opens/closes the console (1 = open, 0 = hidden).");
@@ -1514,7 +1522,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("console_border_width", cc_console_border_width, "console_border_width [width]\n    Sets the console border width.");
 	SpD3D9OConsole::register_command("echo", cc_echo, "echo [args]\n    Prints each argument on a separate line.");
 	SpD3D9OConsole::register_command("run", cc_run, "run <file>\n    Opens or runs a file using the system resolver.");
-	cc_alias({ "open", "run" }, &dummy_string);
+	SpD3D9OConsole::register_alias("open", "run");
 	SpD3D9OConsole::register_command("text_feed", cc_text_feed_enabled, "text_feed [is_enabled]\n    Enables/disables the overlay text feed (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("text_feed_info_bar", cc_text_feed_info_bar, "text_feed_info_bar [is_enabled]\n    Enables/disables the overlay text feed info bar (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("text_feed_date", cc_text_feed_info_date, "text_feed_date [is_enabled]\n    Enables/disables the date element of the overlay text feed info bar (1 = enabled, 0 = disabled).");

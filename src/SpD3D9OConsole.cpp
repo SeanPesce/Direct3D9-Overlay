@@ -897,9 +897,9 @@ void SpD3D9OConsole::execute_command(const char *new_command)
 }
 
 
-int SpD3D9OConsole::register_command(const char *new_command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for) // Static function
+int SpD3D9OConsole::register_command(const char *new_command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for, std::vector<std::string> macro_args) // Static function
 {
-	if (new_command == NULL || help_message == NULL || function == NULL)
+	if (new_command == NULL || help_message == NULL || function == NULL || alias_for == NULL)
 	{
 		// Arguments can't be NULL
 		SetLastError(ERROR_INVALID_ADDRESS);
@@ -963,6 +963,7 @@ int SpD3D9OConsole::register_command(const char *new_command, void(*function)(st
 	new_cmd.help_message = help_message;
 	new_cmd.id = seqan::positionToId(commands_set, seqan::length(commands_set) - 1);
 	new_cmd.alias_for = alias_for;
+	new_cmd.macro_args = macro_args;
 
 	commands.push_back(new_cmd);
 	if (commands_index != NULL)
@@ -975,6 +976,41 @@ int SpD3D9OConsole::register_command(const char *new_command, void(*function)(st
 	seqan::clear(commands_finder);
 
 	return 0;
+}
+
+
+int SpD3D9OConsole::register_alias(const char *new_alias, const char *existing_command)
+{
+	if (existing_command == NULL)
+	{
+		// Arguments can't be NULL
+		SetLastError(ERROR_INVALID_ADDRESS);
+		return (int)ERROR_INVALID_ADDRESS;
+	}
+	
+	// Trim whitespace from existing command name
+	std::string existing_cmd(existing_command);
+	trim(&existing_cmd);
+	
+	if (existing_cmd.c_str()[0] == '\0')
+	{
+		// Arguments can't be empty string
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return (int)ERROR_INVALID_PARAMETER;
+	}
+
+	// Convert existing command name to lowercase
+	to_lower((char *)existing_cmd.c_str());
+
+	int index = SpD3D9OConsole::get_console_command_index(existing_cmd.c_str());
+	if (index == -1)
+	{
+		// Couldn't find the pre-existing command specified
+		SetLastError(ERROR_PROC_NOT_FOUND);
+		return (int)ERROR_PROC_NOT_FOUND;
+	}
+
+	return SpD3D9OConsole::register_command(new_alias, SpD3D9OConsole::commands.at(index).function, SpD3D9OConsole::commands.at(index).help_message.c_str(), existing_cmd.c_str());
 }
 
 

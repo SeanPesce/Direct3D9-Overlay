@@ -54,7 +54,8 @@ typedef struct SP_D3D9O_CONSOLE_COMMAND {
 	void(*function)(std::vector<std::string>, std::string *) = NULL;
 	std::string help_message = "";
 	int id = -1; // ID of command in commands_set
-	std::string alias_for = "";
+	std::string alias_for = ""; // If not an empty string, the command is an alias or macro
+	std::vector<std::string> macro_args; // If alias_for is non-empty and macro_args contains args, command is a macro. If alias_for is empty, macro_args is ignored
 } SP_D3D9O_CONSOLE_COMMAND;
 
 
@@ -112,7 +113,8 @@ public:
 		void SpD3D9OConsole::handle_key_press(WPARAM wParam);
 		void SpD3D9OConsole::handle_text_input(WPARAM wParam);
 	#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
-	static int register_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for = "");
+		static int register_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for = "", std::vector<std::string> macro_args = {});
+	static int register_alias(const char *new_alias, const char *existing_command);
 	static void get_autocomplete_options(const char *str, unsigned int suggestion_count, std::vector<std::string> *matches);
 
 	static std::vector<SP_D3D9O_CONSOLE_COMMAND> commands;		// Set of available console commands and corresponding functions

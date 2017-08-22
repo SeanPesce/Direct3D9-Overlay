@@ -39,8 +39,15 @@
 #define _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_ 15
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_ 5
 #define _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_ (SP_D3D9O_PROMPT_ELEMENTS_DISABLED)
+#define _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_ true
+#define _SP_D3D9O_C_DEFAULT_CURSOR_SIZE_ 16
+#define _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_ D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);	// White
+#define _SP_D3D9O_C_DEFAULT_CURSOR_FONT_FAMILY_ "Consolas"
+#define _SP_D3D9O_C_DEFAULT_OLD_OS_CURSOR_FONT_FAMILY_ "Courier New"
 
 #define _SP_D3D9O_C_INVALID_CONSOLE_COMMAND_CHARS_ " \t\n\r"
+
+#define _SP_D3D9O_C_MAX_FONT_SIZE_ 190
 
 // Denotes whether to display each element of the input prompt
 enum SP_D3D9O_CONSOLE_PROMPT_ENUM {
@@ -72,6 +79,12 @@ public:
 	char caret = _SP_D3D9O_C_DEFAULT_CARET_;
 	int caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
 	std::string command = ""; // Current command being typed
+
+	bool show_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_;
+	std::string cursor_font_family = _SP_D3D9O_C_DEFAULT_CURSOR_FONT_FAMILY_;
+	CD3DFont *cursor = NULL;
+	int cursor_size = _SP_D3D9O_C_DEFAULT_CURSOR_SIZE_;
+	D3DXCOLOR cursor_color = _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_;
 
 	CD3DFont *font = NULL;
 	int font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;

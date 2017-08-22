@@ -123,8 +123,7 @@ typedef struct SP_D3D9_PLUGIN {
 	std::string name = ""; // Module name (file name of the DLL)
 	void(__stdcall *init_func)() = NULL; // Called once after overlay is initialized
 	void(__stdcall *main_loop_func)() = NULL; // Called from the main thread loop; allows plugin to run repetitive code without creating new threads
-	void(__stdcall *get_raw_input_data_func)(RAWINPUT *, PUINT) = NULL; // Called from hooked GetRawInputData, allowing plugins to receive player input
-	bool(__stdcall *disable_player_input_func)() = NULL;  // Allows plugin to disable player input
+	bool(__stdcall *get_raw_input_data_func)(RAWINPUT *, PUINT) = NULL; // Called from hooked GetRawInputData, allowing plugins to receive player input and determine if game input should be disabled
 	void(__stdcall *draw_overlay_func)(std::string *) = NULL; // Function for drawing overlay elements and adding extra info to the text feed info header
 	void(__stdcall *present_func)(const RECT *, const RECT *, HWND, const RGNDATA *, DWORD) = NULL; // Called from the Present() member func of the D3D9 device and/or SwapChain
 	void(__stdcall *end_scene_func)() = NULL; // Called from D3D9 EndScene() function

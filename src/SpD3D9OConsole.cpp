@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "SpD3D9OConsole.h"
+#include "VersionHelpers.h"  // To determine which fonts are available
 
 
 // Static class data
@@ -40,6 +41,16 @@ SpD3D9OConsole::SpD3D9OConsole(SpD3D9Overlay *new_overlay)
 	font = new CD3DFont(font_family.c_str(), font_height, _SP_D3D9O_C_DEFAULT_FONT_FLAGS_);
 	font->InitializeDeviceObjects(overlay->device->m_pIDirect3DDevice9);
 	font->RestoreDeviceObjects();
+
+	// Initialize cursor
+	if (!IsWindowsVistaOrGreater())
+	{
+		// Use older (uglier) font
+		cursor_font_family = _SP_D3D9O_C_DEFAULT_OLD_OS_CURSOR_FONT_FAMILY_;
+	}
+	cursor = new CD3DFont(cursor_font_family.c_str(), cursor_size, 0);
+	cursor->InitializeDeviceObjects(overlay->device->m_pIDirect3DDevice9);
+	cursor->RestoreDeviceObjects();
 }
 
 
@@ -97,7 +108,7 @@ void SpD3D9OConsole::get_input()
 
 void SpD3D9OConsole::draw()
 {
-	if ((unsigned int)font->GetFontHeight() != font_height)
+	if ((unsigned int)font->GetFontHeight() != font_height || (unsigned int)cursor->GetFontHeight() != cursor_size)
 	{
 		update_font();
 	}
@@ -227,10 +238,22 @@ void SpD3D9OConsole::draw()
 	}
 
 
-	// Render the console
+	// Render the console text
 	font->BeginDrawing();
 	font->DrawText((float)border_width, (float)border_width, font_color, output_string.c_str(), 0, 0);
 	font->EndDrawing();
+
+
+	// Get cursor screenspace size
+	cursor->GetTextExtent("|", &char_size);
+
+	if (show_cursor) //&& SpD3D9OInputHandler::get()->cursor_position.y <= (console_height + (2 * border_width)) + (char_size.cy / 2) ) // Extra conditional makes cursor display only if over the console
+	{
+		// Render the cursor
+		cursor->BeginDrawing();
+		cursor->DrawText(SpD3D9OInputHandler::get()->cursor_position.x - (char_size.cx / 2), SpD3D9OInputHandler::get()->cursor_position.y - (char_size.cy / 2), cursor_color, "I", 0, 0);
+		cursor->EndDrawing();
+	}
 }
 
 
@@ -631,10 +654,29 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_TAB:
-				get_autocomplete_options(command.c_str(), 1, &match);
-				if (match.size() > 0)
+				if (command.length() > 0)
 				{
-					command = match.at(0);
+					// If input isn't blank, use autocomplete
+					get_autocomplete_options(command.c_str(), 1, &match);
+					if (match.size() > 0)
+					{
+						command = match.at(0);
+						caret_position = command.length();
+					}
+				}
+				else
+				{
+					// If input is blank, get last command
+					if (command_log_position <= 1)
+					{
+						command_log_position = 0;
+					}
+					else
+					{
+						command_log_position--;
+					}
+					caret_position = 0;
+					command = command_log.at(command_log_position);
 					caret_position = command.length();
 				}
 				show_caret = true;
@@ -1098,6 +1140,16 @@ void SpD3D9OConsole::update_font()
 
 	font->InitializeDeviceObjects(overlay->device->m_pIDirect3DDevice9);
 	font->RestoreDeviceObjects();
+
+
+	if (cursor != NULL)
+	{
+		delete cursor;
+		cursor = NULL;
+	}
+	cursor = new CD3DFont(cursor_font_family.c_str(), cursor_size, 0);
+	cursor->InitializeDeviceObjects(overlay->device->m_pIDirect3DDevice9);
+	cursor->RestoreDeviceObjects();
 }
 
 

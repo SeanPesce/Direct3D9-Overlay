@@ -612,25 +612,13 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 		return return_value;
 	}
 
-	static POINT ptCursor; // Current mouse cursor position
-	const DWORD	dwLButtonTime = 13379,
-		dwRButtonTime = 13378;
+	const DWORD	dwLButtonTime = 10451,
+				dwRButtonTime = 20451,
+				dwMButtonTime = 30451;
 
 	SpD3D9OInputHandler::get()->handled = false;
 
 	RAWINPUT *raw_input = (RAWINPUT *)pData;
-
-	// Send raw input data to overlay plugins
-	if (SpD3D9Overlay::run_plugin_funcs)
-	{
-		for (auto plugin : SpD3D9Overlay::loaded_libraries)
-		{
-			if (plugin.get_raw_input_data_func != NULL)
-			{
-				plugin.get_raw_input_data_func(raw_input, pcbSize);
-			}
-		}
-	}
 	
 	switch (raw_input->header.dwType)
 	{
@@ -639,37 +627,89 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 
 		case RIM_TYPEMOUSE:
 
+			// Mouse button press
 			switch (raw_input->data.mouse.usButtonFlags)
 			{
-				case WM_LBUTTONDOWN:
+				case RI_MOUSE_LEFT_BUTTON_DOWN:
 					//SetTimer(hWnd, dwLButtonTime, 50, 0);
 					break;
 
-				case WM_LBUTTONUP:
+				case RI_MOUSE_LEFT_BUTTON_UP:
 					//KillTimer(hWnd, dwLButtonTime);
 					break;
 
-				case WM_RBUTTONDOWN:
+				case RI_MOUSE_RIGHT_BUTTON_DOWN:
 					//SetTimer(hWnd, dwRButtonTime, 50, 0);
 					break;
 
-				case WM_RBUTTONUP:
+				case RI_MOUSE_RIGHT_BUTTON_UP:
 					//KillTimer(hWnd, dwRButtonTime);
 					break;
 
-				case WM_MOUSEWHEEL:
+				case RI_MOUSE_MIDDLE_BUTTON_DOWN:
+					//SetTimer(hWnd, dwMButtonTime, 50, 0);
+					break;
+
+				case RI_MOUSE_MIDDLE_BUTTON_UP:
+					//KillTimer(hWnd, dwMButtonTime);
+					break;
+
+				case RI_MOUSE_WHEEL:
 					if (raw_input->data.mouse.usButtonData == 120)
 					{
-
+						// Scrolling up
 					}
-
-					if (raw_input->data.mouse.usButtonData == -120)
+					else if (raw_input->data.mouse.usButtonData == 65416)
 					{
-
+						// Scrolling down
 					}
+					break;
+
+				// Additional mouse buttons
+				case RI_MOUSE_BUTTON_4_DOWN:
+				case RI_MOUSE_BUTTON_4_UP:
+				case RI_MOUSE_BUTTON_5_DOWN:
+				case RI_MOUSE_BUTTON_5_UP:
 					break;
 			} // switch (raw_input->data.mouse.usButtonFlags)
 
+			// Mouse movement
+			switch (raw_input->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
+			{
+				case MOUSE_MOVE_ABSOLUTE:
+					// Mouse movement data is based on absolute position
+					SpD3D9OInputHandler::get()->cursor_position.x = raw_input->data.mouse.lLastX;
+					SpD3D9OInputHandler::get()->cursor_position.y = raw_input->data.mouse.lLastY;
+					break;
+				case MOUSE_MOVE_RELATIVE:
+					// Mouse movement data is relative (based on last known position)
+					SpD3D9OInputHandler::get()->cursor_position.x += raw_input->data.mouse.lLastX;
+					SpD3D9OInputHandler::get()->cursor_position.y += raw_input->data.mouse.lLastY;
+
+					// Make sure cursor is on-screen
+					RECT window_rect;
+					if (!GetClientRect(*(gl_pSpD3D9Device->overlay->game_window), &window_rect))
+					{
+						// Handle error
+					}
+					if (SpD3D9OInputHandler::get()->cursor_position.x < 0)
+					{
+						SpD3D9OInputHandler::get()->cursor_position.x = 0;
+					}
+					else if (SpD3D9OInputHandler::get()->cursor_position.x > window_rect.right)
+					{
+						SpD3D9OInputHandler::get()->cursor_position.x = window_rect.right;
+					}
+					if (SpD3D9OInputHandler::get()->cursor_position.y < 0)
+					{
+						SpD3D9OInputHandler::get()->cursor_position.y = 0;
+					}
+					else if (SpD3D9OInputHandler::get()->cursor_position.y > window_rect.bottom)
+					{
+						SpD3D9OInputHandler::get()->cursor_position.x = window_rect.bottom;
+					}
+					break;
+			}
 			break; // case RIM_TYPEMOUSE
 
 		case RIM_TYPEKEYBOARD:
@@ -746,27 +786,21 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 	} // switch (raw_input->header.dwType)
 
 
-
-	// Check if any overlay plugins want to disable in-game player input
+	// Send raw input data to overlay plugins and check if game input should be disabled
 	bool disable_input = false;
 	if (SpD3D9Overlay::run_plugin_funcs)
 	{
 		for (auto plugin : SpD3D9Overlay::loaded_libraries)
 		{
-			if (plugin.disable_player_input_func != NULL)
+			if (plugin.get_raw_input_data_func != NULL && plugin.get_raw_input_data_func(raw_input, pcbSize))
 			{
-				disable_input = plugin.disable_player_input_func();
-			}
-			if (disable_input)
-			{
-				// Found a plugin that disables input; no need to check the others
-				break;
+				disable_input = true;
 			}
 		}
 	}
 
-
-	if (SpD3D9OInputHandler::get()->handled || disable_input)
+	// Disable game input, if necessary
+	if (SpD3D9OInputHandler::get()->handled || SpD3D9OInputHandler::get()->disable_game_input || disable_input)
 	{
 		// Skip calling original function if message was handled
 		*pcbSize = 0;

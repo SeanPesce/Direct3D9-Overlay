@@ -138,6 +138,7 @@ class SpD3D9OInputHandler
 		void SpD3D9OInputHandler::get_device_input();
 #endif // _SP_USE_GET_RAW_INPUT_DATA_INPUT_
 
+		bool disable_game_input = false; // If true, blocks player input from game
 
 		bool handled = false; // Current input message has been handled
 		bool shift = false; // Shift is currently held down
@@ -145,6 +146,8 @@ class SpD3D9OInputHandler
 		bool alt = false; // alt is currently held down
 		bool win = false; // Windows key is currently held down
 		bool capslock = false; // Caplock is currently on
+
+		POINT cursor_position = { 0, 0 }; // Mouse cursor position
 
 		// Destructor
 		~SpD3D9OInputHandler();

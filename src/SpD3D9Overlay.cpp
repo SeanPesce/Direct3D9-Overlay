@@ -254,6 +254,7 @@ void SpD3D9Overlay::release_tasks()
 	text_feed->font = NULL;
 
 	console->font = NULL;
+	console->cursor = NULL;
 }
 
 
@@ -280,6 +281,7 @@ void SpD3D9Overlay::force_release_tasks()
 	text_feed->font = NULL;
 
 	console->font = NULL;
+	console->cursor = NULL;
 }
 
 
@@ -310,6 +312,11 @@ void SpD3D9Overlay::reset_tasks()
 		delete console->font;
 		console->font = NULL;
 	}
+	if (console->cursor != NULL)
+	{
+		delete console->cursor;
+		console->cursor = NULL;
+	}
 }
 
 
@@ -332,6 +339,9 @@ void SpD3D9Overlay::post_reset_tasks(D3DPRESENT_PARAMETERS *present_params)
 	console->font = new CD3DFont(console->font_family.c_str(), console->font_height, 0);
 	console->font->InitializeDeviceObjects(device->m_pIDirect3DDevice9);
 	console->font->RestoreDeviceObjects();
+	console->cursor = new CD3DFont(console->cursor_font_family.c_str(), console->cursor_size, 0);
+	console->cursor->InitializeDeviceObjects(device->m_pIDirect3DDevice9);
+	console->cursor->RestoreDeviceObjects();
 
 
 	// Store window mode (windowed or fullscreen)
@@ -604,11 +614,8 @@ void SpD3D9Overlay::load_plugin_funcs(HINSTANCE new_dll_instance, const char* ne
 	typedef void(__stdcall *plugin_draw_ol_func_T)(std::string *);
 	plugin.draw_overlay_func = (plugin_draw_ol_func_T)GetProcAddress(new_dll_instance, "draw_overlay"); // Plugin function for drawing overlay elements and adding extra info to the text feed info header
 
-	typedef void(__stdcall *plugin_get_raw_input_data_func_T)(RAWINPUT *, PUINT);
+	typedef bool(__stdcall *plugin_get_raw_input_data_func_T)(RAWINPUT *, PUINT);
 	plugin.get_raw_input_data_func = (plugin_get_raw_input_data_func_T)GetProcAddress(new_dll_instance, "get_raw_input_data");
-
-	typedef bool(__stdcall *plugin_disable_input_func_T)();
-	plugin.disable_player_input_func = (plugin_disable_input_func_T)GetProcAddress(new_dll_instance, "disable_player_input");
 
 	typedef void(__stdcall *present_func_T)(const RECT *, const RECT *, HWND, const RGNDATA *, DWORD);
 	plugin.present_func = (present_func_T)GetProcAddress(new_dll_instance, "present");

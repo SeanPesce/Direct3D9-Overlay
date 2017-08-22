@@ -5,6 +5,7 @@
 #include "SpD3D9Exports.h"
 
 
+
 __declspec(dllexport) IDirect3DDevice9 *get_d3d9_device()
 {
 	if (gl_pSpD3D9Device != NULL)
@@ -67,7 +68,6 @@ __declspec(dllexport) int execute_console_command(const char *command, std::stri
 
 __declspec(dllexport) bool print(const char *message, unsigned long long duration, bool include_timestamp, SP_D3D9O_TEXT_COLOR_ENUM text_color)
 {
-	extern SpD3D9Device* gl_pSpD3D9Device;
 	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->text_feed != NULL)
 	{
 		gl_pSpD3D9Device->overlay->text_feed->print(message, duration, include_timestamp, text_color);
@@ -92,7 +92,6 @@ __declspec(dllexport) bool print_console(const char *message)
 
 __declspec(dllexport) bool set_text_feed_title(const char *new_title)
 {
-	extern SpD3D9Device* gl_pSpD3D9Device;
 	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->text_feed != NULL)
 	{
 		gl_pSpD3D9Device->overlay->text_feed->set_title(new_title);
@@ -100,4 +99,36 @@ __declspec(dllexport) bool set_text_feed_title(const char *new_title)
 	}
 
 	return false;
+}
+
+
+__declspec(dllexport) bool console_open()
+{
+	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->console != NULL)
+	{
+		return gl_pSpD3D9Device->overlay->console->is_open();
+	}
+	else
+	{
+		// If overlay is not initialized, set last error
+		SetLastError(ERROR_INVALID_ADDRESS);
+	}
+
+	return false;
+}
+
+
+__declspec(dllexport) HWND get_game_window()
+{
+	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL)
+	{
+		return *(gl_pSpD3D9Device->overlay->game_window);
+	}
+	else
+	{
+		// If overlay is not initialized, set last error
+		SetLastError(ERROR_INVALID_ADDRESS);
+	}
+
+	return NULL;
 }

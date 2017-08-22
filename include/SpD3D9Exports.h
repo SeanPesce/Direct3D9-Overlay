@@ -67,6 +67,8 @@ __declspec(dllexport) int execute_console_command(const char *command, std::stri
 __declspec(dllexport) bool print(const char *message, unsigned long long duration = 2000, bool include_timestamp = true, SP_D3D9O_TEXT_COLOR_ENUM text_color = SP_D3D9O_TEXT_COLOR_WHITE); // Prints to text feed and console
 __declspec(dllexport) bool print_console(const char *message); // Prints only to console
 __declspec(dllexport) bool set_text_feed_title(const char *new_title);
+__declspec(dllexport) bool console_open();
+__declspec(dllexport) HWND get_game_window();
 
 
 

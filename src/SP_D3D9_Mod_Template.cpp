@@ -429,7 +429,7 @@ int increase_text_feed_font_size()
 {
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
-		if (current_text_feed_font_size < 270) // Max font size
+		if (current_text_feed_font_size < _SP_D3D9O_TF_MAX_FONT_SIZE_) // Max font size
 		{
 			gl_pSpD3D9Device->overlay->text_feed->set_font_height(++current_text_feed_font_size);
 		}

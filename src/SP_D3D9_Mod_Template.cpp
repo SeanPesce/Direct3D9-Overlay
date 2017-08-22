@@ -429,7 +429,10 @@ int increase_text_feed_font_size()
 {
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
-		gl_pSpD3D9Device->overlay->text_feed->set_font_height(++current_text_feed_font_size);
+		if (current_text_feed_font_size < 270) // Max font size
+		{
+			gl_pSpD3D9Device->overlay->text_feed->set_font_height(++current_text_feed_font_size);
+		}
 		if (user_pref_verbose_output_enabled)
 		{
 			print_ol_feed(std::string(_SP_D3D9_OL_TXT_SIZE_INCREASED_MESSAGE_).append(std::to_string(current_text_feed_font_size)).c_str(), _SP_D3D9_OL_TEXT_FEED_MSG_LIFESPAN_, true);

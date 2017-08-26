@@ -631,26 +631,32 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 			switch (raw_input->data.mouse.usButtonFlags)
 			{
 				case RI_MOUSE_LEFT_BUTTON_DOWN:
+					SpD3D9OInputHandler::get()->mouse_button_down[0] = true;
 					//SetTimer(hWnd, dwLButtonTime, 50, 0);
 					break;
 
 				case RI_MOUSE_LEFT_BUTTON_UP:
+					SpD3D9OInputHandler::get()->mouse_button_down[0] = false;
 					//KillTimer(hWnd, dwLButtonTime);
 					break;
 
 				case RI_MOUSE_RIGHT_BUTTON_DOWN:
+					SpD3D9OInputHandler::get()->mouse_button_down[1] = true;
 					//SetTimer(hWnd, dwRButtonTime, 50, 0);
 					break;
 
 				case RI_MOUSE_RIGHT_BUTTON_UP:
+					SpD3D9OInputHandler::get()->mouse_button_down[1] = false;
 					//KillTimer(hWnd, dwRButtonTime);
 					break;
 
 				case RI_MOUSE_MIDDLE_BUTTON_DOWN:
+					SpD3D9OInputHandler::get()->mouse_button_down[2] = true;
 					//SetTimer(hWnd, dwMButtonTime, 50, 0);
 					break;
 
 				case RI_MOUSE_MIDDLE_BUTTON_UP:
+					SpD3D9OInputHandler::get()->mouse_button_down[2] = false;
 					//KillTimer(hWnd, dwMButtonTime);
 					break;
 
@@ -667,9 +673,16 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 
 				// Additional mouse buttons
 				case RI_MOUSE_BUTTON_4_DOWN:
+					SpD3D9OInputHandler::get()->mouse_button_down[3] = true;
+					break;
 				case RI_MOUSE_BUTTON_4_UP:
+					SpD3D9OInputHandler::get()->mouse_button_down[3] = false;
+					break;
 				case RI_MOUSE_BUTTON_5_DOWN:
+					SpD3D9OInputHandler::get()->mouse_button_down[4] = true;
+					break;
 				case RI_MOUSE_BUTTON_5_UP:
+					SpD3D9OInputHandler::get()->mouse_button_down[4] = false;
 					break;
 			} // switch (raw_input->data.mouse.usButtonFlags)
 
@@ -710,6 +723,12 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 					}
 					break;
 			}
+
+			if (gl_pSpD3D9Device != NULL)
+			{
+				gl_pSpD3D9Device->overlay->console->handle_mouse_click(&(raw_input->data.mouse)); // Send mouse input to the console
+			}
+
 			break; // case RIM_TYPEMOUSE
 
 		case RIM_TYPEKEYBOARD:
@@ -754,12 +773,9 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 					}
 					break; // case  WM_KEYDOWN || WM_SYSKEYDOWN
 
-				case WM_CHAR:
-					if (gl_pSpD3D9Device != NULL)
-					{
-						gl_pSpD3D9Device->overlay->console->handle_text_input(raw_input->data.keyboard.VKey);
-					}
-					break;
+				//case WM_CHAR:
+					// This should never be the case
+				//	break;
 
 				case WM_KEYUP:
 					switch (raw_input->data.keyboard.VKey)

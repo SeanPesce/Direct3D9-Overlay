@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "SpD3D9OConsole.h"
 #include "VersionHelpers.h"  // To determine which fonts are available
+#include "SpD3D9OConsoleTextSelection.h"
 
 
 // Static class data
@@ -35,6 +36,7 @@ SpD3D9OConsole::SpD3D9OConsole(SpD3D9Overlay *new_overlay)
 		output_log_capacity = output_log_displayed_lines;
 	}
 
+	clear_selection();
 	clear();
 
 	// Inititalize font interface
@@ -133,15 +135,7 @@ void SpD3D9OConsole::draw()
 	// Calculate maximum number of characters & lines that can be displayed on-screen
 	//unsigned int max_lines = (unsigned int)((/*(float)*/console_height / 1.5f) / /*(float)*/char_size.cx);
 	unsigned int max_chars = (background.x2 - background.x1) / char_size.cx; // Maximum characters per line
-	int max_input_chars = max_chars - prompt.length();
-	if (caret_position == command.length())
-	{
-		max_input_chars--;
-	}
-
-	set_input_string_display_limits(max_input_chars);
-
-
+	
 	// Concatenate prompt if it's too long
 	if (prompt.length() > (max_chars - 1))
 	{
@@ -153,10 +147,22 @@ void SpD3D9OConsole::draw()
 	add_prompt_elements(&full_prompt);
 
 	// Concatenate extended prompt if it's too long
-	if (full_prompt.length() > (max_chars - 1))
+	if (full_prompt.length() >= max_chars)
 	{
 		full_prompt = full_prompt.substr(0, max_chars - 1);
 	}
+	
+	// Calculate maximum number of characters that can be displayed in the input
+	int max_input_chars = max_chars - full_prompt.length();
+	if (caret_position == command.length())
+	{
+		max_input_chars--;
+	}
+
+	set_input_string_display_limits(max_input_chars);
+
+
+	
 
 	// Build console output log string
 	std::string output_string = "";
@@ -181,7 +187,7 @@ void SpD3D9OConsole::draw()
 		next_caret_blink = current_time + caret_blink_delay;
 	}
 
-	// Add current command
+	// Build input line (prompt and current command)
 	std::string cur_cmd = command;
 	if (show_caret && (caret_position < command.length()))
 	{
@@ -196,9 +202,10 @@ void SpD3D9OConsole::draw()
 	{
 		cur_cmd += caret;
 	}
+
 	cur_cmd.insert(0, full_prompt.c_str());
 	output_string.append(cur_cmd);
-
+	std::string input_line = cur_cmd;
 
 	// Get autocomplete options
 	std::vector<std::string> autocomplete_matches;
@@ -240,7 +247,11 @@ void SpD3D9OConsole::draw()
 
 	// Render the console text
 	font->BeginDrawing();
-	font->DrawText((float)border_width, (float)border_width, font_color, output_string.c_str(), 0, 0);
+	font->DrawText((float)border_width, (float)border_width, font_color, output_string.c_str(), D3DFONT_COLORTABLE, 0);
+	if (selection.focus != SP_D3D9O_SELECT_NONE)
+	{
+		draw_highlighted_text(selection, &input_line);
+	}
 	font->EndDrawing();
 
 
@@ -294,7 +305,7 @@ void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt)
 // Clears console by pushing blank messages to output
 void SpD3D9OConsole::clear()
 {
-	for (int i = 0; i < output_log_displayed_lines; i++)
+	for (int i = 0; i <= output_log_displayed_lines; i++)
 	{
 		output_log.push_back("");
 	}
@@ -343,6 +354,8 @@ bool SpD3D9OConsole::is_open()
 // Opens or closes the console. Returns true if console is open after function executes; false otherwise
 bool SpD3D9OConsole::toggle()
 {
+	clear_selection();
+
 	if (overlay->enabled_elements & SP_D3D9O_CONSOLE_ENABLED)
 	{
 		// Console is currently open
@@ -350,8 +363,14 @@ bool SpD3D9OConsole::toggle()
 	}
 	else
 	{
-		// Console is not currently open
-		overlay->enabled_elements |= SP_D3D9O_CONSOLE_ENABLED; // Open console
+		// Console is currently hidden
+
+		// Set cursor position
+		SpD3D9OInputHandler::get()->cursor_position.x = 100;
+		SpD3D9OInputHandler::get()->cursor_position.y = 100;
+
+		// Open console
+		overlay->enabled_elements |= SP_D3D9O_CONSOLE_ENABLED;
 
 		#ifdef _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 			// Flush the keyboard input buffer before the user starts typing
@@ -575,8 +594,9 @@ void SpD3D9OConsole::handle_key_event(DIDEVICEOBJECTDATA *key_event)
 void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 {
 	DWORD last_err;
-	std::string exec_cmd; // Only used when executing a command
+	std::string str; // Used when a temp string is needed
 	std::vector<std::string> match; // Only used if tab key is pressed
+	int input_sel_start, input_sel_end; // Only used when obtaining selected input
 
 	if (is_open() && !SpD3D9OInputHandler::get()->handled)        // If the console is visible, take input
 	{
@@ -584,9 +604,11 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 		{
 			case _CLOSE_CONSOLE_KEY_:
 				toggle();
+				clear_selection();
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_LEFT:
+				clear_selection();
 				if (caret_position > 0)
 				{
 					caret_position--;    // Move the caret back 1 if it's not already at 0
@@ -596,6 +618,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_RIGHT:
+				clear_selection();
 				if (caret_position < (int)command.length())
 				{
 					caret_position++;    // Move the caret forward one if it's not already at the end of the string
@@ -605,6 +628,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_UP:
+				clear_selection();
 				if (command_log_position <= 1)
 				{
 					command_log_position = 0;
@@ -619,6 +643,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_DOWN:
+				clear_selection();
 				if (command_log_position < (unsigned int)command_log.size() - 1)
 				{
 					caret_position = 0;
@@ -637,6 +662,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 			case VK_DELETE:
 				if (SpD3D9OInputHandler::get()->shift) // Shift+DEL are pressed
 				{
+					clear_selection();
 					command.clear(); // Empty the string
 					caret_position = 0; // Reset caret
 				}
@@ -644,7 +670,15 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				{
 					// Delete the character in front of the caret if it's not at the end of the string
 					// (Note that the caret stays in the same position)
-					if (caret_position < (int)command.length())
+					get_input_selection(&input_sel_start, &input_sel_end);
+					clear_selection();
+					if (input_sel_start > -1 && input_sel_end > -1)
+					{
+						caret_position = input_sel_start;
+						int input_sel_len = input_sel_end - input_sel_start;
+						command.erase(caret_position, input_sel_len);
+					}
+					else if (caret_position < (int)command.length())
 					{
 						command.erase(caret_position, 1);
 					}
@@ -654,6 +688,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_TAB:
+				clear_selection();
 				if (command.length() > 0)
 				{
 					// If input isn't blank, use autocomplete
@@ -683,50 +718,47 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				next_caret_blink = GetTickCount() + caret_blink_delay;
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
-			/*case VK_CLEAR:
-				command.clear(); // Empty the string
-				caret_position = 0; // Reset caret
-				show_caret = true;
-				next_caret_blink = GetTickCount() + caret_blink_delay;
-				SpD3D9OInputHandler::get()->handled = true;
-				break;*/
+			
 			case VK_END:
 			case VK_NEXT: // Page down
+				clear_selection();
 				caret_position = (int)command.length();
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_HOME:
 			case VK_PRIOR: // Page up
+				clear_selection();
 				caret_position = 0;
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_RETURN:
-				//if (command.length() > 0)
-				//{
-					command_log.push_back(command);
-					command_log_position = (unsigned int)command_log.size();
-					exec_cmd = command;
-					if (echo)
-					{
-						// Add elements to prompt
-						std::string full_prompt;
-						add_prompt_elements(&full_prompt);
-						print(command.insert(0, full_prompt).c_str());
-					}
-					command.clear();
-					caret_position = 0;
+				clear_selection();
+				command_log.push_back(command);
+				command_log_position = (unsigned int)command_log.size();
+				str = command;
+				if (echo)
+				{
+					// Add elements to prompt
+					std::string full_prompt;
+					add_prompt_elements(&full_prompt);
+					print(command.insert(0, full_prompt).c_str());
+				}
+				command.clear();
+				caret_position = 0;
 
-					execute_command(exec_cmd.c_str());
-				//}
-				//else
-				//{
-					////toggle();
-					//print(command.insert(0, prompt).c_str());
-				//}
+				execute_command(str.c_str());
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_BACK:
-				if (caret_position > 0)
+				get_input_selection(&input_sel_start, &input_sel_end);
+				clear_selection();
+				if (input_sel_start > -1 && input_sel_end > -1)
+				{
+					caret_position = input_sel_start;
+					int input_sel_len = input_sel_end - input_sel_start;
+					command.erase(caret_position, input_sel_len);
+				}
+				else if (caret_position > 0)
 				{
 					command.erase(caret_position - 1, 1);
 					caret_position--;
@@ -752,13 +784,24 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 					switch (wParam)
 					{
 						case 0x43: // Ctrl+C
-							last_err = copy();
+							build_highlighted_text(selection, &str);
+							last_err = copy(&str);
 							if (last_err != 0)
 							{
-								print("ERROR: Unable to copy current input");
+								print("ERROR: Unable to copy current selection");
 							}
 							break;
 						case 0x56: // Ctrl+V
+							// Delete selection
+							get_input_selection(&input_sel_start, &input_sel_end);
+							clear_selection();
+							if (input_sel_start > -1 && input_sel_end > -1)
+							{
+								caret_position = input_sel_start;
+								int input_sel_len = input_sel_end - input_sel_start;
+								command.erase(caret_position, input_sel_len);
+							}
+							// Paste clipboard instead of typing
 							last_err = paste();
 							if (last_err != 0)
 							{
@@ -771,23 +814,29 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 							}
 							break;
 						case 0x58: // Ctrl+X
-							last_err = copy();
-							if (last_err != 0)
+							get_input_selection(&input_sel_start, &input_sel_end);
+							if (input_sel_start > -1 && input_sel_end > -1)
 							{
-								print("ERROR: Unable to copy current input");
-							}
-							else
-							{
-								command.clear(); // Empty the string
-								caret_position = 0; // Reset caret
-								show_caret = true;
-								next_caret_blink = GetTickCount() + caret_blink_delay;
+								build_highlighted_text(selection, &str);
+								last_err = copy(&str);
+								if (last_err != 0)
+								{
+									print("ERROR: Unable to copy current selection");
+								}
+								else
+								{
+									clear_selection();
+									caret_position = input_sel_start;
+									int input_sel_len = input_sel_end - input_sel_start;
+									command.erase(caret_position, input_sel_len);
+									show_caret = true;
+									next_caret_blink = GetTickCount() + caret_blink_delay;
+								}
 							}
 							break;
 						default:
 							break;
 					}
-					// Paste clipboard instead of typing
 
 				}
 				else if (c != '\0')
@@ -803,6 +852,14 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 							c = SpD3D9OInputHandler::get()->convert_shift_char[wParam];
 						}
 					}
+					get_input_selection(&input_sel_start, &input_sel_end);
+					clear_selection();
+					if (input_sel_start > -1 && input_sel_end > -1)
+					{
+						caret_position = input_sel_start;
+						int input_sel_len = input_sel_end - input_sel_start;
+						command.erase(caret_position, input_sel_len);
+					}
 					command.insert(caret_position, 1, c);
 					caret_position++;
 					show_caret = true;
@@ -817,58 +874,77 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 }
 
 
-void SpD3D9OConsole::handle_text_input(WPARAM wParam)
+
+void SpD3D9OConsole::handle_mouse_click(RAWMOUSE *mouse_input)
 {
-	if (SpD3D9OInputHandler::get()->handled)
+	if (!is_open())
 	{
 		return;
 	}
 
-	std::string exec_cmd = command;
-	switch (wParam)
+	// Mouse button press
+	switch (mouse_input->usButtonFlags)
 	{
-		case '\b':    // backspace
-			if (caret_position > 0)
+		case RI_MOUSE_LEFT_BUTTON_DOWN:
+			start_text_selection();
+			break;
+
+		case RI_MOUSE_LEFT_BUTTON_UP:
+			continue_text_selection();
+			if (selection.focus != SP_D3D9O_SELECT_NONE && selection.line1 == selection.line2 && selection.i1 == selection.i2)
 			{
-				command.erase(caret_position - 1, 1);
-				caret_position--;
+				clear_selection();
 			}
-			show_caret = true;
-			next_caret_blink = GetTickCount() + caret_blink_delay;
 			break;
 
-		//case '\n':
-		case '\r':    // return/enter
-			command_log.push_back(command);
-			command_log_position = (unsigned int)command_log.size();
-			command.clear();
-			caret_position = 0;
-
-			execute_command(exec_cmd.c_str());
+		case RI_MOUSE_RIGHT_BUTTON_DOWN:
 			break;
-		case '\t':    // tab
-			/*if (command_log_position > 0)
+
+		case RI_MOUSE_RIGHT_BUTTON_UP:
+			break;
+
+		case RI_MOUSE_MIDDLE_BUTTON_DOWN:
+			break;
+
+		case RI_MOUSE_MIDDLE_BUTTON_UP:
+			break;
+
+		case RI_MOUSE_WHEEL:
+			if (mouse_input->usButtonData == 120)
 			{
-				command_log_position--;
-				command = command_log.at(command_log_position);
-				caret_position = command.length();
+				// Scrolling up
 			}
-			else
+			else if (mouse_input->usButtonData == 65416)
 			{
-				command_log_position = command_log.size() - 1;
-				command = command_log.at(command_log_position);
-				caret_position = command.length();
-			}*/
+				// Scrolling down
+			}
 			break;
 
-		default:
-			command.insert(caret_position, 1, (char)wParam);
-			caret_position++;
+		// Additional mouse buttons
+		case RI_MOUSE_BUTTON_4_DOWN:
+		case RI_MOUSE_BUTTON_4_UP:
+		case RI_MOUSE_BUTTON_5_DOWN:
+		case RI_MOUSE_BUTTON_5_UP:
 			break;
-	} // switch(wParam)
 
-	SpD3D9OInputHandler::get()->handled = true;
+	} // switch (mouse_input->usButtonFlags)
+
+	// Mouse movement
+	switch (mouse_input->usFlags & MOUSE_MOVE_ABSOLUTE)
+	{
+		case MOUSE_MOVE_ABSOLUTE:
+			// Mouse movement data is based on absolute position
+		case MOUSE_MOVE_RELATIVE:
+			// Mouse movement data is relative (based on last known position)
+
+			if (SpD3D9OInputHandler::get()->mouse_button_down[0])
+			{
+				continue_text_selection();
+			}
+			break;
+	}
 }
+
 #endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 
 
@@ -1188,10 +1264,10 @@ DWORD SpD3D9OConsole::paste()
 	GlobalUnlock(clipboard_data);
 	CloseClipboard();
 
-	// Remove newline and return-feed characters
+	// Remove newline, return-feed, and indent (tab) characters
 	for (int c = 0; c < clipboard_str.length(); c++)
 	{
-		if (clipboard_str.c_str()[c] == '\n' || clipboard_str.c_str()[c] == '\r')
+		if (clipboard_str.c_str()[c] == '\n' || clipboard_str.c_str()[c] == '\r' || clipboard_str.c_str()[c] == '\t')
 		{
 			((char *)clipboard_str.c_str())[c] = ' ';
 		}
@@ -1205,7 +1281,7 @@ DWORD SpD3D9OConsole::paste()
 
 
 // Copies current un-submitted console input to the clipboard
-DWORD SpD3D9OConsole::copy()
+DWORD SpD3D9OConsole::copy(std::string *str)
 {
 	DWORD err;
 
@@ -1226,14 +1302,14 @@ DWORD SpD3D9OConsole::copy()
 		return err;
 	}
 
-	HGLOBAL hglob = GlobalAlloc(GMEM_MOVEABLE, command.length()+1);
+	HGLOBAL hglob = GlobalAlloc(GMEM_MOVEABLE, str->length()+1);
 	if (!hglob) {
 		err = GetLastError();
 		CloseClipboard();
 		return err;
 	}
 
-	memcpy(GlobalLock(hglob), command.c_str(), command.length()+1);
+	memcpy(GlobalLock(hglob), str->c_str(), str->length()+1);
 	GlobalUnlock(hglob);
 	SetClipboardData(CF_TEXT, hglob);
 	CloseClipboard();

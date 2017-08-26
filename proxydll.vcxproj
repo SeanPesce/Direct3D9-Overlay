@@ -264,6 +264,7 @@
     <ClInclude Include="include\D3DFont.h" />
     <ClInclude Include="include\SpD3D9.h" />
     <ClInclude Include="include\SpD3D9Exports.h" />
+    <ClInclude Include="include\SpD3D9OConsoleTextSelection.h" />
     <ClInclude Include="include\SpD3D9OInputHandler.h" />
     <ClInclude Include="include\SpD3D9Interface.h" />
     <ClInclude Include="include\SpD3D9Device.h" />

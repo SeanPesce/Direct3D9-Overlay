@@ -705,7 +705,14 @@ void SpD3D9OTextFeed::print(const char *message, unsigned long long duration, bo
 
 
 	// Also print to the console
-	overlay->console->print(std::string("TEXT FEED: ").append(new_message.message).c_str());
+	if (is_enabled() && !overlay->console->is_open())
+	{
+		overlay->console->print(std::string("[TEXT FEED] ").append(new_message.message).c_str());
+	}
+	else
+	{
+		overlay->console->print(message);
+	}
 
 
 	// Add the constructed message to the overlay text feed message queue

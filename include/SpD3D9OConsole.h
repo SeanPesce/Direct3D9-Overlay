@@ -30,6 +30,8 @@
 #define _SP_D3D9O_C_DEFAULT_FONT_FAMILY_ "Courier New"
 #define _SP_D3D9O_C_DEFAULT_FONT_FLAGS_ 0	// D3DFONT_BOLD, etc
 #define _SP_D3D9O_C_DEFAULT_FONT_COLOR_ D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);	// White
+#define _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f); // Black
+#define _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_ D3DXCOLOR(0xFF508CED); // Blue (#508CED)
 #define _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f); // Black
 #define _SP_D3D9O_C_DEFAULT_BORDER_COLOR_ D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f); // Gray
 #define _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_ 3
@@ -54,8 +56,35 @@ enum SP_D3D9O_CONSOLE_PROMPT_ENUM {
 	SP_D3D9O_PROMPT_ELEMENTS_DISABLED = 0,
 	SP_D3D9O_PROMPT_USER = 1, // User profile
 	SP_D3D9O_PROMPT_HOSTNAME = 2, // Computer name
-	SP_D3D9O_PROMPT_CWD = 4 // Current working directory	// @TODO
+	SP_D3D9O_PROMPT_CWD = 4 // Current working directory
 };
+
+
+// Used to determine which part of the console is in focus for selecting text
+#define SP_D3D9O_C_NO_SELECTION_INDEX -1
+#define SP_D3D9O_C_NO_SELECTION_LINE -2
+#define SP_D3D9O_C_INPUT_LINE -1
+enum SP_D3D9O_CONSOLE_SELECT_FOCUS_ENUM {
+	SP_D3D9O_SELECT_NONE = 0,
+	SP_D3D9O_SELECT_TEXT = 1,
+	//SP_D3D9O_SELECT_INPUT = 1,
+	//SP_D3D9O_SELECT_OUTPUT = 2,
+	SP_D3D9O_SELECT_AUTOCOMPLETE = 3
+};
+
+
+typedef struct SP_D3D9O_CONSOLE_TEXT_SELECTION {
+	SP_D3D9O_CONSOLE_SELECT_FOCUS_ENUM focus = SP_D3D9O_SELECT_NONE;
+	int line1 = SP_D3D9O_C_NO_SELECTION_LINE;		// Line number of the first selected character
+	int i1 = SP_D3D9O_C_NO_SELECTION_INDEX;		// Index in the line of the first selected character
+	int line2 = SP_D3D9O_C_NO_SELECTION_LINE;		// Line number of the last selected character
+	int i2 = SP_D3D9O_C_NO_SELECTION_INDEX;		// Index in the line of the last selected character
+	int *start_line = &line1;
+	int *start_index = &i1;
+	int *end_line = &line2;
+	int *end_index = &i2;
+} CONSOLE_TEXT_SELECTION;
+
 
 typedef struct SP_D3D9O_CONSOLE_COMMAND {
 	std::string command = "";
@@ -89,6 +118,8 @@ public:
 	CD3DFont *font = NULL;
 	int font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;
 	D3DXCOLOR font_color = _SP_D3D9O_C_DEFAULT_FONT_COLOR_;
+	D3DXCOLOR font_highlight_color = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_;
+	D3DXCOLOR background_highlight_color = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_;
 	std::string font_family = _SP_D3D9O_C_DEFAULT_FONT_FAMILY_;
 	D3DXCOLOR background_color = _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_;
 	D3DXCOLOR border_color = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
@@ -104,8 +135,17 @@ public:
 	unsigned int command_log_capacity = _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_; // Number of console commands to keep logged (oldest are deleted when max is hit)
 
 	unsigned int caret_position = 0; // Position of cursor in current command
-	unsigned int input_display_start = 0;
+	
+	unsigned int input_display_start = 0; // If current command is longer than the screen, these 2 indexes are the start/end of the displayed substring
 	unsigned int input_display_end = 0;
+
+	CONSOLE_TEXT_SELECTION selection;
+	SP_D3D9O_CONSOLE_SELECT_FOCUS_ENUM selection_focus = SP_D3D9O_SELECT_NONE; // Determines whether input or output is selected (or neither)
+	int selection_start_index = -1; // Starting index on starting line of selection
+	int selection_start_line = -1; // Starting line of selected chars
+	int selection_width = 0; // If single line, the number of chars to select. If multi-line, the index of the last selected char on the lower line
+	int selection_vertical_width = 0; // Number of lines that the selection spans
+
 	unsigned int command_log_position = 0; // Used to obtain previous commands with the up/down keys
 	unsigned int autocomplete_limit = _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_; // Maximum number of autocomplete suggestions to show
 
@@ -121,13 +161,13 @@ public:
 	void SpD3D9OConsole::print(const char *new_message); // Prints text to output log
 	void SpD3D9OConsole::execute_command(const char *new_command, std::string *output = NULL);
 	void SpD3D9OConsole::clear(); // Clears console by pushing blank messages to output
-	DWORD SpD3D9OConsole::copy(); // Copies current un-submitted console input to the clipboard
+	DWORD SpD3D9OConsole::copy(std::string *str); // Copies string to clipboard
 	DWORD SpD3D9OConsole::paste(); // Paste clipboard data into console input
 	#ifdef _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 		void SpD3D9OConsole::handle_key_event(DIDEVICEOBJECTDATA *event);
 	#else // !_SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 		void SpD3D9OConsole::handle_key_press(WPARAM wParam);
-		void SpD3D9OConsole::handle_text_input(WPARAM wParam);
+		void SpD3D9OConsole::handle_mouse_click(RAWMOUSE *mouse_input);
 	#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 	static int register_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for = "", std::vector<std::string> macro_args = {});
 	static int register_alias(const char *new_alias, const char *existing_command, std::vector<std::string> macro_args = {});
@@ -145,6 +185,16 @@ private:
 
 	void SpD3D9OConsole::update_font(); // Update text to new font family/size/flags/etc
 	void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_chars);
+
+	void SpD3D9OConsole::format_output_line(std::string *str, int line, int max_chars);
+	void SpD3D9OConsole::clear_selection();
+	int SpD3D9OConsole::get_screenspace_limits(RECT *window, SIZE *char_size = NULL, RECT *console_lims = NULL, long *max_chars = NULL, long *row = NULL, long *column = NULL);
+	void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_chars, SP_D3D9O_CONSOLE_SELECT_FOCUS_ENUM *focus, int *line, int *index, int *line2 = NULL, int *index2 = NULL);
+	void SpD3D9OConsole::start_text_selection();
+	void SpD3D9OConsole::continue_text_selection();
+	void SpD3D9OConsole::get_input_selection(int *start, int *end);
+	void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, std::string *input_line);
+	void SpD3D9OConsole::build_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, std::string *highlighted_str);
 };
 
 

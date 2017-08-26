@@ -985,6 +985,8 @@ void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string 
 	gl_pSpD3D9Device->overlay->console->caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
 	gl_pSpD3D9Device->overlay->console->font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;
 	gl_pSpD3D9Device->overlay->console->font_color = _SP_D3D9O_C_DEFAULT_FONT_COLOR_;
+	gl_pSpD3D9Device->overlay->console->font_highlight_color = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_;
+	gl_pSpD3D9Device->overlay->console->background_highlight_color = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_;
 	gl_pSpD3D9Device->overlay->console->show_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_;
 	gl_pSpD3D9Device->overlay->console->cursor_size = _SP_D3D9O_C_DEFAULT_CURSOR_SIZE_;
 	gl_pSpD3D9Device->overlay->console->cursor_color = _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_;

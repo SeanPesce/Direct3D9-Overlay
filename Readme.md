@@ -16,6 +16,7 @@ A Direct3D9 Wrapper DLL/classes with a built-in overlay framework for printing o
 <sup>Dark Souls: Prepare to Die Edition</sup>  
 
 ![image](http://i.imgur.com/EVVCn05.jpg)  
+![image](http://i.imgur.com/z1l4jYB.png)  
 <sup>Deus Ex: Human Revolution</sup>  
 
 ![image](http://i.imgur.com/Z89F8DR.jpg)  

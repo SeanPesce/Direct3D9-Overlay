@@ -5,7 +5,7 @@
 
 ## Overview:  
 
-A Direct3D9 Wrapper DLL/classes with a built-in overlay framework for printing on-screen messages in DirectX 9 games. Also supports printing messages from external DLLs.  
+A Direct3D9 Wrapper DLL/classes with a built-in overlay framework that implements an in-game console and text feed for printing on-screen messages in DirectX9 programs. Plugins are also supported for extending the features/functionality of the overlay.  
 
 ## Media:  
 
@@ -24,7 +24,7 @@ A Direct3D9 Wrapper DLL/classes with a built-in overlay framework for printing o
 
 ## Plugins:  
 
-To utilize the overlay from an external DLL, the external DLL must export the `set_device_wrapper` function. Other supported exported functions include `initialize_plugin` and `load_keybinds`. See the ExampleOverlayPlugin subproject for reference.  
+To utilize various features of the overlay from an external DLL, the external DLL must be a plugin for this project which imports/exports various functions. See the [ExampleOverlayPlugin](https://github.com/SeanPesce/Direct3D9-Overlay/tree/master/ExampleOverlayPlugin) subproject for reference.  
 
 ## Credits:  
 

@@ -43,6 +43,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 			break;
 	    case DLL_PROCESS_DETACH:
 			input_loop_enabled = false;
+			SpD3D9OInputHandler::delete_instance();
 			_SP_D3D9_LOG_EVENT_("Exit (Detached from process)\n\n");
 			ExitInstance();
 			break;

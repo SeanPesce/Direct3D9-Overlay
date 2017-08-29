@@ -54,6 +54,16 @@ SpD3D9OInputHandler *SpD3D9OInputHandler::get()
 }
 
 
+void SpD3D9OInputHandler::delete_instance()
+{
+	if (instance != NULL)
+	{
+		delete instance;
+		instance = NULL;
+	}
+}
+
+
 SpD3D9OInputHandler::SpD3D9OInputHandler()
 {
 	#ifdef _SP_USE_DETOUR_DISPATCH_MSG_INPUT_
@@ -99,6 +109,7 @@ SpD3D9OInputHandler::SpD3D9OInputHandler()
 
 
 	#ifdef _SP_USE_DETOUR_GET_RAW_INPUT_DATA_INPUT_
+
 		initialize_vk_to_char_conversion_array();
 
 		while (!(oGetRawInputData = (tGetRawInputData)GetProcAddress(GetModuleHandle("User32.dll"), "GetRawInputData")))
@@ -231,7 +242,14 @@ SpD3D9OInputHandler::~SpD3D9OInputHandler()
 			dinput8->Release();
 	#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 
-	instance = NULL;
+	#ifdef _SP_USE_DETOUR_GET_RAW_INPUT_DATA_INPUT_
+			DetourTransactionBegin();
+			DetourUpdateThread(GetCurrentThread());
+			DetourDetach(&(PVOID&)oGetRawInputData, hkGetRawInputData);
+			DetourTransactionCommit();
+	#endif // _SP_USE_DETOUR_GET_RAW_INPUT_DATA_INPUT_
+
+	//instance = NULL;
 }
 
 

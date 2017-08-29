@@ -105,7 +105,7 @@ class SpD3D9OInputHandler
 {
 	public:
 		static SpD3D9OInputHandler* get();
-		
+		static void delete_instance();
 
 #ifdef _SP_USE_DETOUR_DISPATCH_MSG_INPUT_
 		tDispatchMessage oDispatchMessage; // Original DispatchMessage function

@@ -10,6 +10,7 @@
 
 
 
+// Clears text selection (if some text was selected)
 void SpD3D9OConsole::clear_selection()
 {
 	// Reset text selection structure
@@ -25,6 +26,7 @@ void SpD3D9OConsole::clear_selection()
 }
 
 
+// Determines the start/end points of selected text
 void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_chars, SP_D3D9O_CONSOLE_SELECT_FOCUS_ENUM *focus, int *line, int *index, int *line2, int *index2)
 {
 	if (line == NULL || index == NULL || focus == NULL)
@@ -147,6 +149,7 @@ void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_cha
 }
 
 
+// Obtains various screenspace measurements related to selecting on-screen text
 int SpD3D9OConsole::get_screenspace_limits(RECT *window, SIZE *char_size, RECT *console_lims, long *max_chars, long *row, long *column)
 {
 	if (window == NULL)
@@ -216,7 +219,7 @@ int SpD3D9OConsole::get_screenspace_limits(RECT *window, SIZE *char_size, RECT *
 }
 
 
-
+// Called when user first clicks to select text
 void SpD3D9OConsole::start_text_selection()
 {
 	clear_selection();
@@ -251,44 +254,13 @@ void SpD3D9OConsole::start_text_selection()
 		}
 	}
 
-
-	std::string test_str = std::string("Max chars=").append(std::to_string(max_chars)).append("    Row=").append(std::to_string(row)).append("    Column=").append(std::to_string(column));
-
 	// Check if mouse cursor is in an area with selectable text
 	cursor_pos_to_selection(row, column, max_chars, &selection.focus, &selection.line1, &selection.i1, &selection.line2, &selection.i2);
-
-	if (selection.focus != SP_D3D9O_SELECT_NONE)
-	{
-		test_str.append("    (In range)    Line1=");
-		if (selection.line1 == SP_D3D9O_C_INPUT_LINE)
-		{
-			test_str.append("Input");
-		}
-		else
-		{
-			test_str.append(std::to_string(selection.line1));
-		}
-		test_str.append("    Index1=").append(std::to_string(selection.i1)).append("    Line2=");
-		if (selection.line2 == SP_D3D9O_C_INPUT_LINE)
-		{
-			test_str.append("Input");
-		}
-		else
-		{
-			test_str.append(std::to_string(selection.line2));
-		}
-		test_str.append("    Index2=").append(std::to_string(selection.i2));
-	}
-	else
-	{
-		test_str.append("    (Out of range)");
-	}
-	
-	//print(test_str.c_str());
-	
 }
 
 
+// Called when the user has already begun selecting text and moves the cursor or releases the mouse button;
+//	Extends current text selection based on cursor position.
 void SpD3D9OConsole::continue_text_selection()
 {
 	if (selection.focus == SP_D3D9O_SELECT_NONE)
@@ -302,41 +274,10 @@ void SpD3D9OConsole::continue_text_selection()
 	long max_chars, row, column;
 	get_screenspace_limits(&window, &char_size, &console_lims, &max_chars, &row, &column);
 
-
-	std::string test_str;// = std::string("Max chars=").append(std::to_string(max_chars)).append("    Row=").append(std::to_string(row)).append("    Column=").append(std::to_string(column));
-
 	// Check if mouse cursor is in an area with selectable text
 	cursor_pos_to_selection(row, column, max_chars, &selection.focus, &selection.line2, &selection.i2);
 
-	if (selection.focus != SP_D3D9O_SELECT_NONE)
-	{
-		test_str.append("    (In range)""    Line1=");
-		if (selection.line1 == SP_D3D9O_C_INPUT_LINE)
-		{
-			test_str.append("Input");
-		}
-		else
-		{
-			test_str.append(std::to_string(selection.line1));
-		}
-		test_str.append("    Index1=").append(std::to_string(selection.i1)).append("    Line2=");
-		if (selection.line2 == SP_D3D9O_C_INPUT_LINE)
-		{
-			test_str.append("Input");
-		}
-		else
-		{
-			test_str.append(std::to_string(selection.line2));
-		}
-		test_str.append("    Index2=").append(std::to_string(selection.i2));
-	}
-	else
-	{
-		test_str.append("    (Out of range)");
-	}
-
-	//print(test_str.c_str());
-
+	// Determine which end of the selection appears first in the output string
 	if ((selection.line1 < selection.line2 && selection.line1 != SP_D3D9O_C_INPUT_LINE)
 		|| (selection.line1 == selection.line2 && selection.i1 <= selection.i2)
 		|| (selection.line1 != selection.line2 && selection.line2 == SP_D3D9O_C_INPUT_LINE))
@@ -380,7 +321,7 @@ void SpD3D9OConsole::continue_text_selection()
 }
 
 
-
+// Gets the starting/ending indexes of selected input substring
 void SpD3D9OConsole::get_input_selection(int *start, int *end)
 {
 	if (start == NULL || end == NULL)
@@ -419,7 +360,7 @@ void SpD3D9OConsole::get_input_selection(int *start, int *end)
 }
 
 
-
+// Formats a line of text by shortening it to fit in the console window
 void SpD3D9OConsole::format_output_line(std::string *str, int line, int max_chars)
 {
 	if (str == NULL)
@@ -447,7 +388,7 @@ void SpD3D9OConsole::format_output_line(std::string *str, int line, int max_char
 }
 
 
-
+// Renders highlighted text to the console window
 void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, std::string *input_line)
 {
 	// Get screenspace limits
@@ -511,7 +452,7 @@ void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, s
 }
 
 
-
+// Builds the string of currently-highlighted text
 void SpD3D9OConsole::build_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, std::string *highlighted_str)
 {
 	// Get screenspace limits

@@ -12,6 +12,7 @@ A Direct3D9 Wrapper DLL/classes with a built-in overlay framework for printing o
 ## [Showcase video (Early build)](https://www.youtube.com/watch?v=F2FiOhFi0pw)  
 
 ![image](http://i.imgur.com/9DH8LWB.jpg)  
+![image](http://i.imgur.com/DAZGHDi.png)  
 <sup>Dark Souls: Prepare to Die Edition</sup>  
 
 ![image](http://i.imgur.com/EVVCn05.jpg)  

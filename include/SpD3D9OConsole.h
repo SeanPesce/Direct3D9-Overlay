@@ -51,6 +51,10 @@
 
 #define _SP_D3D9O_C_MAX_FONT_SIZE_ 190
 
+#define CONSOLE_COMMAND_SUCCESS ERROR_SUCCESS  // Value that a console command should return if no errors occurred
+#define CONSOLE_COMMAND_NOT_FOUND_ERROR (-1)
+#define _SP_D3D9O_C_ERROR_UNKNOWN_COMMAND_ "ERROR: Unrecognized command"
+
 // Denotes whether to display each element of the input prompt
 enum SP_D3D9O_CONSOLE_PROMPT_ENUM {
 	SP_D3D9O_PROMPT_ELEMENTS_DISABLED = 0,
@@ -88,7 +92,7 @@ typedef struct SP_D3D9O_CONSOLE_TEXT_SELECTION {
 
 typedef struct SP_D3D9O_CONSOLE_COMMAND {
 	std::string command = "";
-	void(*function)(std::vector<std::string>, std::string *) = NULL;
+	int(*function)(std::vector<std::string>, std::string *) = NULL;
 	std::string help_message = "";
 	int id = -1; // ID of command in commands_set
 	std::string alias_for = ""; // If not an empty string, the command is an alias or macro
@@ -159,7 +163,7 @@ public:
 	void SpD3D9OConsole::draw();
 	void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt); // Adds extra prompt elements, if enabled (username, hostname, working directory, etc)
 	void SpD3D9OConsole::print(const char *new_message); // Prints text to output log
-	void SpD3D9OConsole::execute_command(const char *new_command, std::string *output = NULL);
+	int SpD3D9OConsole::execute_command(const char *new_command, int *return_code = NULL, std::string *output = NULL);
 	void SpD3D9OConsole::clear(); // Clears console by pushing blank messages to output
 	DWORD SpD3D9OConsole::copy(std::string *str); // Copies string to clipboard
 	DWORD SpD3D9OConsole::paste(); // Paste clipboard data into console input
@@ -169,7 +173,7 @@ public:
 		void SpD3D9OConsole::handle_key_press(WPARAM wParam);
 		void SpD3D9OConsole::handle_mouse_click(RAWMOUSE *mouse_input);
 	#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
-	static int register_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for = "", std::vector<std::string> macro_args = {});
+	static int register_command(const char *command, int(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for = "", std::vector<std::string> macro_args = {});
 	static int register_alias(const char *new_alias, const char *existing_command, std::vector<std::string> macro_args = {});
 	static void get_autocomplete_options(const char *str, unsigned int suggestion_count, std::vector<std::string> *matches);
 

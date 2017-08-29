@@ -948,14 +948,23 @@ void SpD3D9OConsole::handle_mouse_click(RAWMOUSE *mouse_input)
 #endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 
 
-void SpD3D9OConsole::execute_command(const char *new_command, std::string *output)
+/*
+	Parses a string into a console command and list of arguments.
+
+	@return CONSOLE_COMMAND_SUCCESS if successful, or CONSOLE_COMMAND_NOT_FOUND_ERROR if the specified console command does not exist.
+
+	@error ERROR_PROC_NOT_FOUND is set if the specified console command does not exist.
+*/
+int SpD3D9OConsole::execute_command(const char *new_command, int *return_code, std::string *output)
 {
+	int return_val = CONSOLE_COMMAND_SUCCESS;
+
 	std::string command = new_command;
 	trim(&command);
 
 	if (command.length() == 0)
 	{
-		return;
+		return return_val;
 	}
 
 	std::string command_name;
@@ -990,6 +999,7 @@ void SpD3D9OConsole::execute_command(const char *new_command, std::string *outpu
 
 	if (command_index > -1)
 	{
+		int command_return_code = CONSOLE_COMMAND_SUCCESS;
 		std::string command_output = "";
 		
 		if (commands.at(command_index).alias_for.length() > 0 && commands.at(command_index).macro_args.size() > 0)
@@ -1004,12 +1014,15 @@ void SpD3D9OConsole::execute_command(const char *new_command, std::string *outpu
 			{
 				output_action = check_args_output_redirect(&macro_args, &output_file);
 			}
-			commands.at(command_index).function(macro_args, &command_output);
+			// Execute the command
+			command_return_code = commands.at(command_index).function(macro_args, &command_output);
 		}
 		else
 		{
 			// Not a macro
-			commands.at(command_index).function(args, &command_output);
+
+			// Execute the command
+			command_return_code = commands.at(command_index).function(args, &command_output);
 		}
 
 		if (output_action != 0)
@@ -1066,14 +1079,22 @@ void SpD3D9OConsole::execute_command(const char *new_command, std::string *outpu
 			{
 				output->append(command_output);
 			}
+		}
 
+		if (return_code != NULL)
+		{
+			// Store return code
+			(*return_code) = command_return_code;
 		}
 	}
 	else
 	{
-		std::string out_str = std::string("ERROR: Unrecognized command \"").append(command_name).append("\"");
+		std::string out_str = std::string(_SP_D3D9O_C_ERROR_UNKNOWN_COMMAND_" \"").append(command_name).append("\"");
+		return_val = CONSOLE_COMMAND_NOT_FOUND_ERROR;
+		SetLastError(ERROR_PROC_NOT_FOUND);
 		if (output == NULL)
 		{
+			// Send output to override output stream
 			print(out_str.c_str());
 		}
 		else
@@ -1081,11 +1102,18 @@ void SpD3D9OConsole::execute_command(const char *new_command, std::string *outpu
 			output->append(out_str);
 		}
 
+		if (return_code != NULL)
+		{
+			// Store error code in return_code buffer
+			(*return_code) = CONSOLE_COMMAND_NOT_FOUND_ERROR;
+		}
 	}
+
+	return return_val;
 }
 
 
-int SpD3D9OConsole::register_command(const char *new_command, void(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for, std::vector<std::string> macro_args) // Static function
+int SpD3D9OConsole::register_command(const char *new_command, int(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for, std::vector<std::string> macro_args) // Static function
 {
 	if (new_command == NULL || help_message == NULL || function == NULL || alias_for == NULL)
 	{

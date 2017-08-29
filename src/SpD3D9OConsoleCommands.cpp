@@ -212,7 +212,7 @@ int parse_toggle_arg(const char *c_arg)
 
 
 // Terminates the process
-void cc_exit(std::vector<std::string> args, std::string *output)
+int cc_exit(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
@@ -224,21 +224,23 @@ void cc_exit(std::vector<std::string> args, std::string *output)
 	}
 
 	exit(EXIT_SUCCESS);
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Closes the console
-void cc_close(std::vector<std::string> args, std::string *output)
+int cc_close(std::vector<std::string> args, std::string *output)
 {
 	if (gl_pSpD3D9Device->overlay->console->is_open())
 	{
 		gl_pSpD3D9Device->overlay->console->toggle();
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Lists all available console commands/aliases
-void cc_all_commands(std::vector<std::string> args, std::string *output)
+int cc_all_commands(std::vector<std::string> args, std::string *output)
 {
 	int lines = 0;
 	for (auto cmd : SpD3D9OConsole::commands)
@@ -250,18 +252,20 @@ void cc_all_commands(std::vector<std::string> args, std::string *output)
 			output->append("\n");
 		}
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Clears the console output
-void cc_console_clear(std::vector<std::string> args, std::string *output)
+int cc_console_clear(std::vector<std::string> args, std::string *output)
 {
 	gl_pSpD3D9Device->overlay->console->clear();
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Prints the help string for a given command
-void cc_help(std::vector<std::string> args, std::string *output)
+int cc_help(std::vector<std::string> args, std::string *output)
 {
 	int index;
 	std::string query = "help";
@@ -294,50 +298,58 @@ void cc_help(std::vector<std::string> args, std::string *output)
 	else
 	{
 		output->append("ERROR: \"").append(query).append("\" is not a recognized console command.");
+		return ERROR_PROC_NOT_FOUND;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Prints the current date
-void cc_date(std::vector<std::string> args, std::string *output)
+int cc_date(std::vector<std::string> args, std::string *output)
 {
 	if (append_current_date_string(output, false, SP_DATE_MMDDYYYY))
 	{
 		output->clear();
 		output->append("ERROR: Failed to obtain current date");
+		return ERROR_INVALID_TIME;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 // Prints the current time
-void cc_time(std::vector<std::string> args, std::string *output)
+int cc_time(std::vector<std::string> args, std::string *output)
 {
 	if(append_current_timestamp_string(output, false))
 	{
 		output->clear();
 		output->append("ERROR: Failed to obtain current time");
+		return ERROR_INVALID_TIME;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 // Prints the current date and time
-void cc_date_time(std::vector<std::string> args, std::string *output)
+int cc_date_time(std::vector<std::string> args, std::string *output)
 {
 	if (append_current_date_string(output, false, SP_DATE_MMDDYYYY))
 	{
 		output->clear();
 		output->append("ERROR: Failed to obtain current date");
-		return;
+		return ERROR_INVALID_TIME;
 	}
 	output->append("  ");
 	if (append_current_timestamp_string(output, false))
 	{
 		output->clear();
 		output->append("ERROR: Failed to obtain current time");
+		return ERROR_INVALID_TIME;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Pauses console thread execution for the specified number of milliseconds
-void cc_sleep(std::vector<std::string> args, std::string *output)
+int cc_sleep(std::vector<std::string> args, std::string *output)
 {
 	long duration;
 
@@ -352,22 +364,25 @@ void cc_sleep(std::vector<std::string> args, std::string *output)
 		else
 		{
 			output->append(std::string(ERROR_INVALID_ARGUMENT).append(" (Duration must be a positive integer)").c_str());
+			return ERROR_INVALID_PARAMETER;
 		}
 	}
 	else
 	{
 		output->append(ERROR_TOO_FEW_ARGUMENTS);
+		return ERROR_BAD_ARGUMENTS;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Creates an alias for an existing command
-void cc_alias(std::vector<std::string> args, std::string *output)
+int cc_alias(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() < 2)
 	{
 		output->append(ERROR_TOO_FEW_ARGUMENTS);
-		return;
+		return ERROR_BAD_ARGUMENTS;
 	}
 
 	int ret;
@@ -401,32 +416,40 @@ void cc_alias(std::vector<std::string> args, std::string *output)
 			break;
 		case ERROR_INVALID_ADDRESS:
 			output->append("ERROR: Unable to create alias; null pointer was encountered");
+			return ERROR_INVALID_ADDRESS;
 			break;
 		case ERROR_INVALID_PARAMETER:
 			output->append("ERROR: Alias cannot be an empty string");
+			return ERROR_INVALID_PARAMETER;
 			break;
 		case ERROR_SXS_XML_E_BADCHARINSTRING:
 			output->append("ERROR: Alias must not contain whitespace characters.");
+			return ERROR_SXS_XML_E_BADCHARINSTRING;
 			break;
 		case ERROR_DUP_NAME:
 			output->append("ERROR: There is already an existing command or alias with the specified name (\"").append(args.at(0)).append("\")");
+			return ERROR_DUP_NAME;
 			break;
 		case ERROR_PROC_NOT_FOUND:
 			output->append("ERROR: Unable to create alias; the specified command was not recognized (\"").append(args.at(1)).append("\")");
+			return ERROR_PROC_NOT_FOUND;
 			break;
 		default:
 			output->append("ERROR: Unable to create alias");
+			return ERROR_DS_UNKNOWN_ERROR;
 			break;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Returns a list of commands that contain the given string
-void cc_search_command(std::vector<std::string> args, std::string *output)
+int cc_search_command(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() < 1 || args.at(0).length() < 1)
 	{
 		output->append(ERROR_TOO_FEW_ARGUMENTS);
+		return ERROR_BAD_ARGUMENTS;
 	}
 	else
 	{
@@ -455,12 +478,14 @@ void cc_search_command(std::vector<std::string> args, std::string *output)
 			output->append("0 results.");
 		}
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Sets the maximum number of autocomplete suggestions (0 = off)
-void cc_autocomplete_limit(std::vector<std::string> args, std::string *output)
+int cc_autocomplete_limit(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		long new_lim = strtol(args.at(0).c_str(), NULL, 10);
@@ -471,6 +496,7 @@ void cc_autocomplete_limit(std::vector<std::string> args, std::string *output)
 		else if (new_lim == 0L || new_lim == LONG_MAX || new_lim == LONG_MIN)
 		{
 			output->append("ERROR: Invalid autocomplete suggestion limit specified.\n");
+			ret_val = ERROR_INVALID_PARAMETER;
 		}
 		else
 		{
@@ -478,11 +504,12 @@ void cc_autocomplete_limit(std::vector<std::string> args, std::string *output)
 		}
 	}
 	output->append("Console autocomplete suggestion limit = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->autocomplete_limit));
+	return ret_val;
 }
 
 
 // Pastes clipboard text data into the console input field
-void cc_paste(std::vector<std::string> args, std::string *output)
+int cc_paste(std::vector<std::string> args, std::string *output)
 {
 	DWORD err = 0;
 	std::string err_msg;
@@ -498,7 +525,7 @@ void cc_paste(std::vector<std::string> args, std::string *output)
 				err = GetLastError();
 				error_code_to_string(err, &err_msg);
 				output->append("ERROR: Unable to open clipboard (clipboard might be holding non-text data)\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
-				return;
+				return ERROR_INVALID_WINDOW_HANDLE;
 			}
 			
 		}
@@ -506,7 +533,7 @@ void cc_paste(std::vector<std::string> args, std::string *output)
 		{
 			error_code_to_string(err, &err_msg);
 			output->append("ERROR: Unable to open clipboard (clipboard might be holding non-text data)\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
-			return;
+			return ERROR_INVALID_DATA;
 		}
 	}
 
@@ -517,7 +544,7 @@ void cc_paste(std::vector<std::string> args, std::string *output)
 		error_code_to_string(err, &err_msg);
 		output->append("ERROR: Unable to access clipboard data\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
 		CloseClipboard();
-		return;
+		return ERROR_INVALID_ACCESS;
 	}
 
 	char *clipboard_text = (char*)GlobalLock(clipboard_data);
@@ -527,7 +554,7 @@ void cc_paste(std::vector<std::string> args, std::string *output)
 		error_code_to_string(err, &err_msg);
 		output->append("ERROR: Unable to read clipboard data\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
 		CloseClipboard();
-		return;
+		return ERROR_INVALID_ACCESS;
 	}
 
 	std::string clipboard_str = clipboard_text;
@@ -552,12 +579,14 @@ void cc_paste(std::vector<std::string> args, std::string *output)
 		plural = "s";
 	}
 	output->append("SUCCESS: Copied ").append(std::to_string(clipboard_str.length())).append(" character").append(plural).append(" to console input");
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Enables/disables player input reaching the game
-void cc_game_input(std::vector<std::string> args, std::string *output)
+int cc_game_input(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		switch (parse_toggle_arg(args.at(0).c_str()))
@@ -570,6 +599,7 @@ void cc_game_input(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Game input value must be either 1 or 0 (1 = on, 0 = off)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
 	}
@@ -582,12 +612,14 @@ void cc_game_input(std::vector<std::string> args, std::string *output)
 	{
 		output->append("Game input = enabled");
 	}
+	return ret_val;
 }
 
 
 // Enables/disables the console
-void cc_console_enabled(std::vector<std::string> args, std::string *output)
+int cc_console_enabled(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		switch (parse_toggle_arg(args.at(0).c_str()))
@@ -606,6 +638,7 @@ void cc_console_enabled(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Console value must be either 1 or 0 (1 = open, 0 = hidden)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
 	}
@@ -618,12 +651,14 @@ void cc_console_enabled(std::vector<std::string> args, std::string *output)
 	{
 		output->append("Console = hidden");
 	}
+	return ret_val;
 }
 
 
 // Sets console input echo
-void cc_console_echo(std::vector<std::string> args, std::string *output)
+int cc_console_echo(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		switch (parse_toggle_arg(args.at(0).c_str()))
@@ -636,6 +671,7 @@ void cc_console_echo(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Console echo value must be either 1 or 0 (1 = on, 0 = off)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
 	}
@@ -648,12 +684,14 @@ void cc_console_echo(std::vector<std::string> args, std::string *output)
 	{
 		output->append("echo = off");
 	}
+	return ret_val;
 }
 
 
 // Enables/disables console output
-void cc_console_output(std::vector<std::string> args, std::string *output)
+int cc_console_output(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		switch (parse_toggle_arg(args.at(0).c_str()))
@@ -666,6 +704,7 @@ void cc_console_output(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Console output stream value must be either 1 or 0 (1 = on, 0 = off)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
 	}
@@ -678,12 +717,14 @@ void cc_console_output(std::vector<std::string> args, std::string *output)
 	{
 		output->append("    Output stream = disabled");
 	}
+	return ret_val;
 }
 
 
 // Enables/disables console mouse cursor
-void cc_console_cursor(std::vector<std::string> args, std::string *output)
+int cc_console_cursor(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		switch (parse_toggle_arg(args.at(0).c_str()))
@@ -696,6 +737,7 @@ void cc_console_cursor(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Console mouse cursor value must be either 1 or 0 (1 = on, 0 = off)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
 	}
@@ -708,11 +750,12 @@ void cc_console_cursor(std::vector<std::string> args, std::string *output)
 	{
 		output->append("    Console mouse cursor = disabled");
 	}
+	return ret_val;
 }
 
 
 // Changes the console mouse cursor size
-void cc_console_cursor_size(std::vector<std::string> args, std::string *output)
+int cc_console_cursor_size(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
@@ -732,23 +775,25 @@ void cc_console_cursor_size(std::vector<std::string> args, std::string *output)
 		{
 			output->append("ERROR: Invalid argument (Cursor size must be a positive integer value)\n");
 			output->append("Console mouse cursor size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->cursor_size));
+			return ERROR_INVALID_PARAMETER;
 		}
 	}
 	else
 	{
 		output->append("Console mouse cursor size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->cursor_size));
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Executes each argument as a separate console command
-void cc_console_execute(std::vector<std::string> args, std::string *output)
+int cc_console_execute(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
 		for (auto arg : args)
 		{
-			gl_pSpD3D9Device->overlay->console->execute_command(arg.c_str(), output);
+			gl_pSpD3D9Device->overlay->console->execute_command(arg.c_str(), NULL, output);
 			if (output->length() > 0)
 			{
 				gl_pSpD3D9Device->overlay->console->print(output->c_str());
@@ -766,24 +811,93 @@ void cc_console_execute(std::vector<std::string> args, std::string *output)
 	else
 	{
 		output->append(ERROR_TOO_FEW_ARGUMENTS);
+		return ERROR_BAD_ARGUMENTS;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
+}
+
+
+// Opens a plaintext script file and executes each line as a separate console command
+int cc_console_script(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		// Attempt to open script file (passed as first argument)
+		std::ifstream script_file(args.at(0).c_str());
+
+		// Check if script file could be opened
+		if (script_file.fail())
+		{
+			// Failed to open file
+			output->append("ERROR: Unable to open the specified script file (\"").append(args.at(0).c_str()).append("\")");
+			return ERROR_FILE_NOT_FOUND;
+		}
+
+
+		// Process each line of the script file as a separate console command
+		std::string command;
+		int line = 0;
+		int cmd_exec_val;
+		while (std::getline(script_file, command))
+		{
+			line++;
+
+			// Attempt to run the current command
+			if (command.length() > 0)
+			{
+				cmd_exec_val = gl_pSpD3D9Device->overlay->console->execute_command(command.c_str(), NULL, output);
+				gl_pSpD3D9Device->overlay->console->print(output->c_str());
+			}
+			output->clear();
+
+			if (cmd_exec_val == CONSOLE_COMMAND_NOT_FOUND_ERROR)
+			{
+				// Specified command doesn't exist
+				break;
+			}
+		}
+
+		if (cmd_exec_val == CONSOLE_COMMAND_NOT_FOUND_ERROR)
+		{
+			output->append("\nERROR: Invalid command in script at line ").append(std::to_string(line));
+			return ERROR_PROC_NOT_FOUND;
+		}
+		else
+		{
+			output->append("\nFinished executing script (").append(std::to_string(line)).append(" line");
+			if (line != 1)
+			{
+				output->append("s");
+			}
+			output->append(")");
+		}
+	}
+	else
+	{
+		output->append(ERROR_TOO_FEW_ARGUMENTS);
+		return ERROR_BAD_ARGUMENTS;
+	}
+
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Changes the console input prompt string
-void cc_console_prompt(std::vector<std::string> args, std::string *output)
+int cc_console_prompt(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
 		gl_pSpD3D9Device->overlay->console->prompt = args.at(0);
 	}
 	output->append("Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"");
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Enables/disables the username element of the console input prompt
-void cc_console_prompt_user(std::vector<std::string> args, std::string *output)
+int cc_console_prompt_user(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		switch (parse_toggle_arg(args.at(0).c_str()))
@@ -796,6 +910,7 @@ void cc_console_prompt_user(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Console prompt username value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
 	}
@@ -808,12 +923,14 @@ void cc_console_prompt_user(std::vector<std::string> args, std::string *output)
 	{
 		output->append("Show user profile name in console prompt = disabled");
 	}
+	return ret_val;
 }
 
 
 // Enables/disables the hostname element of the console input prompt
-void cc_console_prompt_host(std::vector<std::string> args, std::string *output)
+int cc_console_prompt_host(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		switch (parse_toggle_arg(args.at(0).c_str()))
@@ -826,6 +943,7 @@ void cc_console_prompt_host(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Console prompt hostname value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
 	}
@@ -838,12 +956,14 @@ void cc_console_prompt_host(std::vector<std::string> args, std::string *output)
 	{
 		output->append("Show hostname in console prompt = disabled");
 	}
+	return ret_val;
 }
 
 
 // Enables/disables the current working directory element of the console input prompt
-void cc_console_prompt_cwd(std::vector<std::string> args, std::string *output)
+int cc_console_prompt_cwd(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		switch (parse_toggle_arg(args.at(0).c_str()))
@@ -856,6 +976,7 @@ void cc_console_prompt_cwd(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Console prompt working directory value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
 	}
@@ -868,12 +989,14 @@ void cc_console_prompt_cwd(std::vector<std::string> args, std::string *output)
 	{
 		output->append("Show working directory in console prompt = disabled");
 	}
+	return ret_val;
 }
 
 
 // Changes the console input caret character
-void cc_console_caret(std::vector<std::string> args, std::string *output)
+int cc_console_caret(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		if (args.at(0).length() == 1)
@@ -883,17 +1006,20 @@ void cc_console_caret(std::vector<std::string> args, std::string *output)
 		else
 		{
 			output->append("ERROR: Invalid argument (Caret must be a single character)\n");
+			ret_val = ERROR_INVALID_PARAMETER;
 		}
 	}
 	output->append("Caret character = '");
 	*output += gl_pSpD3D9Device->overlay->console->caret;
 	output->append("'");
+	return ret_val;
 }
 
 
 // Changes the console input caret blink delay
-void cc_console_caret_blink(std::vector<std::string> args, std::string *output)
+int cc_console_caret_blink(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		long new_speed = strtol(args.at(0).c_str(), NULL, 10);
@@ -904,6 +1030,7 @@ void cc_console_caret_blink(std::vector<std::string> args, std::string *output)
 		else
 		{
 			output->append("ERROR: Invalid argument (Caret blink delay must be a non-negative integer value)\n");
+			ret_val = ERROR_INVALID_PARAMETER;
 		}
 	}
 	
@@ -915,12 +1042,14 @@ void cc_console_caret_blink(std::vector<std::string> args, std::string *output)
 	{
 		output->append("Caret blinking disabled.");
 	}
+	return ret_val;
 }
 
 
 // Changes the console border thickness
-void cc_console_border_width(std::vector<std::string> args, std::string *output)
+int cc_console_border_width(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		long new_width = strtol(args.at(0).c_str(), NULL, 10);
@@ -939,15 +1068,18 @@ void cc_console_border_width(std::vector<std::string> args, std::string *output)
 		else
 		{
 			output->append("ERROR: Invalid argument (Width must be a non-negative integer value)\n");
+			ret_val = ERROR_INVALID_PARAMETER;
 		}
 	}
 	output->append("Console border width = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->border_width)).append(" pixels");
+	return ret_val;
 }
 
 
 // Changes the console font size
-void cc_console_font_size(std::vector<std::string> args, std::string *output)
+int cc_console_font_size(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		long new_font_size = strtol(args.at(0).c_str(), NULL, 10);
@@ -962,14 +1094,16 @@ void cc_console_font_size(std::vector<std::string> args, std::string *output)
 		else
 		{
 			output->append("ERROR: Invalid argument (Font size must be a positive integer value)\n");
+			ret_val = ERROR_INVALID_PARAMETER;
 		}
 	}
 	output->append("Console font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->font_height));
+	return ret_val;
 }
 
 
 // Restores developer default settings for the console
-void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string *output)
+int cc_console_restore_dev_defaults(std::vector<std::string> args, std::string *output)
 {
 	bool console_open = gl_pSpD3D9Device->overlay->console->is_open();
 	if (console_open)
@@ -1080,12 +1214,14 @@ void cc_console_restore_dev_defaults(std::vector<std::string> args, std::string 
 	{
 		output->append("    Show working directory in prompt = disabled");
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Enables/disables overlay text feed
-void cc_text_feed_enabled(std::vector<std::string> args, std::string *output)
+int cc_text_feed_enabled(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
 	{
 		switch (parse_toggle_arg(args.at(0).c_str()))
@@ -1098,6 +1234,7 @@ void cc_text_feed_enabled(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Text feed value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
 	}
@@ -1110,10 +1247,11 @@ void cc_text_feed_enabled(std::vector<std::string> args, std::string *output)
 	{
 		output->append("Text feed = disabled");
 	}
+	return ret_val;
 }
 
 // Changes the text feed font size
-void cc_text_feed_font_size(std::vector<std::string> args, std::string *output)
+int cc_text_feed_font_size(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
@@ -1133,18 +1271,21 @@ void cc_text_feed_font_size(std::vector<std::string> args, std::string *output)
 		{
 			output->append("ERROR: Invalid argument (Font size must be a positive integer value)\n");
 			output->append("Text feed font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->text_feed->font_height));
+			return ERROR_INVALID_PARAMETER;
 		}
 	}
 	else
 	{
 		output->append("Text feed font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->text_feed->font_height));
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Enables/disables overlay text feed info bar
-void cc_text_feed_info_bar(std::vector<std::string> args, std::string *output)
+int cc_text_feed_info_bar(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	extern int user_pref_show_text_feed_info_bar;
 	if (args.size() > 0)
 	{
@@ -1165,6 +1306,7 @@ void cc_text_feed_info_bar(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Text feed info bar value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
 	}
@@ -1177,12 +1319,14 @@ void cc_text_feed_info_bar(std::vector<std::string> args, std::string *output)
 	{
 		output->append("Text feed info bar = disabled");
 	}
+	return ret_val;
 }
 
 
 // Enables/disables overlay text feed info bar date element
-void cc_text_feed_info_date(std::vector<std::string> args, std::string *output)
+int cc_text_feed_info_date(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
 		if (args.size() > 0)
@@ -1197,6 +1341,7 @@ void cc_text_feed_info_date(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Text feed date value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 			}
 		}
@@ -1214,12 +1359,14 @@ void cc_text_feed_info_date(std::vector<std::string> args, std::string *output)
 	{
 		output->append(ERROR_TXT_FEED_DISABLED);
 	}
+	return ret_val;
 }
 
 
 // Enables/disables overlay text feed info bar time element
-void cc_text_feed_info_time(std::vector<std::string> args, std::string *output)
+int cc_text_feed_info_time(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
 		if (args.size() > 0)
@@ -1234,6 +1381,7 @@ void cc_text_feed_info_time(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Text feed time value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 			}
 		}
@@ -1251,12 +1399,14 @@ void cc_text_feed_info_time(std::vector<std::string> args, std::string *output)
 	{
 		output->append(ERROR_TXT_FEED_DISABLED);
 	}
+	return ret_val;
 }
 
 
 // Enables/disables overlay text feed info bar FPS counter element
-void cc_text_feed_info_fps(std::vector<std::string> args, std::string *output)
+int cc_text_feed_info_fps(std::vector<std::string> args, std::string *output)
 {
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
 		if (args.size() > 0)
@@ -1271,6 +1421,7 @@ void cc_text_feed_info_fps(std::vector<std::string> args, std::string *output)
 				break;
 			default:
 				output->append("ERROR: Text feed FPS counter value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 			}
 		}
@@ -1288,11 +1439,12 @@ void cc_text_feed_info_fps(std::vector<std::string> args, std::string *output)
 	{
 		output->append(ERROR_TXT_FEED_DISABLED);
 	}
+	return ret_val;
 }
 
 
 // Changes the text feed title
-void cc_text_feed_title(std::vector<std::string> args, std::string *output)
+int cc_text_feed_title(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
@@ -1305,11 +1457,12 @@ void cc_text_feed_title(std::vector<std::string> args, std::string *output)
 		gl_pSpD3D9Device->overlay->text_feed->get_title(&title);
 		output->append("Text feed title = \"").append(title).append("\"");
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Prints to text feed
-void cc_text_feed_print(std::vector<std::string> args, std::string *output)
+int cc_text_feed_print(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
@@ -1318,12 +1471,14 @@ void cc_text_feed_print(std::vector<std::string> args, std::string *output)
 	else
 	{
 		output->append(ERROR_TOO_FEW_ARGUMENTS);
+		return ERROR_BAD_ARGUMENTS;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Cycles between 9 preset text feed positions
-void cc_text_feed_cycle_position(std::vector<std::string> args, std::string *output)
+int cc_text_feed_cycle_position(std::vector<std::string> args, std::string *output)
 {
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
@@ -1334,11 +1489,13 @@ void cc_text_feed_cycle_position(std::vector<std::string> args, std::string *out
 	else
 	{
 		output->append(ERROR_TXT_FEED_DISABLED);
+		return ERROR_BAD_ENVIRONMENT;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
-void cc_text_feed_position(std::vector<std::string> args, std::string *output)
+int cc_text_feed_position(std::vector<std::string> args, std::string *output)
 {
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
@@ -1347,12 +1504,14 @@ void cc_text_feed_position(std::vector<std::string> args, std::string *output)
 	else
 	{
 		output->append(ERROR_TXT_FEED_DISABLED);
+		return ERROR_BAD_ENVIRONMENT;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Cycles through the 3 text feed text styles (plain, shadowed, outlined)
-void cc_text_feed_cycle_style(std::vector<std::string> args, std::string *output)
+int cc_text_feed_cycle_style(std::vector<std::string> args, std::string *output)
 {
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
@@ -1363,11 +1522,13 @@ void cc_text_feed_cycle_style(std::vector<std::string> args, std::string *output
 	else
 	{
 		output->append(ERROR_TXT_FEED_DISABLED);
+		return ERROR_BAD_ENVIRONMENT;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
-void cc_text_feed_style(std::vector<std::string> args, std::string *output)
+int cc_text_feed_style(std::vector<std::string> args, std::string *output)
 {
 	if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
 	{
@@ -1376,12 +1537,14 @@ void cc_text_feed_style(std::vector<std::string> args, std::string *output)
 	else
 	{
 		output->append(ERROR_TXT_FEED_DISABLED);
+		return ERROR_BAD_ENVIRONMENT;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Loads a DLL
-void cc_load_library(std::vector<std::string> args, std::string *output)
+int cc_load_library(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
@@ -1393,6 +1556,7 @@ void cc_load_library(std::vector<std::string> args, std::string *output)
 			std::string err_msg;
 			error_code_to_string(err, &err_msg);
 			output->append("ERROR: Failed to load library (\"").append(args.at(0)).append("\")\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
+			return ERROR_OPEN_FAILED;
 		}
 		else
 		{
@@ -1448,12 +1612,14 @@ void cc_load_library(std::vector<std::string> args, std::string *output)
 	else
 	{
 		output->append(ERROR_TOO_FEW_ARGUMENTS);
+		return ERROR_BAD_ARGUMENTS;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Unloads a DLL
-void cc_free_library(std::vector<std::string> args, std::string *output)
+int cc_free_library(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
@@ -1469,6 +1635,7 @@ void cc_free_library(std::vector<std::string> args, std::string *output)
 				std::string err_msg;
 				error_code_to_string(err, &err_msg);
 				output->append("ERROR: Failed to unload library (\"").append(args.at(0)).append("\")\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
+				return ERROR_UNABLE_TO_UNLOAD_MEDIA;
 			}
 			else
 			{
@@ -1488,7 +1655,7 @@ void cc_free_library(std::vector<std::string> args, std::string *output)
 				SpD3D9Overlay::run_plugin_funcs = true;
 				output->append("SUCCESS: Library was unloaded");
 			}
-			return;
+			return CONSOLE_COMMAND_SUCCESS;
 		}
 		
 		// Try parsing argument as library starting address in decimal
@@ -1514,7 +1681,7 @@ void cc_free_library(std::vector<std::string> args, std::string *output)
 				SpD3D9Overlay::run_plugin_funcs = true;
 
 				output->append("SUCCESS: Library was unloaded");
-				return;
+				return CONSOLE_COMMAND_SUCCESS;
 			}
 		}
 
@@ -1526,26 +1693,30 @@ void cc_free_library(std::vector<std::string> args, std::string *output)
 			{
 				// Successfully unloaded the library
 				output->append("SUCCESS: Library was unloaded");
-				return;
+				return CONSOLE_COMMAND_SUCCESS;
 			}
 		}
 		output->append("ERROR: Failed to unload library (\"").append(args.at(0)).append("\")");
+		return ERROR_UNABLE_TO_UNLOAD_MEDIA;
 	}
 	else
 	{
 		output->append(ERROR_TOO_FEW_ARGUMENTS);
+		return ERROR_BAD_ARGUMENTS;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Opens the specified URL in the system's default web browser
-void cc_open_web_page(std::vector<std::string> args, std::string *output)
+int cc_open_web_page(std::vector<std::string> args, std::string *output)
 {
 	DWORD err;
 	std::string err_msg;
 	if (args.size() < 1)
 	{
 		output->append(ERROR_TOO_FEW_ARGUMENTS);
+		return ERROR_BAD_ARGUMENTS;
 	}
 	else
 	{
@@ -1580,13 +1751,15 @@ void cc_open_web_page(std::vector<std::string> args, std::string *output)
 		{
 			error_code_to_string(err, &err_msg);
 			output->append("ERROR: Unable to open URL \"").append(args.at(0)).append("\"\nError code ").append(std::to_string(err)).append(" (").append(err_msg).append(")");
+			return ERROR_FILE_NOT_FOUND;
 		}
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Executes a command using the system shell
-/*void cc_shell(std::vector<std::string> args, std::string *output)
+/*int cc_shell(std::vector<std::string> args, std::string *output)
 {
 	DWORD err;
 	std::string err_msg;
@@ -1606,12 +1779,14 @@ void cc_open_web_page(std::vector<std::string> args, std::string *output)
 	else
 	{
 		output->append("ERROR: No shell command specified");
+		return ERROR_BAD_ARGUMENTS;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }*/
 
 
 // Beeps for the specified frequency and duration
-void cc_beep(std::vector<std::string> args, std::string *output)
+int cc_beep(std::vector<std::string> args, std::string *output)
 {
 	DWORD frequency = 500;
 	DWORD duration = 500;
@@ -1642,11 +1817,12 @@ void cc_beep(std::vector<std::string> args, std::string *output)
 	output->append("BEEP: Frequency=").append(std::to_string(frequency)).append("hz, Duration=").append(std::to_string(duration)).append("milliseconds");
 
 	Beep(frequency, duration);
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
 // Prints each argument on a separate line
-void cc_echo(std::vector<std::string> args, std::string *output)
+int cc_echo(std::vector<std::string> args, std::string *output)
 {
 	for (auto arg : args)
 	{
@@ -1656,6 +1832,7 @@ void cc_echo(std::vector<std::string> args, std::string *output)
 	{
 		output->erase(output->length() - 1, 1); // Remove extra newline
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 
@@ -1668,7 +1845,7 @@ DWORD WINAPI cc_run_thread(LPVOID lpParam)
 	return result;
 }
 // Opens a file with the system resolver
-void cc_run(std::vector<std::string> args, std::string *output)
+int cc_run(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
@@ -1691,7 +1868,9 @@ void cc_run(std::vector<std::string> args, std::string *output)
 	else
 	{
 		output->append(ERROR_TOO_FEW_ARGUMENTS);
+		return ERROR_BAD_ARGUMENTS;
 	}
+	return CONSOLE_COMMAND_SUCCESS;
 }
 
 void register_default_console_commands()
@@ -1724,6 +1903,8 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("console_echo", cc_console_echo, "console_echo [is_enabled]\n    Enables/disables console input echo (1 = on, 0 = off).");
 	SpD3D9OConsole::register_command("console_output", cc_console_output, "console_output [is_enabled]\n    Enables/disables console output stream (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("console_execute", cc_console_execute, "console_execute <command> [command...]\n    Executes each argument as a separate console command.");
+	SpD3D9OConsole::register_command("console_script", cc_console_script, "console_script <file>\n    Opens a plain-text script file and executes each line as a separate console command.");
+	SpD3D9OConsole::register_alias("script", "console_script");
 	SpD3D9OConsole::register_command("console_font_size", cc_console_font_size, std::string("console_font_size [size]\n    Sets the console overlay font size. Font size ranges from 1 to ").append(std::to_string(_SP_D3D9O_C_MAX_FONT_SIZE_)).append(".").c_str());
 	SpD3D9OConsole::register_command("console_autocomplete_limit", cc_autocomplete_limit, "autocomplete_limit [limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
 	SpD3D9OConsole::register_command("console_prompt", cc_console_prompt, "console_prompt [prompt]\n    Sets the console input prompt string.");

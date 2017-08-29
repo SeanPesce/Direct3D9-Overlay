@@ -32,7 +32,7 @@ __declspec(dllexport) unsigned int register_hotkey_function(unsigned int vk_hotk
 }
 
 
-__declspec(dllexport) int register_console_command(const char *command, void(*function)(std::vector<std::string>, std::string *), const char *help_message)
+__declspec(dllexport) int register_console_command(const char *command, int(*function)(std::vector<std::string>, std::string *), const char *help_message)
 {
 	return SpD3D9OConsole::register_command(command, function, help_message);
 }
@@ -44,14 +44,13 @@ __declspec(dllexport) int register_console_alias(const char *new_alias, const ch
 }
 
 
-__declspec(dllexport) int execute_console_command(const char *command, std::string *output)
+__declspec(dllexport) int execute_console_command(const char *command, int *return_code, std::string *output)
 {
 	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->console != NULL)
 	{
 		if (command != NULL)
 		{
-			gl_pSpD3D9Device->overlay->console->execute_command(command, output);
-			return 0;
+			return gl_pSpD3D9Device->overlay->console->execute_command(command, return_code, output);
 		}
 		else
 		{

@@ -837,7 +837,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 						case 0x43: // Ctrl+C
 							build_highlighted_text(selection, &str);
 							last_err = copy(&str);
-							if (last_err != 0)
+							if (last_err != ERROR_SUCCESS)
 							{
 								print("ERROR: Unable to copy current selection");
 							}
@@ -854,7 +854,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 							}
 							// Paste clipboard instead of typing
 							last_err = paste();
-							if (last_err != 0)
+							if (last_err != ERROR_SUCCESS)
 							{
 								print("ERROR: Unable to paste clipboard data (clipboard might be holding non-text data)");
 							}
@@ -870,7 +870,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 							{
 								build_highlighted_text(selection, &str);
 								last_err = copy(&str);
-								if (last_err != 0)
+								if (last_err != ERROR_SUCCESS)
 								{
 									print("ERROR: Unable to copy current selection");
 								}

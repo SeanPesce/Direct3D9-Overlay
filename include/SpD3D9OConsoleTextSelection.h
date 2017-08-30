@@ -455,6 +455,14 @@ void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, s
 // Builds the string of currently-highlighted text
 void SpD3D9OConsole::build_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, std::string *highlighted_str)
 {
+	highlighted_str->clear();
+
+	if (selection.focus != SP_D3D9O_SELECT_TEXT)
+	{
+		// No text is highlighted
+		return;
+	}
+
 	// Get screenspace limits
 	RECT window, console_lims;
 	SIZE char_size;
@@ -463,7 +471,7 @@ void SpD3D9OConsole::build_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, 
 
 	std::string input_line;
 	add_prompt_elements(&input_line);
-	input_line.append(command.substr(input_display_start, (input_display_end - input_display_start)));
+	input_line.append(command.substr(input_display_start, (input_display_end - input_display_start)+1));
 	input_line = input_line.substr(0, max_chars);
 
 

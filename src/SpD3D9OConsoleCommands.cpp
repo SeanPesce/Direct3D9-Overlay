@@ -94,7 +94,7 @@ void args_to_string(std::vector<std::string> args, std::string *str)
 		{
 			// Argument contains whitespace/quotes, so must be a string argument
 			int last_match = 0;
-			while ((last_match < arg.length()) && (last_match = arg.find_first_of("'", last_match)) != std::string::npos)
+			while ((last_match < (int)arg.length()) && (last_match = (int)arg.find_first_of("'", last_match)) != std::string::npos)
 			{
 				arg.insert(last_match, "\\");
 				last_match += 2; // +1 for new '\\' char, +1 to move past the '\'' char
@@ -142,7 +142,7 @@ bool string_is_zero(const char *c_str)
 		return false;
 	}
 	
-	for (int i = 0; i < str.length(); i++)
+	for (int i = 0; i < (int)str.length(); i++)
 	{
 		if (i != 1 && str.c_str()[i] != '0')
 		{
@@ -248,7 +248,7 @@ int cc_all_commands(std::vector<std::string> args, std::string *output)
 	{
 		output->append("    ").append(cmd.command);
 		lines++;
-		if (lines < SpD3D9OConsole::commands.size())
+		if (lines < (int)SpD3D9OConsole::commands.size())
 		{
 			output->append("\n");
 		}
@@ -648,7 +648,7 @@ int cc_paste(std::vector<std::string> args, std::string *output)
 	CloseClipboard();
 	
 	// Remove newline and return feed characters
-	for (int c = 0; c < clipboard_str.length(); c++)
+	for (int c = 0; c < (int)clipboard_str.length(); c++)
 	{
 		if (clipboard_str.c_str()[c] == '\n' || clipboard_str.c_str()[c] == '\r')
 		{
@@ -1233,7 +1233,7 @@ int cc_console_restore_dev_defaults(std::vector<std::string> args, std::string *
 	{
 		gl_pSpD3D9Device->overlay->console->output_log_capacity = gl_pSpD3D9Device->overlay->console->output_log_displayed_lines;
 	}
-	for (int i = 0; i < gl_pSpD3D9Device->overlay->console->output_log_displayed_lines; i++)
+	for (int i = 0; i < (int)gl_pSpD3D9Device->overlay->console->output_log_displayed_lines; i++)
 	{
 		gl_pSpD3D9Device->overlay->console->output_log.push_back("");
 	}
@@ -1726,7 +1726,7 @@ int cc_free_library(std::vector<std::string> args, std::string *output)
 		if (hmod != NULL)
 		{
 			// Successfully obtained HMODULE
-			bool lib_freed = FreeLibrary(hmod);
+			BOOL lib_freed = FreeLibrary(hmod);
 			DWORD err = GetLastError();
 			if (!lib_freed)
 			{

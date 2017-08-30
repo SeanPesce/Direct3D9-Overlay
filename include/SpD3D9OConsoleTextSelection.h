@@ -37,12 +37,12 @@ void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_cha
 	}
 
 	std::string console_line;
-	if (row < (output_log_displayed_lines + 1) && row > -1
+	if (row < ((int)output_log_displayed_lines + 1) && row > -1
 			&& column < max_chars && column > -1)
 	{
 		// Selecting text
 
-		if (row < output_log_displayed_lines)
+		if (row < (int)output_log_displayed_lines)
 		{
 			//*focus = SP_D3D9O_SELECT_OUTPUT;
 			*line = (output_log.size() - (output_log_displayed_lines - row));
@@ -56,7 +56,7 @@ void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_cha
 			add_prompt_elements(&console_line);
 
 			// Concatenate extended prompt if it's too long
-			if (console_line.length() >= max_chars)
+			if ((int)console_line.length() >= max_chars)
 			{
 				console_line = console_line.substr(0, max_chars);
 			}
@@ -66,7 +66,7 @@ void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_cha
 			}
 		}
 
-		if (column >= console_line.length())
+		if (column >= (int)console_line.length())
 		{
 			*index = console_line.length();
 		}
@@ -94,7 +94,7 @@ void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_cha
 			*line = output_log.size() - output_log_displayed_lines;
 			console_line = output_log.at(*line);
 		}
-		else if (row >= output_log_displayed_lines)
+		else if (row >= (int)output_log_displayed_lines)
 		{
 			// Extend selection to input line
 			*line = SP_D3D9O_C_INPUT_LINE;
@@ -102,7 +102,7 @@ void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_cha
 			add_prompt_elements(&console_line);
 
 			// Concatenate extended prompt if it's too long
-			if (console_line.length() >= max_chars)
+			if ((int)console_line.length() >= max_chars)
 			{
 				console_line = console_line.substr(0, max_chars);
 			}
@@ -118,7 +118,7 @@ void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_cha
 			console_line = output_log.at(*line);
 		}
 
-		if (column >= console_line.length())
+		if (column >= (int)console_line.length())
 		{
 			*index = console_line.length();
 		}
@@ -319,7 +319,7 @@ int SpD3D9OConsole::get_screenspace_values(RECT *window, SIZE *char_size, RECT *
 	
 	// Check if cursor is hovering over an autocomplete suggestion
 	int autocomplete_hover_tmp = -1;
-	for (int i = 0; i < autocomplete_opts_tmp.size(); i++)
+	for (int i = 0; i < (int)autocomplete_opts_tmp.size(); i++)
 	{
 		if (SpD3D9OInputHandler::get()->cursor_position.x >= autocomplete_lims_tmp.left
 			&& SpD3D9OInputHandler::get()->cursor_position.x <= autocomplete_lims_tmp.right
@@ -353,7 +353,7 @@ void SpD3D9OConsole::start_selection()
 
 
 	// Stop the game from reading the click message if the user clicks in the bounds of the console
-	if (SpD3D9OInputHandler::get()->cursor_position.y <= (console_lims.bottom + border_width) || autocomplete_hover > -1)
+	if (SpD3D9OInputHandler::get()->cursor_position.y <= (console_lims.bottom + (int)border_width) || autocomplete_hover > -1)
 	{
 		SpD3D9OInputHandler::get()->handled = true;
 	}
@@ -366,11 +366,11 @@ void SpD3D9OConsole::start_selection()
 			std::string console_line;
 			add_prompt_elements(&console_line);
 
-			if (command.length() == 0 || ((console_line.length() + command.length()) < max_chars && column >= (console_line.length() + command.length())))
+			if (command.length() == 0 || ((int)(console_line.length() + command.length()) < max_chars && column >= (int)(console_line.length() + command.length())))
 			{
 				caret_position = command.length();
 			}
-			else if (column >= console_line.length())
+			else if (column >= (int)console_line.length())
 			{
 				caret_position = (column - console_line.length()) + input_display_start;
 			}
@@ -401,7 +401,7 @@ void SpD3D9OConsole::continue_autocomplete_selection()
 		{
 			std::vector<std::string> matches;
 			get_autocomplete_options(command.c_str(), selection.autocomplete_selection + 1, &matches);
-			if (matches.size() > selection.autocomplete_selection)
+			if ((int)matches.size() > selection.autocomplete_selection)
 			{
 				command = matches.at(selection.autocomplete_selection);
 				caret_position = command.length();
@@ -454,14 +454,13 @@ void SpD3D9OConsole::continue_text_selection()
 	}
 
 	// Move caret, if necessary
-	//add_prompt_elements(&console_line);
-	if (selection.line2 == SP_D3D9O_C_INPUT_LINE && selection.i2 >= console_line.length() && !(selection.line1 == selection.line2 && selection.i1 == selection.i2))
+	if (selection.line2 == SP_D3D9O_C_INPUT_LINE && selection.i2 >= (int)console_line.length() && !(selection.line1 == selection.line2 && selection.i1 == selection.i2))
 	{
-		if (command.length() == 0 || ((console_line.length() + command.length()) < max_chars && column >= (console_line.length() + command.length())))
+		if (command.length() == 0 || ((int)(console_line.length() + command.length()) < max_chars && column >= (int)(console_line.length() + command.length())))
 		{
 			caret_position = command.length();
 		}
-		else if (column > console_line.length())
+		else if (column > (int)console_line.length())
 		{
 			if (selection.line1 == SP_D3D9O_C_INPUT_LINE && selection.i1 < selection.i2)
 			{
@@ -495,7 +494,7 @@ void SpD3D9OConsole::get_input_selection(int *start, int *end)
 	std::string full_prompt;
 	add_prompt_elements(&full_prompt);
 
-	if (*selection.start_line == SP_D3D9O_C_INPUT_LINE && (*selection.start_index) >= full_prompt.length())
+	if (*selection.start_line == SP_D3D9O_C_INPUT_LINE && (*selection.start_index) >= (int)full_prompt.length())
 	{
 		(*start) = ((*selection.start_index) - full_prompt.length()) + input_display_start;
 	}
@@ -504,7 +503,7 @@ void SpD3D9OConsole::get_input_selection(int *start, int *end)
 		(*start) = -1;
 	}
 
-	if (*selection.end_line == SP_D3D9O_C_INPUT_LINE && (*selection.end_index) >= full_prompt.length())
+	if (*selection.end_line == SP_D3D9O_C_INPUT_LINE && (*selection.end_index) >= (int)full_prompt.length())
 	{
 		(*end) = ((*selection.end_index) - full_prompt.length()) + input_display_start;
 	}
@@ -523,7 +522,7 @@ void SpD3D9OConsole::format_output_line(std::string *str, int line, int max_char
 		SetLastError(ERROR_INVALID_ADDRESS);
 		return;
 	}
-	else if (line < 0 || line >= output_log.size())
+	else if (line < 0 || line >= (int)output_log.size())
 	{
 		SetLastError(ERROR_INVALID_INDEX);
 		return;
@@ -536,7 +535,7 @@ void SpD3D9OConsole::format_output_line(std::string *str, int line, int max_char
 
 	str->clear();
 	str->append(output_log.at(line));
-	if (str->length() >= max_chars)
+	if ((int)str->length() >= max_chars)
 	{
 		(*str) = str->substr(0, max_chars);
 	}  
@@ -566,7 +565,7 @@ void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, s
 			// Draw until end_line
 			
 			// Draw middle output lines
-			for (int i = *p_selection.start_line+1; i < *p_selection.end_line && i < output_log.size(); i++)
+			for (int i = *p_selection.start_line+1; i < *p_selection.end_line && i < (int)output_log.size(); i++)
 			{
 				format_output_line(&line, i, max_chars);
 				font->DrawText((float)border_width, (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - i))), color.text_highlighted, line.c_str(), D3DFONT_BACKGROUND, color.text_highlighted_bg);
@@ -582,7 +581,7 @@ void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, s
 			// Draw until end of output, then draw input line
 
 			// Draw middle output lines
-			for (int i = *p_selection.start_line + 1; i < output_log.size(); i++)
+			for (int i = *p_selection.start_line + 1; i < (int)output_log.size(); i++)
 			{
 				format_output_line(&line, i, max_chars);
 				font->DrawText((float)border_width, (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - i))), color.text_highlighted, line.c_str(), D3DFONT_BACKGROUND, color.text_highlighted_bg);
@@ -639,7 +638,7 @@ void SpD3D9OConsole::build_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, 
 			// Draw until end_line
 
 			// Draw middle output lines
-			for (int i = *p_selection.start_line + 1; i < *p_selection.end_line && i < output_log.size(); i++)
+			for (int i = *p_selection.start_line + 1; i < *p_selection.end_line && i < (int)output_log.size(); i++)
 			{
 				highlighted_str->append("\n").append(output_log.at(i));
 			}
@@ -653,7 +652,7 @@ void SpD3D9OConsole::build_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, 
 			// Selection is 1 or more output lines and input line
 
 			// Draw middle output lines
-			for (int i = *p_selection.start_line + 1; i < output_log.size(); i++)
+			for (int i = *p_selection.start_line + 1; i < (int)output_log.size(); i++)
 			{
 				highlighted_str->append("\n").append(output_log.at(i));
 			}

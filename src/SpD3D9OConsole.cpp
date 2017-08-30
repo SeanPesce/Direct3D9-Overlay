@@ -148,8 +148,8 @@ void SpD3D9OConsole::draw()
 	long console_height = (long)(char_size.cy  * (output_log_displayed_lines + 1));
 	//long console_height = (long)((font_height  * (output_log_displayed_lines + 1))*1.5);
 	
-	D3DRECT border = { 0, 0, window_rect.right - window_rect.left, console_height+(2*border_width) };
-	D3DRECT background = { border_width, border_width, (window_rect.right - window_rect.left)- border_width, console_height + border_width };
+	D3DRECT border = { 0, 0, window_rect.right - window_rect.left, console_height+(2* (int)border_width) };
+	D3DRECT background = { (int)border_width, (int)border_width, (window_rect.right - window_rect.left)- (int)border_width, console_height + (int)border_width };
 
 
 	// Calculate maximum number of characters & lines that can be displayed on-screen
@@ -157,7 +157,7 @@ void SpD3D9OConsole::draw()
 
 	
 	// Concatenate prompt if it's too long
-	if (prompt.length() > (max_chars - 1))
+	if ((int)prompt.length() > (max_chars - 1))
 	{
 		prompt = prompt.substr(0, max_chars - 1);
 	}
@@ -171,7 +171,7 @@ void SpD3D9OConsole::draw()
 	for (int i = output_log_displayed_lines - 1; i >= 0; i--)
 	{
 		std::string *current_line = &output_log.at(output_log.size() - (1 + i));
-		if (current_line->length() > max_chars)
+		if ((int)current_line->length() > max_chars)
 		{
 			output_string.append(std::string(*current_line).substr(0, max_chars)).append("\n");
 		}
@@ -196,7 +196,7 @@ void SpD3D9OConsole::draw()
 		cur_cmd.erase(caret_position, 1);
 		cur_cmd.insert(caret_position, 1, caret);
 	}
-	if (cur_cmd.length() > max_input_chars)
+	if ((int)cur_cmd.length() > max_input_chars)
 	{
 		cur_cmd = cur_cmd.substr(input_display_start, max_input_chars);
 	}
@@ -211,7 +211,7 @@ void SpD3D9OConsole::draw()
 
 	// Get autocomplete options
 	std::string prompt_alignment_spaces;
-	for (int i = 0; i < full_prompt.length(); i++)
+	for (int i = 0; i < (int)full_prompt.length(); i++)
 	{
 		prompt_alignment_spaces += ' ';
 	}
@@ -264,20 +264,20 @@ void SpD3D9OConsole::draw()
 	{
 		// Render the cursor
 		if (win_cursor_tex == NULL ||
-			((SpD3D9OInputHandler::get()->cursor_position.y <= (console_height + border_width))
-				&& (SpD3D9OInputHandler::get()->cursor_position.y > border_width)
-				&& (SpD3D9OInputHandler::get()->cursor_position.x > border_width)
-				&& (SpD3D9OInputHandler::get()->cursor_position.x <= (window_rect.right - border_width))))
+			((SpD3D9OInputHandler::get()->cursor_position.y <= (console_height + (int)border_width))
+				&& (SpD3D9OInputHandler::get()->cursor_position.y > (int)border_width)
+				&& (SpD3D9OInputHandler::get()->cursor_position.x > (int)border_width)
+				&& (SpD3D9OInputHandler::get()->cursor_position.x <= (window_rect.right - (int)border_width))))
 		{
 			// Render text cursor
 			cursor->BeginDrawing();
-			cursor->DrawText(SpD3D9OInputHandler::get()->cursor_position.x - (char_size.cx / 2), SpD3D9OInputHandler::get()->cursor_position.y - (char_size.cy / 2), color.text_cursor, "I", 0, 0);
+			cursor->DrawText((float)(SpD3D9OInputHandler::get()->cursor_position.x - (char_size.cx / 2)), (float)(SpD3D9OInputHandler::get()->cursor_position.y - (char_size.cy / 2)), color.text_cursor, "I", 0, 0);
 			cursor->EndDrawing();
 		}
 		else
 		{
 			// Render windows cursor
-			RECT win_cursor_rect = { 0, 1, (cursor_size / 1.625), cursor_size };
+			RECT win_cursor_rect = { 0, 1, (LONG)(cursor_size / 1.625), cursor_size };
 			if (cursor_size > 120)
 			{
 				win_cursor_rect.right -= 2;
@@ -291,7 +291,7 @@ void SpD3D9OConsole::draw()
 				win_cursor_rect.top += 2;
 			}
 			win_cursor_sprite->Begin(D3DXSPRITE_ALPHABLEND);
-			win_cursor_sprite->Draw(win_cursor_tex, (const RECT*)&win_cursor_rect, NULL, &D3DXVECTOR3(SpD3D9OInputHandler::get()->cursor_position.x, SpD3D9OInputHandler::get()->cursor_position.y, 0), 0xFFFFFFFF);
+			win_cursor_sprite->Draw(win_cursor_tex, (const RECT*)&win_cursor_rect, NULL, &D3DXVECTOR3((FLOAT)SpD3D9OInputHandler::get()->cursor_position.x, (FLOAT)SpD3D9OInputHandler::get()->cursor_position.y, 0), 0xFFFFFFFF);
 			win_cursor_sprite->End();
 		}
 	}
@@ -330,7 +330,7 @@ void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt, int *max_char
 	full_prompt->append(prompt);
 
 	// Concatenate extended prompt if it's too long
-	if (max_chars != NULL && full_prompt->length() >= *max_chars)
+	if (max_chars != NULL && (int)full_prompt->length() >= *max_chars)
 	{
 		(*full_prompt) = full_prompt->substr(0, (*max_chars) - 1);
 	}
@@ -341,7 +341,7 @@ void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt, int *max_char
 // Clears console by pushing blank messages to output
 void SpD3D9OConsole::clear()
 {
-	for (int i = 0; i <= output_log_displayed_lines; i++)
+	for (int i = 0; i <= (int)output_log_displayed_lines; i++)
 	{
 		output_log.push_back("");
 	}
@@ -728,7 +728,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				{
 					// If input isn't blank, use autocomplete
 					get_autocomplete_options(command.c_str(), selection.autocomplete_selection+1, &matches);
-					if (matches.size() > selection.autocomplete_selection)
+					if ((int)matches.size() > selection.autocomplete_selection)
 					{
 						command = matches.at(selection.autocomplete_selection);
 						caret_position = command.length();
@@ -1186,7 +1186,7 @@ int SpD3D9OConsole::register_command(const char *new_command, int(*function)(std
 	}
 	
 	std::string invalid_command_chars = _SP_D3D9O_C_INVALID_CONSOLE_COMMAND_CHARS_;
-	for(int c = 0; c < invalid_command_chars.length(); c++)
+	for(int c = 0; c < (int)invalid_command_chars.length(); c++)
 	{
 		if (cmd_str.find(invalid_command_chars.c_str()[c]) != std::string::npos)
 		{
@@ -1345,7 +1345,7 @@ DWORD SpD3D9OConsole::paste()
 	CloseClipboard();
 
 	// Remove newline, return-feed, and indent (tab) characters
-	for (int c = 0; c < clipboard_str.length(); c++)
+	for (int c = 0; c < (int)clipboard_str.length(); c++)
 	{
 		if (clipboard_str.c_str()[c] == '\n' || clipboard_str.c_str()[c] == '\r' || clipboard_str.c_str()[c] == '\t')
 		{
@@ -1411,7 +1411,7 @@ HRESULT SpD3D9OConsole::init_win_cursor()
 	//HRESULT hres = D3DXCreateTextureFromFileInMemory(gl_pSpD3D9Device->m_pIDirect3DDevice9, cursor_rsrc_data, cursor_rsrc_size, &win_cursor_tex);
 	HRESULT hres = D3DXCreateTextureFromFileInMemoryEx(
 		gl_pSpD3D9Device->m_pIDirect3DDevice9, cursor_rsrc_data,
-		cursor_rsrc_size, (cursor_size / 1.625), cursor_size,
+		cursor_rsrc_size, (UINT)(cursor_size / 1.625), cursor_size,
 		D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED,
 		D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &win_cursor_tex);
 
@@ -1466,7 +1466,7 @@ void SpD3D9OConsole::get_autocomplete_options(const char *str, unsigned int max_
 	seqan::String<char> search_string(lower_str.c_str());
 	seqan::Finder<seqan::Index<seqan::StringSet<seqan::String<char>>>> commands_finder;
 	seqan::setHaystack(commands_finder, *commands_index);
-	while (seqan::find(commands_finder, search_string) && found < max_matches)
+	while (seqan::find(commands_finder, search_string) && found < (int)max_matches)
 	{
 		if (seqan::position(commands_finder).i2 == 0 && (seqan::length(seqan::value(commands_set, seqan::position(commands_finder).i1)) != std::string(str).length()))
 		{

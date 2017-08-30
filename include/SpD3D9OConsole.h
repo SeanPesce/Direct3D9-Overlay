@@ -29,23 +29,23 @@
 #define _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_ _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_
 #define _SP_D3D9O_C_DEFAULT_FONT_FAMILY_ "Courier New"
 #define _SP_D3D9O_C_DEFAULT_FONT_FLAGS_ 0	// D3DFONT_BOLD, etc
-#define _SP_D3D9O_C_DEFAULT_FONT_COLOR_ D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);	// White
-#define _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f); // Black
-#define _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_ D3DXCOLOR(0xFF508CED); // Blue (#508CED)
-#define _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f); // Black
-#define _SP_D3D9O_C_DEFAULT_BORDER_COLOR_ D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f); // Gray
+#define _SP_D3D9O_C_DEFAULT_FONT_COLOR_ D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f)	// White
+#define _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f) // Black
+#define _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_ D3DXCOLOR(0xFF508CED) // Blue (#508CED)
+#define _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f) // Black
+#define _SP_D3D9O_C_DEFAULT_BORDER_COLOR_ D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f) // Gray
 #define _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_ 3
-#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f); // Black
-#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_ D3DXCOLOR(0xFF1C1C1C); // Very dark gray
-#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_SELECT_COLOR_ D3DXCOLOR(0xFF333333); // Dark gray
-#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_COLOR_ D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f); // Gray
+#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_ _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_
+#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_ D3DXCOLOR(0xFF1C1C1C) // Very dark gray
+#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_SELECT_COLOR_ D3DXCOLOR(0xFF333333) // Dark gray
+#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_COLOR_ _SP_D3D9O_C_DEFAULT_BORDER_COLOR_
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_ 1
 #define _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_ 15
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_ 5
 #define _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_ (SP_D3D9O_PROMPT_ELEMENTS_DISABLED)
 #define _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_ true
 #define _SP_D3D9O_C_DEFAULT_CURSOR_SIZE_ 16
-#define _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_ D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);	// White
+#define _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_ _SP_D3D9O_C_DEFAULT_FONT_COLOR_	// White
 #define _SP_D3D9O_C_DEFAULT_CURSOR_FONT_FAMILY_ "Consolas"
 #define _SP_D3D9O_C_DEFAULT_OLD_OS_CURSOR_FONT_FAMILY_ "Courier New"
 
@@ -57,6 +57,20 @@
 #define CONSOLE_COMMAND_SUCCESS ERROR_SUCCESS  // Value that a console command should return if no errors occurred
 #define CONSOLE_COMMAND_NOT_FOUND_ERROR (-1)
 #define _SP_D3D9O_C_ERROR_UNKNOWN_COMMAND_ "ERROR: Unrecognized command"
+
+
+typedef struct SP_D3D9O_CONSOLE_COLORS {
+	D3DXCOLOR text = _SP_D3D9O_C_DEFAULT_FONT_COLOR_;											// Normal font color
+	D3DXCOLOR text_highlighted = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_;						// Font color for highlighted text
+	D3DXCOLOR text_highlighted_bg = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_;			// Background color for highlighted text
+	D3DXCOLOR text_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_;									// Color of the text-selection cursor
+	D3DXCOLOR background = _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_;								// Main console window background color
+	D3DXCOLOR border = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;										// Main console window border color
+	D3DXCOLOR autocomplete_bg = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_;					// Normal background color for autocomplete box
+	D3DXCOLOR autocomplete_border = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_COLOR_;					// Autocomplete box border color
+	D3DXCOLOR autocomplete_bg_hover = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_;		// Background color for autocomplete entry when mouse cursor is hovering, but right mouse button is not pressed
+	D3DXCOLOR autocomplete_bg_select = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_SELECT_COLOR_;	// Background color for autocomplete entry when mouse cursor is hovering and right mouse button is pressed
+} CONSOLE_COLORS;
 
 // Denotes whether to display each element of the input prompt
 enum SP_D3D9O_CONSOLE_PROMPT_ENUM {
@@ -115,6 +129,7 @@ public:
 	int prompt_elements = _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_;
 	char caret = _SP_D3D9O_C_DEFAULT_CARET_;
 	int caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
+	CONSOLE_COLORS color; // Struct containing colors of the different console elements
 	std::string command = ""; // Current command being typed
 
 	bool show_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_;
@@ -122,24 +137,14 @@ public:
 	std::string cursor_font_family = _SP_D3D9O_C_DEFAULT_CURSOR_FONT_FAMILY_;
 	CD3DFont *cursor = NULL;
 	int cursor_size = _SP_D3D9O_C_DEFAULT_CURSOR_SIZE_;
-	D3DXCOLOR cursor_color = _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_;
 	// Windows cursor data
 	LPDIRECT3DTEXTURE9 win_cursor_tex = NULL; // Windows cursor texture
 	LPD3DXSPRITE win_cursor_sprite = NULL; // Windows cursor sprite
 
 	CD3DFont *font = NULL;
 	int font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;
-	D3DXCOLOR font_color = _SP_D3D9O_C_DEFAULT_FONT_COLOR_;
-	D3DXCOLOR font_highlight_color = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_;
-	D3DXCOLOR background_highlight_color = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_;
 	std::string font_family = _SP_D3D9O_C_DEFAULT_FONT_FAMILY_;
-	D3DXCOLOR background_color = _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_;
-	D3DXCOLOR border_color = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
 	unsigned int border_width = _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_;
-	D3DXCOLOR autocomplete_background_color = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_;
-	D3DXCOLOR autocomplete_background_hover_color = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_;
-	D3DXCOLOR autocomplete_background_select_color = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_SELECT_COLOR_;
-	D3DXCOLOR autocomplete_border_color = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
 	unsigned int autocomplete_border_width = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_;
 
 	std::vector<std::string> command_log; // Log of console commands previously entered

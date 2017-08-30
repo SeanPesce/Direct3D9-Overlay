@@ -222,8 +222,8 @@ void SpD3D9OConsole::draw()
 
 
 	// Draw console background & border
-	overlay->device->Clear(1, &border, D3DCLEAR_TARGET, border_color, 0, 0);
-	overlay->device->Clear(1, &background, D3DCLEAR_TARGET, background_color, 0, 0);
+	overlay->device->Clear(1, &border, D3DCLEAR_TARGET, color.border, 0, 0);
+	overlay->device->Clear(1, &background, D3DCLEAR_TARGET, color.background, 0, 0);
 
 	// Draw background for autocomplete dropdown
 	if (autocomplete_matches.size() > 0)
@@ -231,25 +231,25 @@ void SpD3D9OConsole::draw()
 		long prompt_width = (long)(char_size.cx * full_prompt.length());
 		background = { prompt_width + (int)border_width, console_height + (int)border_width, prompt_width + (int)border_width + (char_size.cx * longest_autocomplete), (long)(char_size.cy  * (output_log_displayed_lines + 1 + autocomplete_matches.size())) + (int)border_width };
 		border = { background.x1 - (int)autocomplete_border_width, background.y1, background.x2 + (int)autocomplete_border_width, background.y2 + (int)autocomplete_border_width };
-		overlay->device->Clear(1, &border, D3DCLEAR_TARGET, autocomplete_border_color, 0, 0);
-		overlay->device->Clear(1, &background, D3DCLEAR_TARGET, autocomplete_background_color, 0, 0);
+		overlay->device->Clear(1, &border, D3DCLEAR_TARGET, color.autocomplete_border, 0, 0);
+		overlay->device->Clear(1, &background, D3DCLEAR_TARGET, color.autocomplete_bg, 0, 0);
 		// Draw selected/hover background
 		background.y1 += (char_size.cy * selection.autocomplete_selection);
 		background.y2 = background.y1 + char_size.cy;
 		if (selection.focus == SP_D3D9O_SELECT_AUTOCOMPLETE)
 		{
-			overlay->device->Clear(1, &background, D3DCLEAR_TARGET, autocomplete_background_select_color, 0, 0);
+			overlay->device->Clear(1, &background, D3DCLEAR_TARGET, color.autocomplete_bg_select, 0, 0);
 		}
 		else
 		{
-			overlay->device->Clear(1, &background, D3DCLEAR_TARGET, autocomplete_background_hover_color, 0, 0);
+			overlay->device->Clear(1, &background, D3DCLEAR_TARGET, color.autocomplete_bg_hover, 0, 0);
 		}
 	}
 
 
 	// Render the console text
 	font->BeginDrawing();
-	font->DrawText((float)border_width, (float)border_width, font_color, output_string.c_str(), D3DFONT_COLORTABLE, 0);
+	font->DrawText((float)border_width, (float)border_width, color.text, output_string.c_str(), D3DFONT_COLORTABLE, 0);
 	if (selection.focus == SP_D3D9O_SELECT_TEXT)
 	{
 		draw_highlighted_text(selection, &input_line);
@@ -271,7 +271,7 @@ void SpD3D9OConsole::draw()
 		{
 			// Render text cursor
 			cursor->BeginDrawing();
-			cursor->DrawText(SpD3D9OInputHandler::get()->cursor_position.x - (char_size.cx / 2), SpD3D9OInputHandler::get()->cursor_position.y - (char_size.cy / 2), cursor_color, "I", 0, 0);
+			cursor->DrawText(SpD3D9OInputHandler::get()->cursor_position.x - (char_size.cx / 2), SpD3D9OInputHandler::get()->cursor_position.y - (char_size.cy / 2), color.text_cursor, "I", 0, 0);
 			cursor->EndDrawing();
 		}
 		else
@@ -1747,7 +1747,7 @@ char check_args_output_redirect(std::vector<std::string> *args, std::string *out
 	else if (((args->size() > 1) && (args->at(args->size() - 1).length() == 1) && (args->at(args->size() - 1).c_str()[0] == '>'))
 		|| ((args->size() > 1) && (args->at(args->size() - 1).length() == 2) && (args->at(args->size() - 1).c_str()[0] == '>') && (args->at(args->size() - 1).c_str()[1] == '>')))
 	{
-		// Discard output
+		// Discard output (">" or ">>" with no output file specified)
 		args->pop_back();
 		return 'd';
 	}

@@ -559,7 +559,7 @@ void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, s
 
 		// Draw start_line
 		format_output_line(&line, *p_selection.start_line, max_chars);
-		font->DrawText((float)border_width + (char_size.cx * (*p_selection.start_index)), (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - *p_selection.start_line))), font_highlight_color, line.substr(*p_selection.start_index).c_str(), D3DFONT_BACKGROUND, background_highlight_color);
+		font->DrawText((float)border_width + (char_size.cx * (*p_selection.start_index)), (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - *p_selection.start_line))), color.text_highlighted, line.substr(*p_selection.start_index).c_str(), D3DFONT_BACKGROUND, color.text_highlighted_bg);
 
 		if (*p_selection.end_line != SP_D3D9O_C_INPUT_LINE)
 		{
@@ -569,12 +569,12 @@ void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, s
 			for (int i = *p_selection.start_line+1; i < *p_selection.end_line && i < output_log.size(); i++)
 			{
 				format_output_line(&line, i, max_chars);
-				font->DrawText((float)border_width, (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - i))), font_highlight_color, line.c_str(), D3DFONT_BACKGROUND, background_highlight_color);
+				font->DrawText((float)border_width, (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - i))), color.text_highlighted, line.c_str(), D3DFONT_BACKGROUND, color.text_highlighted_bg);
 			}
 
 			// end_line
 			format_output_line(&line, *p_selection.end_line, max_chars);
-			font->DrawText((float)border_width, (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - *p_selection.end_line))), font_highlight_color, line.substr(0, *p_selection.end_index).c_str(), D3DFONT_BACKGROUND, background_highlight_color);
+			font->DrawText((float)border_width, (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - *p_selection.end_line))), color.text_highlighted, line.substr(0, *p_selection.end_index).c_str(), D3DFONT_BACKGROUND, color.text_highlighted_bg);
 		
 		}
 		else
@@ -585,23 +585,23 @@ void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, s
 			for (int i = *p_selection.start_line + 1; i < output_log.size(); i++)
 			{
 				format_output_line(&line, i, max_chars);
-				font->DrawText((float)border_width, (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - i))), font_highlight_color, line.c_str(), D3DFONT_BACKGROUND, background_highlight_color);
+				font->DrawText((float)border_width, (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - i))), color.text_highlighted, line.c_str(), D3DFONT_BACKGROUND, color.text_highlighted_bg);
 			}
 
 			// Draw end_line (Input line)
-			font->DrawText((float)border_width, (float)border_width + (char_size.cy * output_log_displayed_lines), font_highlight_color, input_line->substr(0, *p_selection.end_index).c_str(), D3DFONT_BACKGROUND, background_highlight_color);
+			font->DrawText((float)border_width, (float)border_width + (char_size.cy * output_log_displayed_lines), color.text_highlighted, input_line->substr(0, *p_selection.end_index).c_str(), D3DFONT_BACKGROUND, color.text_highlighted_bg);
 		}
 	}
 	else if(*p_selection.start_line == SP_D3D9O_C_INPUT_LINE)
 	{
 		// Draw from start_index to end_index in input line
-		font->DrawText((float)border_width + (char_size.cx * (*p_selection.start_index)), (float)border_width + (char_size.cy * output_log_displayed_lines), font_highlight_color, input_line->substr(*p_selection.start_index, (*p_selection.end_index - *p_selection.start_index)).c_str(), D3DFONT_BACKGROUND, background_highlight_color);
+		font->DrawText((float)border_width + (char_size.cx * (*p_selection.start_index)), (float)border_width + (char_size.cy * output_log_displayed_lines), color.text_highlighted, input_line->substr(*p_selection.start_index, (*p_selection.end_index - *p_selection.start_index)).c_str(), D3DFONT_BACKGROUND, color.text_highlighted_bg);
 	}
 	else
 	{
 		// Draw from start_index to end_index in start_line
 		format_output_line(&line, *p_selection.start_line, max_chars);
-		font->DrawText((float)border_width + (char_size.cx * (*p_selection.start_index)), (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - *p_selection.start_line))), font_highlight_color, line.substr(*p_selection.start_index, (*p_selection.end_index - *p_selection.start_index)).c_str(), D3DFONT_BACKGROUND, background_highlight_color);
+		font->DrawText((float)border_width + (char_size.cx * (*p_selection.start_index)), (float)border_width + (char_size.cy * (output_log_displayed_lines - (output_log.size() - *p_selection.start_line))), color.text_highlighted, line.substr(*p_selection.start_index, (*p_selection.end_index - *p_selection.start_index)).c_str(), D3DFONT_BACKGROUND, color.text_highlighted_bg);
 	}
 }
 

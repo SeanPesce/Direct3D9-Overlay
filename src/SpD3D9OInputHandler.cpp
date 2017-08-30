@@ -249,7 +249,6 @@ SpD3D9OInputHandler::~SpD3D9OInputHandler()
 			DetourTransactionCommit();
 	#endif // _SP_USE_DETOUR_GET_RAW_INPUT_DATA_INPUT_
 
-	//instance = NULL;
 }
 
 

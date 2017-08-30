@@ -50,6 +50,7 @@
 #define _SP_D3D9O_C_INVALID_CONSOLE_COMMAND_CHARS_ " \t\n\r"
 
 #define _SP_D3D9O_C_MAX_FONT_SIZE_ 190
+#define _SP_D3D9O_C_MIN_FONT_SIZE_ 5
 
 #define CONSOLE_COMMAND_SUCCESS ERROR_SUCCESS  // Value that a console command should return if no errors occurred
 #define CONSOLE_COMMAND_NOT_FOUND_ERROR (-1)
@@ -114,10 +115,14 @@ public:
 	std::string command = ""; // Current command being typed
 
 	bool show_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_;
+	// Text cursor data
 	std::string cursor_font_family = _SP_D3D9O_C_DEFAULT_CURSOR_FONT_FAMILY_;
 	CD3DFont *cursor = NULL;
 	int cursor_size = _SP_D3D9O_C_DEFAULT_CURSOR_SIZE_;
 	D3DXCOLOR cursor_color = _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_;
+	// Windows cursor data
+	LPDIRECT3DTEXTURE9 win_cursor_tex = NULL; // Windows cursor texture
+	LPD3DXSPRITE win_cursor_sprite = NULL; // Windows cursor sprite
 
 	CD3DFont *font = NULL;
 	int font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;
@@ -167,6 +172,7 @@ public:
 	void SpD3D9OConsole::clear(); // Clears console by pushing blank messages to output
 	DWORD SpD3D9OConsole::copy(std::string *str); // Copies string to clipboard
 	DWORD SpD3D9OConsole::paste(); // Paste clipboard data into console input
+	HRESULT SpD3D9OConsole::init_win_cursor();
 	#ifdef _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 		void SpD3D9OConsole::handle_key_event(DIDEVICEOBJECTDATA *event);
 	#else // !_SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
@@ -187,7 +193,7 @@ private:
 	bool show_caret = false;
 	DWORD next_caret_blink = 0; // Time of next caret toggle
 
-	void SpD3D9OConsole::update_font(); // Update text to new font family/size/flags/etc
+	void SpD3D9OConsole::update_fonts_and_cursor(); // Update text to new font family/size/flags/etc
 	void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_chars);
 
 	void SpD3D9OConsole::format_output_line(std::string *str, int line, int max_chars);

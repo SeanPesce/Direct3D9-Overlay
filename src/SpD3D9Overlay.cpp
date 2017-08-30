@@ -249,10 +249,19 @@ void SpD3D9Overlay::release_tasks()
 
 	/*if (text_feed->font != NULL)
 	{
-		text_feed->font->Release()
+		//text_feed->font->Release();
+		text_feed->font->DeleteDeviceObjects();
 	}*/
 	text_feed->font = NULL;
 
+	/*if (console->font != NULL)
+	{
+		console->font->DeleteDeviceObjects();
+	}
+	if (console->cursor != NULL)
+	{
+		console->cursor->DeleteDeviceObjects();
+	}*/
 	console->font = NULL;
 	console->cursor = NULL;
 }
@@ -274,19 +283,26 @@ void SpD3D9Overlay::force_release_tasks()
 	// Release overlay resources to avoid memory leaks
 	/*if (text_feed->font != NULL)
 	{
-		_SP_D3D9_LOG_EVENT_("Attempting to release font in thread %d", device->GetCurrentThreadId());
 		//text_feed->font->Release();
-		_SP_D3D9_LOG_EVENT_("Font released; ref count=%u", text_feed->font->Release());
+		text_feed->font->DeleteDeviceObjects();
 	}*/
 	text_feed->font = NULL;
 
+	/*if (console->font != NULL)
+	{
+		console->font->DeleteDeviceObjects();
+	}
+	if (console->cursor != NULL)
+	{
+		console->cursor->DeleteDeviceObjects();
+	}*/
 	console->font = NULL;
 	console->cursor = NULL;
 }
 
 
 
-void SpD3D9Overlay::reset_tasks()
+void SpD3D9Overlay::reset_tasks(D3DPRESENT_PARAMETERS *present_params)
 {
 	// Release the previously-created overlay state block (if it exists)
 	if (overlay_state_block != NULL)
@@ -307,6 +323,7 @@ void SpD3D9Overlay::reset_tasks()
 		#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 	}
 
+	// Free video memory resources used by console
 	if (console->font != NULL)
 	{
 		delete console->font;
@@ -317,6 +334,17 @@ void SpD3D9Overlay::reset_tasks()
 		delete console->cursor;
 		console->cursor = NULL;
 	}
+	if (console->win_cursor_sprite != NULL)
+	{
+		console->win_cursor_sprite->Release();
+		console->win_cursor_sprite = NULL;
+	}
+	if (console->win_cursor_tex != NULL)
+	{
+		console->win_cursor_tex->Release();
+		console->win_cursor_tex = NULL;
+	}
+
 }
 
 
@@ -335,14 +363,15 @@ void SpD3D9Overlay::post_reset_tasks(D3DPRESENT_PARAMETERS *present_params)
 		text_feed->font->RestoreDeviceObjects();
 	#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 
-	// Re-acquire video memory resources for overlay console font
+	// Re-acquire video memory resources for overlay console
 	console->font = new CD3DFont(console->font_family.c_str(), console->font_height, 0);
 	console->font->InitializeDeviceObjects(device->m_pIDirect3DDevice9);
 	console->font->RestoreDeviceObjects();
 	console->cursor = new CD3DFont(console->cursor_font_family.c_str(), console->cursor_size, 0);
 	console->cursor->InitializeDeviceObjects(device->m_pIDirect3DDevice9);
 	console->cursor->RestoreDeviceObjects();
-
+	console->init_win_cursor();
+	
 
 	// Store window mode (windowed or fullscreen)
 	is_windowed = present_params->Windowed != 0;

@@ -4,6 +4,7 @@
 #include "SpD3D9OConsole.h"
 #include "VersionHelpers.h"  // To determine which fonts are available
 #include "SpD3D9OConsoleTextSelection.h"
+#include "Resource.h" // For Windows mouse cursor
 
 
 // Static class data
@@ -44,7 +45,7 @@ SpD3D9OConsole::SpD3D9OConsole(SpD3D9Overlay *new_overlay)
 	font->InitializeDeviceObjects(overlay->device->m_pIDirect3DDevice9);
 	font->RestoreDeviceObjects();
 
-	// Initialize cursor
+	// Initialize text cursor
 	if (!IsWindowsVistaOrGreater())
 	{
 		// Use older (uglier) font
@@ -63,6 +64,17 @@ SpD3D9OConsole::~SpD3D9OConsole()
 	{
 		delete commands_index;
 		commands_index = NULL;
+	}
+
+	if (win_cursor_sprite != NULL)
+	{
+		win_cursor_sprite->Release();
+		win_cursor_sprite = NULL;
+	}
+	if (win_cursor_tex != NULL)
+	{
+		win_cursor_tex->Release();
+		win_cursor_tex = NULL;
 	}
 }
 
@@ -110,9 +122,16 @@ void SpD3D9OConsole::get_input()
 
 void SpD3D9OConsole::draw()
 {
+	// Check if cursor texture was initialized
+	if (win_cursor_tex == NULL)
+	{
+		init_win_cursor();
+	}
+
+	// Check if font size was changed
 	if ((unsigned int)font->GetFontHeight() != font_height || (unsigned int)cursor->GetFontHeight() != cursor_size)
 	{
-		update_font();
+		update_fonts_and_cursor();
 	}
 
 	// Get window dimensions
@@ -258,12 +277,40 @@ void SpD3D9OConsole::draw()
 	// Get cursor screenspace size
 	cursor->GetTextExtent("|", &char_size);
 
-	if (show_cursor) //&& SpD3D9OInputHandler::get()->cursor_position.y <= (console_height + (2 * border_width)) + (char_size.cy / 2) ) // Extra conditional makes cursor display only if over the console
+	if (show_cursor)
 	{
 		// Render the cursor
-		cursor->BeginDrawing();
-		cursor->DrawText(SpD3D9OInputHandler::get()->cursor_position.x - (char_size.cx / 2), SpD3D9OInputHandler::get()->cursor_position.y - (char_size.cy / 2), cursor_color, "I", 0, 0);
-		cursor->EndDrawing();
+		if (win_cursor_tex == NULL ||
+			((SpD3D9OInputHandler::get()->cursor_position.y <= (console_height + border_width))
+				&& (SpD3D9OInputHandler::get()->cursor_position.y > border_width)
+				&& (SpD3D9OInputHandler::get()->cursor_position.x > border_width)
+				&& (SpD3D9OInputHandler::get()->cursor_position.x <= (window_rect.right - border_width))))
+		{
+			// Render text cursor
+			cursor->BeginDrawing();
+			cursor->DrawText(SpD3D9OInputHandler::get()->cursor_position.x - (char_size.cx / 2), SpD3D9OInputHandler::get()->cursor_position.y - (char_size.cy / 2), cursor_color, "I", 0, 0);
+			cursor->EndDrawing();
+		}
+		else
+		{
+			// Render windows cursor
+			RECT win_cursor_rect = { 0, 1, (cursor_size / 1.625), cursor_size };
+			if (cursor_size > 120)
+			{
+				win_cursor_rect.right -= 2;
+			}
+			else if (cursor_size > 25)
+			{
+				win_cursor_rect.right--;
+			}
+			if (cursor_size > 130)
+			{
+				win_cursor_rect.top += 2;
+			}
+			win_cursor_sprite->Begin(D3DXSPRITE_ALPHABLEND);
+			win_cursor_sprite->Draw(win_cursor_tex, (const RECT*)&win_cursor_rect, NULL, &D3DXVECTOR3(SpD3D9OInputHandler::get()->cursor_position.x, SpD3D9OInputHandler::get()->cursor_position.y, 0), 0xFFFFFFFF);
+			win_cursor_sprite->End();
+		}
 	}
 }
 
@@ -1231,7 +1278,7 @@ int SpD3D9OConsole::register_alias(const char *new_alias, const char *existing_c
 
 
 
-void SpD3D9OConsole::update_font()
+void SpD3D9OConsole::update_fonts_and_cursor()
 {
 
 	if (font != NULL)
@@ -1254,6 +1301,13 @@ void SpD3D9OConsole::update_font()
 	cursor = new CD3DFont(cursor_font_family.c_str(), cursor_size, 0);
 	cursor->InitializeDeviceObjects(overlay->device->m_pIDirect3DDevice9);
 	cursor->RestoreDeviceObjects();
+
+	if (win_cursor_tex != NULL)
+	{
+		win_cursor_tex->Release();
+		win_cursor_tex = NULL;
+	}
+	init_win_cursor();
 }
 
 
@@ -1344,6 +1398,30 @@ DWORD SpD3D9OConsole::copy(std::string *str)
 	GlobalFree(hglob);
 
 	return 0;
+}
+
+
+HRESULT SpD3D9OConsole::init_win_cursor()
+{
+	extern HINSTANCE gl_hThisInstance;
+	HRSRC cursor_hrsrc = FindResource(gl_hThisInstance, MAKEINTRESOURCE(ID_NUM_WIN_CURSOR_PNG), "ID_WIN_CURSOR_PNG");
+	HGLOBAL cursor_hg = LoadResource(gl_hThisInstance, cursor_hrsrc);
+	DWORD cursor_rsrc_size = SizeofResource(gl_hThisInstance, cursor_hrsrc);
+
+	BYTE *cursor_rsrc_data = (BYTE*)LockResource(cursor_hg);
+
+	//HRESULT hres = D3DXCreateTextureFromFileInMemory(gl_pSpD3D9Device->m_pIDirect3DDevice9, cursor_rsrc_data, cursor_rsrc_size, &win_cursor_tex);
+	HRESULT hres = D3DXCreateTextureFromFileInMemoryEx(
+		gl_pSpD3D9Device->m_pIDirect3DDevice9, cursor_rsrc_data,
+		cursor_rsrc_size, (cursor_size / 1.625), cursor_size,
+		D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED,
+		D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &win_cursor_tex);
+
+	FreeResource(cursor_hg);
+
+	D3DXCreateSprite(gl_pSpD3D9Device->m_pIDirect3DDevice9, &win_cursor_sprite);
+
+	return hres;
 }
 
 

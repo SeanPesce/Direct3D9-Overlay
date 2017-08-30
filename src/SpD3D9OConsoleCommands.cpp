@@ -18,6 +18,7 @@ extern SpD3D9Device *gl_pSpD3D9Device;
 const char *ERROR_TXT_FEED_DISABLED = "ERROR: Text feed is not enabled (use the command \"text_feed 1\" to enable)";
 const char *ERROR_TOO_FEW_ARGUMENTS = "ERROR: Not enough arguments";
 const char *ERROR_INVALID_ARGUMENT = "ERROR: Invalid argument(s)";
+const char *ERROR_INVALID_TOGGLE_ARGUMENT = "ERROR: Argument must be either 1 or 0 (1 = enabled, 0 = disabled)\n";
 
 
 void error_code_to_string(DWORD last_error, std::string *message)
@@ -302,6 +303,89 @@ int cc_help(std::vector<std::string> args, std::string *output)
 	}
 	return CONSOLE_COMMAND_SUCCESS;
 }
+
+
+// Sets whether the Windows cursor is visible
+/*int cc_windows_cursor(std::vector<std::string> args, std::string *output)
+{
+	// NOTE: ShowCursor() only works if called from the thread that initialized the window
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
+	int cursor_display_count;
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				cursor_display_count = ShowCursor(false);
+				output->append("New cursor display count = ").append(std::to_string(cursor_display_count)).append("\n");
+				break;
+			case 1:
+				cursor_display_count = ShowCursor(true);
+				output->append("New cursor display count = ").append(std::to_string(cursor_display_count)).append("\n");
+				break;
+			default:
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
+				ret_val = ERROR_INVALID_PARAMETER;
+				break;
+		}
+	}
+
+	CURSORINFO cursor_info;
+	cursor_info.cbSize = sizeof(CURSORINFO);
+	if (GetCursorInfo(&cursor_info))
+	{
+		switch (cursor_info.flags)
+		{
+			case 0:
+				output->append("Windows cursor = hidden");
+				break;
+			case CURSOR_SHOWING:
+				output->append("Windows cursor = displayed");
+				break;
+			case CURSOR_SUPPRESSED:
+				output->append("Windows cursor = suppressed");
+				break;
+			default:
+				output->append("Windows cursor status is unknown (flag value = ").append(std::to_string(cursor_info.flags)).append(")");
+				ret_val = ERROR_INVALID_DATA;
+				break;
+		}
+	}
+	else
+	{
+		// Handle error; unable to obtain cursor info
+		ret_val = GetLastError();
+		output->append("ERROR: Unable to obtain Windows cursor status (Error code ").append(std::to_string(ret_val)).append(")");
+	}
+	return ret_val;
+}*/
+
+
+// Sets whether the DirectX9 cursor is visible
+/*int cc_d3d9_cursor(std::vector<std::string> args, std::string *output)
+{
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
+	bool cursor_is_visible;
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				gl_pSpD3D9Device->ShowCursor(false);
+				break;
+			case 1:
+				gl_pSpD3D9Device->ShowCursor(true);
+				break;
+			default:
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
+				ret_val = ERROR_INVALID_PARAMETER;
+				break;
+		}
+	}
+
+	
+	return ret_val;
+}*/
 
 
 // Prints the current date
@@ -598,7 +682,7 @@ int cc_game_input(std::vector<std::string> args, std::string *output)
 				SpD3D9OInputHandler::get()->disable_game_input = false;
 				break;
 			default:
-				output->append("ERROR: Game input value must be either 1 or 0 (1 = on, 0 = off)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
@@ -637,7 +721,7 @@ int cc_console_enabled(std::vector<std::string> args, std::string *output)
 				}
 				break;
 			default:
-				output->append("ERROR: Console value must be either 1 or 0 (1 = open, 0 = hidden)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
@@ -670,7 +754,7 @@ int cc_console_echo(std::vector<std::string> args, std::string *output)
 				gl_pSpD3D9Device->overlay->console->echo = true;
 				break;
 			default:
-				output->append("ERROR: Console echo value must be either 1 or 0 (1 = on, 0 = off)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
@@ -703,7 +787,7 @@ int cc_console_output(std::vector<std::string> args, std::string *output)
 				gl_pSpD3D9Device->overlay->console->output_stream = true;
 				break;
 			default:
-				output->append("ERROR: Console output stream value must be either 1 or 0 (1 = on, 0 = off)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
@@ -736,7 +820,7 @@ int cc_console_cursor(std::vector<std::string> args, std::string *output)
 				gl_pSpD3D9Device->overlay->console->show_cursor = true;
 				break;
 			default:
-				output->append("ERROR: Console mouse cursor value must be either 1 or 0 (1 = on, 0 = off)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
@@ -762,13 +846,15 @@ int cc_console_cursor_size(std::vector<std::string> args, std::string *output)
 		long new_cursor_size = strtol(args.at(0).c_str(), NULL, 10);
 		if (new_cursor_size > 0 && new_cursor_size != LONG_MAX && new_cursor_size != LONG_MIN)
 		{
-			extern int current_text_feed_font_size;
-			current_text_feed_font_size = new_cursor_size;
-			gl_pSpD3D9Device->overlay->console->cursor_size = new_cursor_size;
-			if (new_cursor_size > 270) // Max font size
+			if (new_cursor_size > _SP_D3D9O_C_MAX_FONT_SIZE_) // Max cursor size
 			{
-				new_cursor_size = 270;
+				new_cursor_size = _SP_D3D9O_C_MAX_FONT_SIZE_;
 			}
+			else if (new_cursor_size < _SP_D3D9O_C_MIN_FONT_SIZE_) // Min cursor size
+			{
+				new_cursor_size = _SP_D3D9O_C_MIN_FONT_SIZE_;
+			}
+			gl_pSpD3D9Device->overlay->console->cursor_size = new_cursor_size;
 			output->append("Console mouse cursor size = ").append(std::to_string(new_cursor_size));
 		}
 		else
@@ -909,7 +995,7 @@ int cc_console_prompt_user(std::vector<std::string> args, std::string *output)
 				gl_pSpD3D9Device->overlay->console->prompt_elements |= (SP_D3D9O_PROMPT_USER);
 				break;
 			default:
-				output->append("ERROR: Console prompt username value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
@@ -942,7 +1028,7 @@ int cc_console_prompt_host(std::vector<std::string> args, std::string *output)
 				gl_pSpD3D9Device->overlay->console->prompt_elements |= (SP_D3D9O_PROMPT_HOSTNAME);
 				break;
 			default:
-				output->append("ERROR: Console prompt hostname value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
@@ -975,7 +1061,7 @@ int cc_console_prompt_cwd(std::vector<std::string> args, std::string *output)
 				gl_pSpD3D9Device->overlay->console->prompt_elements |= (SP_D3D9O_PROMPT_CWD);
 				break;
 			default:
-				output->append("ERROR: Console prompt working directory value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
@@ -1088,6 +1174,10 @@ int cc_console_font_size(std::vector<std::string> args, std::string *output)
 			if (new_font_size > _SP_D3D9O_C_MAX_FONT_SIZE_) // Max font size
 			{
 				new_font_size = _SP_D3D9O_C_MAX_FONT_SIZE_;
+			}
+			else if (new_font_size < _SP_D3D9O_C_MIN_FONT_SIZE_) // Min font size
+			{
+				new_font_size = _SP_D3D9O_C_MIN_FONT_SIZE_;
 			}
 			gl_pSpD3D9Device->overlay->console->font_height = new_font_size;
 		}
@@ -1233,7 +1323,7 @@ int cc_text_feed_enabled(std::vector<std::string> args, std::string *output)
 				gl_pSpD3D9Device->overlay->text_feed->set_enabled(true);
 				break;
 			default:
-				output->append("ERROR: Text feed value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
@@ -1259,11 +1349,15 @@ int cc_text_feed_font_size(std::vector<std::string> args, std::string *output)
 		if (new_font_size > 0 && new_font_size != LONG_MAX && new_font_size != LONG_MIN)
 		{
 			extern int current_text_feed_font_size;
-			current_text_feed_font_size = new_font_size;
 			if (new_font_size > _SP_D3D9O_TF_MAX_FONT_SIZE_) // Max font size
 			{
 				new_font_size = _SP_D3D9O_TF_MAX_FONT_SIZE_;
 			}
+			else if (new_font_size < _SP_D3D9O_TF_MIN_FONT_SIZE_) // Min font size
+			{
+				new_font_size = _SP_D3D9O_TF_MIN_FONT_SIZE_;
+			}
+			current_text_feed_font_size = new_font_size;
 			gl_pSpD3D9Device->overlay->text_feed->set_font_height(new_font_size);
 			output->append("Text feed font size = ").append(std::to_string(new_font_size));
 		}
@@ -1305,7 +1399,7 @@ int cc_text_feed_info_bar(std::vector<std::string> args, std::string *output)
 				}
 				break;
 			default:
-				output->append("ERROR: Text feed info bar value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 		}
@@ -1340,7 +1434,7 @@ int cc_text_feed_info_date(std::vector<std::string> args, std::string *output)
 				gl_pSpD3D9Device->overlay->text_feed->show_info_bar |= SP_D3D9O_INFO_BAR_DATE;
 				break;
 			default:
-				output->append("ERROR: Text feed date value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 			}
@@ -1380,7 +1474,7 @@ int cc_text_feed_info_time(std::vector<std::string> args, std::string *output)
 				gl_pSpD3D9Device->overlay->text_feed->show_info_bar |= SP_D3D9O_INFO_BAR_TIME;
 				break;
 			default:
-				output->append("ERROR: Text feed time value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 			}
@@ -1420,7 +1514,7 @@ int cc_text_feed_info_fps(std::vector<std::string> args, std::string *output)
 				gl_pSpD3D9Device->overlay->text_feed->show_info_bar |= SP_D3D9O_INFO_BAR_FPS;
 				break;
 			default:
-				output->append("ERROR: Text feed FPS counter value must be either 1 or 0 (1 = enabled, 0 = disabled)\n");
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
 				ret_val = ERROR_INVALID_PARAMETER;
 				break;
 			}
@@ -1884,6 +1978,8 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("close", cc_close, "close\n    Closes the console overlay.");
 	SpD3D9OConsole::register_command("sleep", cc_sleep, "sleep <duration>\n    Pauses execution for the specified duration (in milliseconds).");
 	SpD3D9OConsole::register_alias("wait", "sleep");
+	//SpD3D9OConsole::register_command("windows_cursor", cc_windows_cursor, "windows_cursor [is_enabled]\n    Sets whether the Windows cursor is visible (1 = showing, 0 = hidden).");
+	//SpD3D9OConsole::register_command("directx_cursor", cc_d3d9_cursor, "directx_cursor [is_enabled]\n    Sets whether the DirectX cursor is visible (1 = showing, 0 = hidden).");
 	SpD3D9OConsole::register_command("date", cc_date, "date\n    Prints the current date (in MM/DD/YYYY format).");
 	SpD3D9OConsole::register_command("date_time", cc_date_time, "date_time\n    Prints the current date (in MM/DD/YYYY format) and 24-hour time.");
 	SpD3D9OConsole::register_command("time", cc_time, "time\n    Prints the current 24-hour time.");
@@ -1905,7 +2001,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("console_execute", cc_console_execute, "console_execute <command> [command...]\n    Executes each argument as a separate console command.");
 	SpD3D9OConsole::register_command("console_script", cc_console_script, "console_script <file>\n    Opens a plain-text script file and executes each line as a separate console command.");
 	SpD3D9OConsole::register_alias("script", "console_script");
-	SpD3D9OConsole::register_command("console_font_size", cc_console_font_size, std::string("console_font_size [size]\n    Sets the console overlay font size. Font size ranges from 1 to ").append(std::to_string(_SP_D3D9O_C_MAX_FONT_SIZE_)).append(".").c_str());
+	SpD3D9OConsole::register_command("console_font_size", cc_console_font_size, std::string("console_font_size [size]\n    Sets the console overlay font size. Font size ranges from ").append(std::to_string(_SP_D3D9O_C_MIN_FONT_SIZE_)).append(" to ").append(std::to_string(_SP_D3D9O_C_MAX_FONT_SIZE_)).append(".").c_str());
 	SpD3D9OConsole::register_command("console_autocomplete_limit", cc_autocomplete_limit, "autocomplete_limit [limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
 	SpD3D9OConsole::register_command("console_prompt", cc_console_prompt, "console_prompt [prompt]\n    Sets the console input prompt string.");
 	SpD3D9OConsole::register_command("console_prompt_user", cc_console_prompt_user, "console_prompt_user [is_enabled]\n    Enables/disables the username element of the console input prompt.");
@@ -1915,7 +2011,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("console_caret_blink", cc_console_caret_blink, "console_caret_blink [blink_delay]\n    Sets the console input caret blink delay time (in milliseconds).");
 	SpD3D9OConsole::register_command("console_border_width", cc_console_border_width, "console_border_width [width]\n    Sets the console border width.");
 	SpD3D9OConsole::register_command("console_cursor", cc_console_cursor, "console_cursor [is_enabled]\n    Enables/disables the console mouse cursor.");
-	SpD3D9OConsole::register_command("console_cursor_size", cc_console_cursor_size, "console_cursor_size [size]\n    Sets the size of the console mouse cursor. Mouse cursor size ranges from 1 to 270.");
+	SpD3D9OConsole::register_command("console_cursor_size", cc_console_cursor_size, std::string("console_cursor_size [size]\n    Sets the size of the console mouse cursor. Mouse cursor size ranges from ").append(std::to_string(_SP_D3D9O_C_MIN_FONT_SIZE_)).append(" to ").append(std::to_string(_SP_D3D9O_C_MAX_FONT_SIZE_)).append(".").c_str());
 	SpD3D9OConsole::register_command("echo", cc_echo, "echo [args]\n    Prints each argument on a separate line.");
 	SpD3D9OConsole::register_command("open", cc_run, "open <file>\n    Opens or runs a file using the system resolver.");
 	//SpD3D9OConsole::register_alias("run", "open");

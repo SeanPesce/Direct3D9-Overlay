@@ -5,7 +5,7 @@
 
 ## Overview:  
 
-A Direct3D9 Wrapper DLL/classes with a built-in overlay framework that implements an in-game console and text feed for printing on-screen messages in DirectX9 programs. Plugins are also supported for extending the features/functionality of the overlay.  
+A Direct3D9 Wrapper DLL/classes with a built-in overlay framework that implements an in-game console and text feed for printing on-screen messages in DirectX9 programs. [Plugins](https://github.com/SeanPesce/Direct3D9-Overlay#plugins) are also supported for extending the features/functionality of the overlay.  
 
 ## Media:  
 
@@ -28,7 +28,7 @@ To utilize various features of the overlay from an external DLL, the external DL
 
 ## Credits:  
 
-*  **Michael Koch** for his [DirectX9 Proxy DLL example](http://www.codeguru.com/cpp/g-m/directx/directx8/article.php/c11453/Intercept-Calls-to-DirectX-with-a-Proxy-DLL.htm), which I relied on heavily in the early stages of this project  
+*  **Michael Koch** for his [DirectX9 Proxy DLL example](http://www.codeguru.com/cpp/g-m/directx/directx8/article.php/c11453/Intercept-Calls-to-DirectX-with-a-Proxy-DLL.htm), which I relied on heavily as a reference in the early stages of this project  
 *  **Microsoft** for the [DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=8109) and [Detours library](https://www.microsoft.com/en-us/research/project/detours/)  
 *  **[SeQan](https://www.seqan.de/)**, a library used in this project for more efficient string searches  
 *  **Atom0s**, **Topblast**, and **Renkokuken** (Sakuri) from [UnknownCheats.me](https://www.unknowncheats.me) for the [modified CD3DFont class](https://www.unknowncheats.me/forum/d3d-tutorials-and-source/74839-modified-cd3dfont-d3d9-shadows-light-effect.html), which is much more efficient (performance-wise) than Direct3D9's built-in ID3DXFont class.  
@@ -37,4 +37,4 @@ To utilize various features of the overlay from an external DLL, the external DL
 
 ## Disclaimer:  
 
-This overlay is meant for **single-player games only**. Use of this overlay in multiplayer games **may trigger anti-cheat software and result in a ban**.  
+This overlay is meant for **single-player games only**. Use of this overlay in multiplayer games **may trigger anti-cheat software and result in a ban**. Additionally, I **do not** create or support video game hacks that give the user an unfair advantage over other players. Any mods I make are for fun, replay value, or game fixes.  

@@ -166,7 +166,7 @@ public:
 	void SpD3D9Overlay::create_state_block(); // Creates a suitable state block for drawing the overlay
 	void SpD3D9Overlay::release_tasks(); // Called in device wrapper's Release() function
 	void SpD3D9Overlay::force_release_tasks(); // Called in device wrapper's ForceRelease() function
-	void SpD3D9Overlay::reset_tasks(); // Called in device wrapper's Reset() function (before original device Reset() call)
+	void SpD3D9Overlay::reset_tasks(D3DPRESENT_PARAMETERS *present_params); // Called in device wrapper's Reset() function (before original device Reset() call)
 	void SpD3D9Overlay::post_reset_tasks(D3DPRESENT_PARAMETERS *present_params); // Called in device wrapper's Reset() function (after original device Reset() call)
 	void SpD3D9Overlay::end_scene_tasks(); // Called in device wrapper's EndScene() function
 

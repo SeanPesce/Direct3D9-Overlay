@@ -212,7 +212,7 @@ HRESULT SpD3D9Device::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	D3DPRESENT_PARAMETERS present_params;
 	memcpy_s(&present_params, sizeof(present_params), pPresentationParameters, sizeof(*pPresentationParameters));
 
-	overlay->reset_tasks();
+	overlay->reset_tasks(pPresentationParameters);
 
 	// Call original Reset() method
 	hres = m_pIDirect3DDevice9->Reset(pPresentationParameters);

@@ -23,6 +23,7 @@ void SpD3D9OConsole::clear_selection()
 	selection.start_index = &selection.i1;
 	selection.end_line = &selection.line2;
 	selection.end_index = &selection.i2;
+	selection.autocomplete_selection = 0;
 }
 
 
@@ -150,112 +151,268 @@ void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_cha
 
 
 // Obtains various screenspace measurements related to selecting on-screen text
-int SpD3D9OConsole::get_screenspace_limits(RECT *window, SIZE *char_size, RECT *console_lims, long *max_chars, long *row, long *column)
+#define _GET_SS_S_AND_L_ARG_COUNT_ 12
+int SpD3D9OConsole::get_screenspace_values(RECT *window, SIZE *char_size, RECT *console_lims, long *max_chars,
+													long *row, long *column, std::string *full_prompt, long *max_input_chars,
+													std::vector<std::string> *autocomplete_opts, int *longest_autocomplete,
+													RECT *autocomplete_lims,  int *autocomplete_hover, int return_after_obtaining)
 {
-	if (window == NULL)
+	int ret_val = 0; // Number of values obtained
+	int ret_after; // Return after obtaining this many values (rather than doing additional calculations that won't be used)
+	if (return_after_obtaining < 0)
 	{
-		SetLastError(ERROR_INVALID_ADDRESS);
-		return -1;
+		ret_after = _GET_SS_S_AND_L_ARG_COUNT_;
 	}
+	else
+	{
+		ret_after = return_after_obtaining;
+	}
+	if (ret_val >= ret_after) return ret_val;
+
 
 	// Get window dimensions
-	if (!GetClientRect(*overlay->game_window, window))
+	RECT window_tmp;
+	if (!GetClientRect(*overlay->game_window, &window_tmp))
 	{
 		// Handle error
 		// Call GetLastError() on return for error code
-		return 0;
+		return ret_val;
 	}
+	if (window != NULL)
+	{
+		window->left = window_tmp.left;
+		window->top = window_tmp.top;
+		window->right = window_tmp.right;
+		window->bottom = window_tmp.bottom;
+		if (++ret_val >= ret_after) return ret_val;
+	}
+
 
 	// Get char dimensions
-	if (char_size == NULL)
+	SIZE char_size_tmp;
+	font->GetTextExtent("|", &char_size_tmp);
+	if (char_size != NULL)
 	{
-		return 1;
+		char_size->cx = char_size_tmp.cx;
+		char_size->cy = char_size_tmp.cy;
+		if (++ret_val >= ret_after) return ret_val;
 	}
-	font->GetTextExtent("|", char_size);
+
 
 	// Get console text area limits
-	if (console_lims == NULL)
+	RECT console_lims_tmp;
+	console_lims_tmp = { (long)border_width, (long)border_width, window_tmp.right - (long)border_width,  (char_size_tmp.cy  * ((long)output_log_displayed_lines + 1)) + (long)border_width };
+	if (console_lims != NULL)
 	{
-		return 2;
+		console_lims->left = console_lims_tmp.left;
+		console_lims->top = console_lims_tmp.top;
+		console_lims->right = console_lims_tmp.right;
+		console_lims->bottom = console_lims_tmp.bottom;
+		if (++ret_val >= ret_after) return ret_val;
 	}
-	*console_lims = { (long)border_width, (long)border_width, window->right - (long)border_width,  (char_size->cy  * ((long)output_log_displayed_lines + 1)) + (long)border_width };
+
 
 	// Get max displayable chars
-	if (max_chars == NULL)
+	long max_chars_tmp;
+	max_chars_tmp = (console_lims_tmp.right - console_lims_tmp.left) / char_size_tmp.cx; // Maximum characters per line
+	if (max_chars != NULL)
 	{
-		return 3;
+		*max_chars = max_chars_tmp;
+		if (++ret_val >= ret_after) return ret_val;
 	}
-	*max_chars = (console_lims->right - console_lims->left) / char_size->cx; // Maximum characters per line
+	
 
 	// Output screen text row position of mouse cursor (vertical line coordinate)
-	if (row == NULL)
-	{
-		return 4;
-	}
+	long row_tmp;
 	if (SpD3D9OInputHandler::get()->cursor_position.y < (long)border_width)
 	{
-		*row = -1;
+		row_tmp = -1;
 	}
 	else
 	{
-		*row = (SpD3D9OInputHandler::get()->cursor_position.y - (long)border_width) / char_size->cy;
+		row_tmp = (SpD3D9OInputHandler::get()->cursor_position.y - (long)border_width) / char_size_tmp.cy;
 	}
+	if (row != NULL)
+	{
+		*row = row_tmp;
+		if (++ret_val >= ret_after) return ret_val;
+	}
+
 
 	// Output screen column index position of mouse cursor (horizontal char coordinate)
-	if (column == NULL)
-	{
-		return 5;
-	}
+	long column_tmp;
 	if (SpD3D9OInputHandler::get()->cursor_position.x < (long)border_width)
 	{
-		*column = -1;
+		column_tmp = -1;
 	}
 	else
 	{
-		*column = (SpD3D9OInputHandler::get()->cursor_position.x - (long)border_width) / char_size->cx;
+		column_tmp = (SpD3D9OInputHandler::get()->cursor_position.x - (long)border_width) / char_size_tmp.cx;
+	}
+	if (column != NULL)
+	{
+		*column = column_tmp;
+		if (++ret_val >= ret_after) return ret_val;
 	}
 
-	return 6;
+
+	// Get full prompt string
+	std::string full_prompt_tmp;
+	add_prompt_elements(&full_prompt_tmp);
+	if (full_prompt != NULL)
+	{
+		*full_prompt = full_prompt_tmp;
+		if (++ret_val >= ret_after) return ret_val;
+	}
+
+
+	// Get max displayable input chars
+	long max_input_chars_tmp = max_chars_tmp - full_prompt_tmp.length();
+	if (caret_position == command.length())
+	{
+		max_input_chars_tmp--;
+	}
+	if (max_input_chars != NULL)
+	{
+		*max_input_chars = max_input_chars_tmp;
+		if (++ret_val >= ret_after) return ret_val;
+	}
+
+
+	// Get autocomplete options
+	std::vector<std::string> autocomplete_opts_tmp;
+	int longest_autocomplete_tmp;
+	get_autocomplete_options(command.c_str(), autocomplete_limit, &autocomplete_opts_tmp, &longest_autocomplete_tmp);
+	if (autocomplete_opts != NULL)
+	{
+		*autocomplete_opts = autocomplete_opts_tmp;
+		if (++ret_val >= ret_after) return ret_val;
+	}
+	if (longest_autocomplete != NULL)
+	{
+		*longest_autocomplete = longest_autocomplete_tmp;
+		if (++ret_val >= ret_after) return ret_val;
+	}
+
+	// Get autocomplete options screenspace limits
+	RECT autocomplete_lims_tmp;
+	if (autocomplete_opts_tmp.size() == 0)
+	{
+		// No autocomplete options available
+		autocomplete_lims_tmp = { -1, -1, -1, -1 };
+	}
+	else
+	{
+		autocomplete_lims_tmp.left = (long)border_width + (char_size_tmp.cx * full_prompt_tmp.length());
+		autocomplete_lims_tmp.top = (long)console_lims_tmp.bottom + 1;
+		autocomplete_lims_tmp.right = autocomplete_lims_tmp.left + (char_size_tmp.cx * longest_autocomplete_tmp);
+		autocomplete_lims_tmp.bottom = autocomplete_lims_tmp.top + (char_size_tmp.cy  * autocomplete_opts_tmp.size());
+	}
+	if (autocomplete_lims != NULL)
+	{
+		autocomplete_lims->left = autocomplete_lims_tmp.left;
+		autocomplete_lims->top = autocomplete_lims_tmp.top;
+		autocomplete_lims->right = autocomplete_lims_tmp.right;
+		autocomplete_lims->bottom = autocomplete_lims_tmp.bottom;
+		if (++ret_val >= ret_after) return ret_val;
+	}
+	
+	// Check if cursor is hovering over an autocomplete suggestion
+	int autocomplete_hover_tmp = -1;
+	for (int i = 0; i < autocomplete_opts_tmp.size(); i++)
+	{
+		if (SpD3D9OInputHandler::get()->cursor_position.x >= autocomplete_lims_tmp.left
+			&& SpD3D9OInputHandler::get()->cursor_position.x <= autocomplete_lims_tmp.right
+			&& SpD3D9OInputHandler::get()->cursor_position.y >= (autocomplete_lims_tmp.top + (i * char_size_tmp.cy))
+			&& SpD3D9OInputHandler::get()->cursor_position.y <= (autocomplete_lims_tmp.top + ((i + 1) * char_size_tmp.cy)))
+		{
+			autocomplete_hover_tmp = i;
+			break;
+		}
+	}
+	if (autocomplete_hover != NULL)
+	{
+		*autocomplete_hover = autocomplete_hover_tmp;
+		if (++ret_val >= ret_after) return ret_val;
+	}
+
+	return ret_val;
 }
 
 
-// Called when user first clicks to select text
-void SpD3D9OConsole::start_text_selection()
+// Called when user first clicks to select text or an autocomplete option
+void SpD3D9OConsole::start_selection()
 {
 	clear_selection();
 
 	// Get screenspace limits
-	RECT window, console_lims;
-	SIZE char_size;
+	RECT console_lims;
 	long max_chars, row, column;
-	get_screenspace_limits(&window, &char_size, &console_lims,  &max_chars, &row, &column);
+	int autocomplete_hover;
+	get_screenspace_values(NULL, NULL, &console_lims,  &max_chars, &row, &column, NULL, NULL, NULL, NULL, NULL, &autocomplete_hover);
 
 
 	// Stop the game from reading the click message if the user clicks in the bounds of the console
-	if (SpD3D9OInputHandler::get()->cursor_position.y <= (console_lims.bottom + border_width))
+	if (SpD3D9OInputHandler::get()->cursor_position.y <= (console_lims.bottom + border_width) || autocomplete_hover > -1)
 	{
 		SpD3D9OInputHandler::get()->handled = true;
 	}
 
-
-	// Move caret, if necessary
-	if (row == output_log_displayed_lines)
+	if (autocomplete_hover == -1)
 	{
-		std::string console_line;
-		add_prompt_elements(&console_line);
+		// Move caret, if necessary
+		if (row == output_log_displayed_lines)
+		{
+			std::string console_line;
+			add_prompt_elements(&console_line);
 
-		if (command.length() == 0 || ((console_line.length() + command.length()) < max_chars && column >= (console_line.length() + command.length())))
-		{
-			caret_position = command.length();
+			if (command.length() == 0 || ((console_line.length() + command.length()) < max_chars && column >= (console_line.length() + command.length())))
+			{
+				caret_position = command.length();
+			}
+			else if (column >= console_line.length())
+			{
+				caret_position = (column - console_line.length()) + input_display_start;
+			}
 		}
-		else if (column >= console_line.length())
+
+		// Check if mouse cursor is in an area with selectable text
+		cursor_pos_to_selection(row, column, max_chars, &selection.focus, &selection.line1, &selection.i1, &selection.line2, &selection.i2);
+	}
+	else
+	{
+		// Mouse is hovering over an autocomplete option
+		selection.focus = SP_D3D9O_SELECT_AUTOCOMPLETE;
+		selection.autocomplete_selection = autocomplete_hover;
+	}
+}
+
+
+// Called when the user has already begun selecting from the autocomplete suggestions and moves the cursor or releases the mouse button
+void SpD3D9OConsole::continue_autocomplete_selection()
+{
+	int autocomplete_hover;
+	get_screenspace_values(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &autocomplete_hover);
+
+	if (autocomplete_hover > -1)
+	{
+		selection.autocomplete_selection = autocomplete_hover;
+		if (selection.focus == SP_D3D9O_SELECT_AUTOCOMPLETE && !SpD3D9OInputHandler::get()->mouse_button_down[0])
 		{
-			caret_position = (column - console_line.length()) + input_display_start;
+			std::vector<std::string> matches;
+			get_autocomplete_options(command.c_str(), selection.autocomplete_selection + 1, &matches);
+			if (matches.size() > selection.autocomplete_selection)
+			{
+				command = matches.at(selection.autocomplete_selection);
+				caret_position = command.length();
+			}
+			clear_selection();
 		}
 	}
-
-	// Check if mouse cursor is in an area with selectable text
-	cursor_pos_to_selection(row, column, max_chars, &selection.focus, &selection.line1, &selection.i1, &selection.line2, &selection.i2);
+	else if(selection.focus == SP_D3D9O_SELECT_AUTOCOMPLETE && !SpD3D9OInputHandler::get()->mouse_button_down[0])
+	{
+		selection.focus = SP_D3D9O_SELECT_NONE;
+	}
 }
 
 
@@ -263,16 +420,15 @@ void SpD3D9OConsole::start_text_selection()
 //	Extends current text selection based on cursor position.
 void SpD3D9OConsole::continue_text_selection()
 {
-	if (selection.focus == SP_D3D9O_SELECT_NONE)
+	if (selection.focus != SP_D3D9O_SELECT_TEXT)
 	{
 		return;
 	}
 
 	// Get screenspace limits
-	RECT window, console_lims;
-	SIZE char_size;
 	long max_chars, row, column;
-	get_screenspace_limits(&window, &char_size, &console_lims, &max_chars, &row, &column);
+	std::string console_line;
+	get_screenspace_values(NULL, NULL, NULL, &max_chars, &row, &column, &console_line, NULL, NULL, NULL, NULL, NULL, 4);
 
 	// Check if mouse cursor is in an area with selectable text
 	cursor_pos_to_selection(row, column, max_chars, &selection.focus, &selection.line2, &selection.i2);
@@ -298,8 +454,7 @@ void SpD3D9OConsole::continue_text_selection()
 	}
 
 	// Move caret, if necessary
-	std::string console_line;
-	add_prompt_elements(&console_line);
+	//add_prompt_elements(&console_line);
 	if (selection.line2 == SP_D3D9O_C_INPUT_LINE && selection.i2 >= console_line.length() && !(selection.line1 == selection.line2 && selection.i1 == selection.i2))
 	{
 		if (command.length() == 0 || ((console_line.length() + command.length()) < max_chars && column >= (console_line.length() + command.length())))
@@ -392,10 +547,9 @@ void SpD3D9OConsole::format_output_line(std::string *str, int line, int max_char
 void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, std::string *input_line)
 {
 	// Get screenspace limits
-	RECT window, console_lims;
 	SIZE char_size;
 	long max_chars;
-	get_screenspace_limits(&window, &char_size, &console_lims, &max_chars);
+	get_screenspace_values(NULL, &char_size, NULL, &max_chars, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2);
 
 	std::string line;
 
@@ -464,10 +618,8 @@ void SpD3D9OConsole::build_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, 
 	}
 
 	// Get screenspace limits
-	RECT window, console_lims;
-	SIZE char_size;
 	long max_chars;
-	get_screenspace_limits(&window, &char_size, &console_lims, &max_chars);
+	get_screenspace_values(NULL, NULL, NULL, &max_chars, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1);
 
 	std::string input_line;
 	add_prompt_elements(&input_line);

@@ -539,20 +539,22 @@ int cc_search_command(std::vector<std::string> args, std::string *output)
 	{
 		std::vector<unsigned int> found_ids; // Used to make sure no commands are returned twice
 		seqan::String<char> search_str(args.at(0));
-		while (seqan::find(SpD3D9OConsole::commands_finder, search_str))
+		seqan::Finder<seqan::Index<seqan::StringSet<seqan::String<char>>>> commands_finder;
+		seqan::setHaystack(commands_finder, *SpD3D9OConsole::commands_index);
+		while (seqan::find(commands_finder, search_str))
 		{
 			if (found_ids.size() == 0)
 			{
 				output->append("Search results:\n");
 			}
-			unsigned int id = seqan::positionToId(SpD3D9OConsole::commands_set, seqan::position(SpD3D9OConsole::commands_finder).i1);
+			unsigned int id = seqan::positionToId(SpD3D9OConsole::commands_set, seqan::position(commands_finder).i1);
 			if (std::find(found_ids.begin(), found_ids.end(), id) == found_ids.end())
 			{
 				output->append("    ").append(std::string(seqan::toCString(seqan::valueById(SpD3D9OConsole::commands_set, id)))).append("\n");
 				found_ids.push_back(id);
 			}
 		}
-		seqan::clear(SpD3D9OConsole::commands_finder);
+		seqan::clear(commands_finder);
 		if (found_ids.size() > 0)
 		{
 			output->erase(output->length() - 1, 1); // Remove extra newline
@@ -1218,6 +1220,8 @@ int cc_console_restore_dev_defaults(std::vector<std::string> args, std::string *
 	gl_pSpD3D9Device->overlay->console->border_color = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
 	gl_pSpD3D9Device->overlay->console->border_width = _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_;
 	gl_pSpD3D9Device->overlay->console->autocomplete_background_color = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_;
+	gl_pSpD3D9Device->overlay->console->autocomplete_background_hover_color = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_;
+	gl_pSpD3D9Device->overlay->console->autocomplete_background_select_color = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_SELECT_COLOR_;
 	gl_pSpD3D9Device->overlay->console->autocomplete_border_color = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
 	gl_pSpD3D9Device->overlay->console->autocomplete_border_width = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_;
 	gl_pSpD3D9Device->overlay->console->output_log_displayed_lines = _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_; // Number of lines of previous output to display

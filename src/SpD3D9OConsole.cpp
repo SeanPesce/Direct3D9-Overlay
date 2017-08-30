@@ -11,7 +11,6 @@
 seqan::Index<seqan::StringSet<seqan::String<char>>> *SpD3D9OConsole::commands_index = NULL;
 std::vector<SP_D3D9O_CONSOLE_COMMAND> SpD3D9OConsole::commands;		// Set of available console commands and corresponding functions
 seqan::StringSet<seqan::String<char>> SpD3D9OConsole::commands_set;	// Set of available console command strings
-seqan::Finder<seqan::Index<seqan::StringSet<seqan::String<char>>>> SpD3D9OConsole::commands_finder;
 
 
 SpD3D9OConsole::SpD3D9OConsole(SpD3D9Overlay *new_overlay)
@@ -134,16 +133,18 @@ void SpD3D9OConsole::draw()
 		update_fonts_and_cursor();
 	}
 
-	// Get window dimensions
-	RECT window_rect;
-	if (!GetClientRect(*overlay->game_window, &window_rect))
-	{
-		// Handle error
-	}
+	// Get screenspace values
+	RECT window_rect/*, autocomplete_lims*/; // Window dimensions
+	SIZE char_size;
+	long	max_chars, // Maximum characters per line
+			max_input_chars; // Maximum input characters per line
+	std::string full_prompt;
+	std::vector<std::string> autocomplete_matches;
+	int longest_autocomplete/*, autocomplete_hover*/;
+	get_screenspace_values(&window_rect, &char_size, NULL, &max_chars, NULL, NULL, &full_prompt, &max_input_chars, &autocomplete_matches, &longest_autocomplete, /*&autocomplete_lims*/NULL, /*&autocomplete_hover*/NULL, 7);
+
 
 	// Create background/border rectangles
-	SIZE char_size;
-	font->GetTextExtent("|", &char_size);
 	long console_height = (long)(char_size.cy  * (output_log_displayed_lines + 1));
 	//long console_height = (long)((font_height  * (output_log_displayed_lines + 1))*1.5);
 	
@@ -153,7 +154,7 @@ void SpD3D9OConsole::draw()
 
 	// Calculate maximum number of characters & lines that can be displayed on-screen
 	//unsigned int max_lines = (unsigned int)((/*(float)*/console_height / 1.5f) / /*(float)*/char_size.cx);
-	unsigned int max_chars = (background.x2 - background.x1) / char_size.cx; // Maximum characters per line
+
 	
 	// Concatenate prompt if it's too long
 	if (prompt.length() > (max_chars - 1))
@@ -161,26 +162,8 @@ void SpD3D9OConsole::draw()
 		prompt = prompt.substr(0, max_chars - 1);
 	}
 
-	// Add elements to prompt
-	std::string full_prompt;
-	add_prompt_elements(&full_prompt);
-
-	// Concatenate extended prompt if it's too long
-	if (full_prompt.length() >= max_chars)
-	{
-		full_prompt = full_prompt.substr(0, max_chars - 1);
-	}
-	
-	// Calculate maximum number of characters that can be displayed in the input
-	int max_input_chars = max_chars - full_prompt.length();
-	if (caret_position == command.length())
-	{
-		max_input_chars--;
-	}
-
+	// Set the displayable substring of the current input
 	set_input_string_display_limits(max_input_chars);
-
-
 	
 
 	// Build console output log string
@@ -227,25 +210,14 @@ void SpD3D9OConsole::draw()
 	std::string input_line = cur_cmd;
 
 	// Get autocomplete options
-	std::vector<std::string> autocomplete_matches;
-	int longest_autocomplete = 0;
-	if (command.length() > 0)
+	std::string prompt_alignment_spaces;
+	for (int i = 0; i < full_prompt.length(); i++)
 	{
-		cur_cmd = command;
-		get_autocomplete_options(cur_cmd.c_str(), autocomplete_limit, &autocomplete_matches);
-		std::string prompt_alignment_spaces;
-		for (int i = 0; i < full_prompt.length(); i++)
-		{
-			prompt_alignment_spaces += ' ';
-		}
-		for (auto match : autocomplete_matches)
-		{
-			if (match.length() > longest_autocomplete)
-			{
-				longest_autocomplete = match.length();
-			}
-			output_string.append("\n").append(prompt_alignment_spaces).append(match);
-		}
+		prompt_alignment_spaces += ' ';
+	}
+	for (auto match : autocomplete_matches)
+	{
+		output_string.append("\n").append(prompt_alignment_spaces).append(match);
 	}
 
 
@@ -261,6 +233,17 @@ void SpD3D9OConsole::draw()
 		border = { background.x1 - (int)autocomplete_border_width, background.y1, background.x2 + (int)autocomplete_border_width, background.y2 + (int)autocomplete_border_width };
 		overlay->device->Clear(1, &border, D3DCLEAR_TARGET, autocomplete_border_color, 0, 0);
 		overlay->device->Clear(1, &background, D3DCLEAR_TARGET, autocomplete_background_color, 0, 0);
+		// Draw selected/hover background
+		background.y1 += (char_size.cy * selection.autocomplete_selection);
+		background.y2 = background.y1 + char_size.cy;
+		if (selection.focus == SP_D3D9O_SELECT_AUTOCOMPLETE)
+		{
+			overlay->device->Clear(1, &background, D3DCLEAR_TARGET, autocomplete_background_select_color, 0, 0);
+		}
+		else
+		{
+			overlay->device->Clear(1, &background, D3DCLEAR_TARGET, autocomplete_background_hover_color, 0, 0);
+		}
 	}
 
 
@@ -270,10 +253,6 @@ void SpD3D9OConsole::draw()
 	if (selection.focus == SP_D3D9O_SELECT_TEXT)
 	{
 		draw_highlighted_text(selection, &input_line);
-	}
-	else if (selection.focus == SP_D3D9O_SELECT_AUTOCOMPLETE)
-	{
-		// @TODO
 	}
 	font->EndDrawing();
 
@@ -319,7 +298,7 @@ void SpD3D9OConsole::draw()
 }
 
 
-void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt)
+void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt, int *max_chars)
 {
 	if (prompt_elements & SP_D3D9O_PROMPT_USER)
 	{
@@ -349,6 +328,12 @@ void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt)
 		full_prompt->append(game_exe_dir);
 	}
 	full_prompt->append(prompt);
+
+	// Concatenate extended prompt if it's too long
+	if (max_chars != NULL && full_prompt->length() >= *max_chars)
+	{
+		(*full_prompt) = full_prompt->substr(0, (*max_chars) - 1);
+	}
 }
 
 
@@ -646,7 +631,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 {
 	DWORD last_err;
 	std::string str; // Used when a temp string is needed
-	std::vector<std::string> match; // Only used if tab key is pressed
+	std::vector<std::string> matches; // Only used if tab key is pressed
 	int input_sel_start, input_sel_end; // Only used when obtaining selected input
 
 	if (is_open() && !SpD3D9OInputHandler::get()->handled)        // If the console is visible, take input
@@ -739,14 +724,13 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_TAB:
-				clear_selection();
 				if (command.length() > 0)
 				{
 					// If input isn't blank, use autocomplete
-					get_autocomplete_options(command.c_str(), 1, &match);
-					if (match.size() > 0)
+					get_autocomplete_options(command.c_str(), selection.autocomplete_selection+1, &matches);
+					if (matches.size() > selection.autocomplete_selection)
 					{
-						command = match.at(0);
+						command = matches.at(selection.autocomplete_selection);
 						caret_position = command.length();
 					}
 				}
@@ -765,6 +749,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 					command = command_log.at(command_log_position);
 					caret_position = command.length();
 				}
+				clear_selection();
 				show_caret = true;
 				next_caret_blink = GetTickCount() + caret_blink_delay;
 				SpD3D9OInputHandler::get()->handled = true;
@@ -834,6 +819,9 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				{
 					switch (wParam)
 					{
+						case 0x41: // Ctrl+A
+							// @TODO
+							break;
 						case 0x43: // Ctrl+C
 							build_highlighted_text(selection, &str);
 							last_err = copy(&str);
@@ -937,7 +925,7 @@ void SpD3D9OConsole::handle_mouse_input(RAWMOUSE *mouse_input)
 	switch (mouse_input->usButtonFlags)
 	{
 		case RI_MOUSE_LEFT_BUTTON_DOWN:
-			start_text_selection();
+			start_selection();
 			break;
 
 		case RI_MOUSE_LEFT_BUTTON_UP:
@@ -946,10 +934,8 @@ void SpD3D9OConsole::handle_mouse_input(RAWMOUSE *mouse_input)
 			{
 				clear_selection();
 			}
-			else if (selection.focus == SP_D3D9O_SELECT_AUTOCOMPLETE)
-			{
-				// @TODO
-			}
+			
+			continue_autocomplete_selection();
 			break;
 
 		case RI_MOUSE_RIGHT_BUTTON_DOWN:
@@ -996,10 +982,8 @@ void SpD3D9OConsole::handle_mouse_input(RAWMOUSE *mouse_input)
 			{
 				continue_text_selection();
 			}
-			else if (SpD3D9OInputHandler::get()->mouse_button_down[0] && selection.focus == SP_D3D9O_SELECT_AUTOCOMPLETE)
-			{
-				// @TODO
-			}
+			
+			continue_autocomplete_selection();
 			break;
 	}
 }
@@ -1046,6 +1030,8 @@ int SpD3D9OConsole::execute_command(const char *new_command, int *return_code, s
 
 	int command_index = -1;
 	seqan::String<char> cmd(command_name);
+	seqan::Finder<seqan::Index<seqan::StringSet<seqan::String<char>>>> commands_finder;
+	seqan::setHaystack(commands_finder, *commands_index);
 	while (seqan::find(commands_finder, cmd))
 	{
 		if (seqan::position(commands_finder).i2 == 0 && (seqan::length(seqan::value(commands_set, seqan::position(commands_finder).i1)) == std::string(command_name).length()))
@@ -1214,6 +1200,8 @@ int SpD3D9OConsole::register_command(const char *new_command, int(*function)(std
 	{
 		bool found_command = false;
 		seqan::String<char> cmd(command);
+		seqan::Finder<seqan::Index<seqan::StringSet<seqan::String<char>>>> commands_finder;
+		seqan::setHaystack(commands_finder, *commands_index);
 		while (seqan::find(commands_finder, cmd))
 		{
 			if (seqan::position(commands_finder).i2 == 0 && (seqan::length(seqan::value(commands_set, seqan::position(commands_finder).i1)) == std::string(command).length()))
@@ -1247,8 +1235,6 @@ int SpD3D9OConsole::register_command(const char *new_command, int(*function)(std
 		commands_index = NULL;
 	}
 	commands_index = new seqan::Index<seqan::StringSet<seqan::String<char>>>(commands_set);
-	seqan::setHaystack(commands_finder, *commands_index);
-	seqan::clear(commands_finder);
 
 	return 0;
 }
@@ -1442,6 +1428,8 @@ int SpD3D9OConsole::get_console_command_index(const char *command)
 {
 	int command_index = -1;
 	seqan::String<char> cmd(command);
+	seqan::Finder<seqan::Index<seqan::StringSet<seqan::String<char>>>> commands_finder;
+	seqan::setHaystack(commands_finder, *commands_index);
 	while (seqan::find(commands_finder, cmd))
 	{
 		if (seqan::position(commands_finder).i2 == 0 && (seqan::length(seqan::value(commands_set, seqan::position(commands_finder).i1)) == std::string(command).length()))
@@ -1457,12 +1445,18 @@ int SpD3D9OConsole::get_console_command_index(const char *command)
 
 
 
-void SpD3D9OConsole::get_autocomplete_options(const char *str, unsigned int max_matches, std::vector<std::string> *matches)
+void SpD3D9OConsole::get_autocomplete_options(const char *str, unsigned int max_matches, std::vector<std::string> *matches, int *longest)
 {
 	matches->clear();
 
-	if (max_matches == 0)
+	int longest_match = -1; // Length of longest match
+
+	if (max_matches == 0 || std::string(str).length() == 0)
 	{
+		if (longest != NULL)
+		{
+			*longest = longest_match;
+		}
 		return;
 	}
 
@@ -1470,15 +1464,27 @@ void SpD3D9OConsole::get_autocomplete_options(const char *str, unsigned int max_
 	std::string lower_str = str;
 	to_lower((char *)lower_str.c_str());
 	seqan::String<char> search_string(lower_str.c_str());
+	seqan::Finder<seqan::Index<seqan::StringSet<seqan::String<char>>>> commands_finder;
+	seqan::setHaystack(commands_finder, *commands_index);
 	while (seqan::find(commands_finder, search_string) && found < max_matches)
 	{
 		if (seqan::position(commands_finder).i2 == 0 && (seqan::length(seqan::value(commands_set, seqan::position(commands_finder).i1)) != std::string(str).length()))
 		{
-			matches->push_back(commands.at(seqan::position(commands_finder).i1).command);
+			std::string match = commands.at(seqan::position(commands_finder).i1).command;
+			matches->push_back(match);
 			found++;
+			if ((int)match.length() > longest_match)
+			{
+				longest_match = match.length();
+			}
 		}
 	}
 	seqan::clear(commands_finder);
+
+	if (longest != NULL)
+	{
+		*longest = longest_match;
+	}
 }
 
 

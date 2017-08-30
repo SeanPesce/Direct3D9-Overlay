@@ -36,6 +36,8 @@
 #define _SP_D3D9O_C_DEFAULT_BORDER_COLOR_ D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f); // Gray
 #define _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_ 3
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f); // Black
+#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_ D3DXCOLOR(0xFF1C1C1C); // Very dark gray
+#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_SELECT_COLOR_ D3DXCOLOR(0xFF333333); // Dark gray
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_COLOR_ D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f); // Gray
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_ 1
 #define _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_ 15
@@ -80,7 +82,7 @@ enum SP_D3D9O_CONSOLE_SELECT_FOCUS_ENUM {
 
 typedef struct SP_D3D9O_CONSOLE_TEXT_SELECTION {
 	SP_D3D9O_CONSOLE_SELECT_FOCUS_ENUM focus = SP_D3D9O_SELECT_NONE;
-	int line1 = SP_D3D9O_C_NO_SELECTION_LINE;		// Line number of the first selected character
+	int line1 = SP_D3D9O_C_NO_SELECTION_LINE;	// Line number of the first selected character (if selecting text)
 	int i1 = SP_D3D9O_C_NO_SELECTION_INDEX;		// Index in the line of the first selected character
 	int line2 = SP_D3D9O_C_NO_SELECTION_LINE;		// Line number of the last selected character
 	int i2 = SP_D3D9O_C_NO_SELECTION_INDEX;		// Index in the line of the last selected character
@@ -88,6 +90,7 @@ typedef struct SP_D3D9O_CONSOLE_TEXT_SELECTION {
 	int *start_index = &i1;
 	int *end_line = &line2;
 	int *end_index = &i2;
+	int autocomplete_selection = 0; // Index of the selected autocomplete suggestion
 } CONSOLE_TEXT_SELECTION;
 
 
@@ -134,6 +137,8 @@ public:
 	D3DXCOLOR border_color = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
 	unsigned int border_width = _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_;
 	D3DXCOLOR autocomplete_background_color = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_;
+	D3DXCOLOR autocomplete_background_hover_color = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_;
+	D3DXCOLOR autocomplete_background_select_color = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_SELECT_COLOR_;
 	D3DXCOLOR autocomplete_border_color = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
 	unsigned int autocomplete_border_width = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_;
 
@@ -166,7 +171,7 @@ public:
 	bool SpD3D9OConsole::toggle();
 	bool SpD3D9OConsole::is_open();
 	void SpD3D9OConsole::draw();
-	void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt); // Adds extra prompt elements, if enabled (username, hostname, working directory, etc)
+	void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt, int *max_chars = NULL); // Adds extra prompt elements, if enabled (username, hostname, working directory, etc)
 	void SpD3D9OConsole::print(const char *new_message); // Prints text to output log
 	int SpD3D9OConsole::execute_command(const char *new_command, int *return_code = NULL, std::string *output = NULL);
 	void SpD3D9OConsole::clear(); // Clears console by pushing blank messages to output
@@ -181,12 +186,11 @@ public:
 	#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 	static int register_command(const char *command, int(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for = "", std::vector<std::string> macro_args = {});
 	static int register_alias(const char *new_alias, const char *existing_command, std::vector<std::string> macro_args = {});
-	static void get_autocomplete_options(const char *str, unsigned int suggestion_count, std::vector<std::string> *matches);
+	static void get_autocomplete_options(const char *str, unsigned int suggestion_count, std::vector<std::string> *matches, int *longest = NULL);
 
 	static std::vector<SP_D3D9O_CONSOLE_COMMAND> commands;		// Set of available console commands and corresponding functions
 	static seqan::StringSet<seqan::String<char>> commands_set;	// Set of available console command strings
 	static seqan::Index<seqan::StringSet<seqan::String<char>>> *commands_index;
-	static seqan::Finder<seqan::Index<seqan::StringSet<seqan::String<char>>>> commands_finder;
 	static int SpD3D9OConsole::get_console_command_index(const char *command); // Obtains the position (index) of a command, (Note: not the ID)
 
 private:
@@ -198,9 +202,15 @@ private:
 
 	void SpD3D9OConsole::format_output_line(std::string *str, int line, int max_chars);
 	void SpD3D9OConsole::clear_selection();
-	int SpD3D9OConsole::get_screenspace_limits(RECT *window, SIZE *char_size = NULL, RECT *console_lims = NULL, long *max_chars = NULL, long *row = NULL, long *column = NULL);
+	int SpD3D9OConsole::get_screenspace_values(RECT *window = NULL, SIZE *char_size = NULL, RECT *console_lims = NULL,
+														long *max_chars = NULL, long *row = NULL, long *column = NULL,
+														std::string *full_prompt = NULL, long *max_input_chars = NULL,
+														std::vector<std::string> *autocomplete_opts = NULL,
+														int *longest_autocomplete = NULL, RECT *autocomplete_lims = NULL,
+														int *autocomplete_hover = NULL, int return_after_obtaining = -1);
 	void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_chars, SP_D3D9O_CONSOLE_SELECT_FOCUS_ENUM *focus, int *line, int *index, int *line2 = NULL, int *index2 = NULL);
-	void SpD3D9OConsole::start_text_selection();
+	void SpD3D9OConsole::start_selection();
+	void SpD3D9OConsole::continue_autocomplete_selection();
 	void SpD3D9OConsole::continue_text_selection();
 	void SpD3D9OConsole::get_input_selection(int *start, int *end);
 	void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, std::string *input_line);

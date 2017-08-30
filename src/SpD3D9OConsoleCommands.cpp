@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "SpD3D9OConsole.h"
+#include "SP_AoB_Scan.hpp"
 #include "Shellapi.h"
 #include <cstdlib>
 #include <climits>
@@ -156,6 +157,102 @@ bool string_is_zero(const char *c_str)
 			}
 		}
 	}
+	return true;
+}
+
+
+// Checks if a char appears in a string.
+//		If char exists in string, returns first index where char appears; otherwise, returns -1
+int in_string(char c, std::string str)
+{
+	for (int i = 0; i < (int)str.length(); i++)
+	{
+		if (c == str.c_str()[i]) return i;
+	}
+	return -1;
+}
+
+
+// Checks if a string has only wildcard characters.
+//		If uniform is true, all characters must be identical.
+bool is_wildcard(std::string *str, bool uniform = true, std::string wildcards = "*?")
+{
+	if (str == NULL || (int)str->length() < 1)
+	{
+		return false;
+	}
+
+	char start = str->c_str()[0];
+	if (in_string(start, wildcards) == -1)
+	{
+		return false;
+	}
+	else
+	{
+		if (uniform)
+		{
+			wildcards.clear();
+			wildcards += start;
+		}
+
+		for (int i = 0; i < (int)str->length(); i++)
+		{
+			if (in_string(str->c_str()[i], wildcards) == -1) return false;
+		}
+	}
+	return true;
+}
+
+
+// Checks if a char is a valid character for a numberic hex value
+bool is_hex_char(char c, bool allow_0x_prefix = false)
+{
+	if ((c >= 48 && c <= 57) // 0-9
+		|| (c >= 65 && c <= 70) // A-F
+		|| (c >= 97 && c <= 102) // a-f
+		)
+	{
+		return true;
+	}
+	else if (allow_0x_prefix && (c == 88 || c == 120)) // 'x' or 'X'
+	{
+		return true;
+	}
+	return false;
+}
+
+
+// Checks if a string can be parsed as a numeric hex value
+bool is_hex_value(std::string *arg, bool allow_0x_prefix = false)
+{
+	if (arg == NULL || arg->length() < 1)
+	{
+		// Empty string
+		return false;
+	}
+
+	int i = 0;
+	switch (arg->length())
+	{
+		case 2:
+			if (!is_hex_char(arg->c_str()[1])) return false;
+		case 1:
+			if (!is_hex_char(arg->c_str()[0])) return false;
+			break;
+
+		default:
+			if (allow_0x_prefix && arg->c_str()[0] == '0' && (arg->c_str()[1] == 'x' || arg->c_str()[1] == 'X')) i = 2; // Check for "0x" prefix
+			
+			for (; i < (int)arg->length(); i++)
+			{
+				if (!is_hex_char(arg->c_str()[i]))
+				{
+					return false;
+				}
+			}
+			break;
+	}
+	
 	return true;
 }
 
@@ -1806,6 +1903,154 @@ int cc_free_library(std::vector<std::string> args, std::string *output)
 }
 
 
+// Searches process memory for the given array of bytes
+int cc_aob_scan(std::vector<std::string> args, std::string *output)
+{
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
+
+	// Parse args to build AoB string
+	std::string aob;
+	bool invalid = false; // Set to true if an invalid byte value was passed to this function
+	int i = 0;
+	if (args.size() < 2)
+	{
+		output->append(ERROR_TOO_FEW_ARGUMENTS);
+		if (args.size() > 0) output->append(" (Byte array should contain 2 or more bytes)");
+		return ERROR_BAD_ARGUMENTS;
+	}
+	else
+	{
+		for (; i < (int)args.size(); i++)
+		{
+			switch (args.at(i).length())
+			{
+				case 1:
+					// ?, *, or H
+					if (!is_hex_char(args.at(i).c_str()[0]))
+					{
+						if (in_string(args.at(i).c_str()[0], "*?") != -1)
+						{
+							args.at(i).clear();
+							args.at(i).append("??");
+						}
+						else
+						{
+							invalid = true;
+						}
+					}
+					else
+					{
+						args.at(i).insert(0, "0");
+					}
+					break;
+
+				case 2:
+					// ??, **, or HH
+					if (is_wildcard(&args.at(i)))
+					{
+						args.at(i).clear();
+						args.at(i).append("??");
+					}
+					else if (!is_hex_value(&args.at(i)))
+					{
+						invalid = true;
+					}
+					break;
+
+				case 3:
+					// 0xH
+					if (args.at(i).c_str()[0] == '0' && (args.at(i).c_str()[1] == 'x' || args.at(i).c_str()[1] == 'X') && is_hex_char(args.at(i).c_str()[2]))
+					{
+						args.at(i).erase(0, 2);
+						args.at(i).insert(0, "0");
+					}
+					else
+					{
+						invalid = true;
+					}
+					break;
+
+				case 4:
+					// 0xHH
+					if (args.at(i).c_str()[0] == '0' && (args.at(i).c_str()[1] == 'x' || args.at(i).c_str()[1] == 'X') && is_hex_char(args.at(i).c_str()[2]) && is_hex_char(args.at(i).c_str()[3]))
+						args.at(i).erase(0, 2);
+					else
+						invalid = true;
+					break;
+
+				default:
+					invalid = true;
+					break;
+			} // switch (args.at(i).length())
+
+			if (invalid)
+			{
+				output->append(std::string("ERROR: Invalid byte value in byte array at index ").append(std::to_string(i)).append(" (\"").append(args.at(i)).append("\")"));
+				return ERROR_INVALID_PARAMETER;
+			}
+			else
+			{
+				if (aob.length() != 0) aob.append(" ");
+				aob.append(args.at(i));
+			}
+		} // for loop
+	}
+
+	// Search for AoB
+	output->append("Scanning for byte pattern: ").append(aob).append("\nResults:");
+	std::vector<uint8_t*> results;
+	void *result = aob_scan(&aob, NULL, &results);
+	if (result != NULL)
+	{
+		for(int i = 0; i < (int)results.size(); i++)
+		{
+			std::stringstream hex_stream;
+			hex_stream << std::hex << (void*)results.at(i);
+			output->append("\n    0x").append(hex_stream.str());
+		}
+		output->append("\nSUCCESS: Found matching byte pattern");
+		if ((int)results.size() != 1) output->append("s");
+		output->append(" at ").append(std::to_string(results.size()));
+		if ((int)results.size() > 1)
+			output->append(" different memory locations");
+		else
+			output->append(" memory location");
+		if ((int)results.size() >= MAX_AOBSCAN_RESULTS)
+			output->append(" (Increase max result limit to view more search results).");
+		else
+			output->append(".");
+		if ((int)results.size() > (gl_pSpD3D9Device->overlay->console->output_log_displayed_lines - 3)) output->append("\nWARNING: Number of results exceeds output display lines. Only the first ").append(std::to_string(gl_pSpD3D9Device->overlay->console->output_log_displayed_lines - 3)).append(" results are shown.");
+	}
+	else
+	{
+		ret_val = (int)GetLastError();
+		switch (ret_val)
+		{
+			case SP_NO_ERROR:
+				// Byte array was not found
+				output->append("\nSearch returned 0 results.");
+				ret_val = CONSOLE_COMMAND_SUCCESS;
+				break;
+			case SP_ERROR_INVALID_PARAMETER:
+				output->append("\nERROR: Invalid search array (too short or bad address)");
+				break;
+			case SP_ERROR_INSUFFICIENT_BUFFER:
+				output->append("\nERROR: Search array is too large (Max AoB length = ").append(std::to_string(MAX_AOB_LENGTH)).append(" bytes); try increasing limit.");
+				break;
+			case SP_ERROR_INVALID_ADDRESS:
+				// Invalid starting address
+				output->append("\nERROR: Starting address was invalid");
+				break;
+			default:
+				// Byte array was not found due to an unknown error
+				output->append("\nERROR: Code ").append(std::to_string(ret_val));
+				break;
+		}
+	}
+	return ret_val;
+}
+
+
 // Opens the specified URL in the system's default web browser
 int cc_open_web_page(std::vector<std::string> args, std::string *output)
 {
@@ -1993,6 +2238,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("load_library", cc_load_library, "load_library <filename>\n    Loads the specified dynamic link library (DLL) file.");
 	SpD3D9OConsole::register_command("free_library", cc_free_library, "free_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
 	SpD3D9OConsole::register_alias("unload_library", "free_library");
+	SpD3D9OConsole::register_command("aob_scan", cc_aob_scan, "aob_scan <byte> [byte...]\n    Scans process memory for the given byte array (AoB = \"Array of Bytes\"). Each byte in the byte pattern should be passed as a separate argument.\n    Wildcard bytes (bytes that can be any value) can be passed as \"??\" or \"**\".");
 	//SpD3D9OConsole::register_command("shell", cc_shell, "shell <URL>\n    Executes a shell command in the system default shell.");
 	SpD3D9OConsole::register_command("web", cc_open_web_page, "web <URL>\n    Opens a web page in the system default web browser.");
 	SpD3D9OConsole::register_command("game_input", cc_game_input, "game_input [is_enabled]\n    Enables/disables game input. If input is disabled, mouse, keyboard, and other input will not affect the game state.");

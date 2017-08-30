@@ -62,6 +62,9 @@
     <ClInclude Include="include\SpD3D9OConsoleTextSelection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\proxydll.cpp">
@@ -103,5 +106,10 @@
     <ClCompile Include="src\SpD3D9OConsoleCommands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="rsrc\Resource.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

@@ -262,6 +262,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\D3DFont.h" />
+    <ClInclude Include="include\Resource.h" />
     <ClInclude Include="include\SpD3D9.h" />
     <ClInclude Include="include\SpD3D9Exports.h" />
     <ClInclude Include="include\SpD3D9OConsoleTextSelection.h" />
@@ -297,6 +298,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Dark Souls|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Dark Souls|x64'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="rsrc\Resource.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

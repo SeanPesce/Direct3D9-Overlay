@@ -29,6 +29,7 @@
 #define _SP_D3D9O_TF_DEFAULT_TITLE_ "Direct3D Overlay by Sean Pesce"
 
 #define _SP_D3D9O_TF_MAX_FONT_SIZE_ 230
+#define _SP_D3D9O_TF_MIN_FONT_SIZE_ 5
 
 // Overlay class data
 extern const D3DXCOLOR SP_D3D9O_TEXT_COLORS[_SP_D3D9O_TEXT_COLOR_COUNT_];

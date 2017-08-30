@@ -743,7 +743,7 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData,
 
 			if (gl_pSpD3D9Device != NULL)
 			{
-				gl_pSpD3D9Device->overlay->console->handle_mouse_click(&(raw_input->data.mouse)); // Send mouse input to the console
+				gl_pSpD3D9Device->overlay->console->handle_mouse_input(&(raw_input->data.mouse)); // Send mouse input to the console
 			}
 
 			break; // case RIM_TYPEMOUSE

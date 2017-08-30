@@ -267,9 +267,13 @@ void SpD3D9OConsole::draw()
 	// Render the console text
 	font->BeginDrawing();
 	font->DrawText((float)border_width, (float)border_width, font_color, output_string.c_str(), D3DFONT_COLORTABLE, 0);
-	if (selection.focus != SP_D3D9O_SELECT_NONE)
+	if (selection.focus == SP_D3D9O_SELECT_TEXT)
 	{
 		draw_highlighted_text(selection, &input_line);
+	}
+	else if (selection.focus == SP_D3D9O_SELECT_AUTOCOMPLETE)
+	{
+		// @TODO
 	}
 	font->EndDrawing();
 
@@ -922,7 +926,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 
 
 
-void SpD3D9OConsole::handle_mouse_click(RAWMOUSE *mouse_input)
+void SpD3D9OConsole::handle_mouse_input(RAWMOUSE *mouse_input)
 {
 	if (!is_open())
 	{
@@ -938,9 +942,13 @@ void SpD3D9OConsole::handle_mouse_click(RAWMOUSE *mouse_input)
 
 		case RI_MOUSE_LEFT_BUTTON_UP:
 			continue_text_selection();
-			if (selection.focus != SP_D3D9O_SELECT_NONE && selection.line1 == selection.line2 && selection.i1 == selection.i2)
+			if (selection.focus == SP_D3D9O_SELECT_TEXT && selection.line1 == selection.line2 && selection.i1 == selection.i2)
 			{
 				clear_selection();
+			}
+			else if (selection.focus == SP_D3D9O_SELECT_AUTOCOMPLETE)
+			{
+				// @TODO
 			}
 			break;
 
@@ -984,9 +992,13 @@ void SpD3D9OConsole::handle_mouse_click(RAWMOUSE *mouse_input)
 		case MOUSE_MOVE_RELATIVE:
 			// Mouse movement data is relative (based on last known position)
 
-			if (SpD3D9OInputHandler::get()->mouse_button_down[0])
+			if (SpD3D9OInputHandler::get()->mouse_button_down[0] && selection.focus == SP_D3D9O_SELECT_TEXT)
 			{
 				continue_text_selection();
+			}
+			else if (SpD3D9OInputHandler::get()->mouse_button_down[0] && selection.focus == SP_D3D9O_SELECT_AUTOCOMPLETE)
+			{
+				// @TODO
 			}
 			break;
 	}

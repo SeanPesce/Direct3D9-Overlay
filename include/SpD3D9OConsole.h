@@ -177,7 +177,7 @@ public:
 		void SpD3D9OConsole::handle_key_event(DIDEVICEOBJECTDATA *event);
 	#else // !_SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 		void SpD3D9OConsole::handle_key_press(WPARAM wParam);
-		void SpD3D9OConsole::handle_mouse_click(RAWMOUSE *mouse_input);
+		void SpD3D9OConsole::handle_mouse_input(RAWMOUSE *mouse_input);
 	#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 	static int register_command(const char *command, int(*function)(std::vector<std::string>, std::string *), const char *help_message, const char *alias_for = "", std::vector<std::string> macro_args = {});
 	static int register_alias(const char *new_alias, const char *existing_command, std::vector<std::string> macro_args = {});

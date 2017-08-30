@@ -83,9 +83,9 @@ void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_cha
 			*focus = SP_D3D9O_SELECT_TEXT;
 		}
 	}
-	else if(*focus != SP_D3D9O_SELECT_NONE)
+	else if(*focus == SP_D3D9O_SELECT_TEXT)
 	{
-		// Extend existing selection
+		// Extend existing text selection
 
 		if (row <= 0)
 		{

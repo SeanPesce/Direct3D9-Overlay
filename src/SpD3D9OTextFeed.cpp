@@ -97,9 +97,19 @@ void SpD3D9OTextFeed::set_bounds(RECT *window_boundaries)
 {
 	int vertical_offset = 0;
 
+	if (overlay->console != NULL && overlay->console->is_open())
+	{
+		SIZE console_char_size;
+		overlay->console->font->GetTextExtent("|", &console_char_size);
+		vertical_offset += ((int)overlay->console->border_width * 2) + (((int)overlay->console->output_log_displayed_lines + 1) * (int)console_char_size.cy);
+	}
 #ifdef _SP_DARK_SOULS_1_
-	extern int user_pref_dspw_ol_offset; // Used to adjust the overlay to avoid clipping with the DSPW overlay
-	vertical_offset = user_pref_dspw_ol_offset;
+	else
+	{
+		// Add DSPW overlay offset (only if console is not open)
+		extern int user_pref_dspw_ol_offset; // Used to adjust the overlay to avoid clipping with the DSPW overlay
+		vertical_offset += user_pref_dspw_ol_offset;
+	}
 #endif // _SP_DARK_SOULS_1_
 
 	// Initialize plain text rect

@@ -1249,6 +1249,7 @@ int cc_console_border_width(std::vector<std::string> args, std::string *output)
 			{
 				gl_pSpD3D9Device->overlay->console->autocomplete_border_width = 1;
 			}
+			gl_pSpD3D9Device->overlay->needs_update = true;
 		}
 		else
 		{

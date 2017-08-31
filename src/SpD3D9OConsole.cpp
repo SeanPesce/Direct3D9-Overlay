@@ -414,6 +414,9 @@ bool SpD3D9OConsole::toggle()
 		#endif // _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 	}
 
+	// Send update message to overlay to reposition text feed
+	overlay->needs_update = true;
+
 	Sleep(200);
 
 	return ((overlay->enabled_elements & SP_D3D9O_CONSOLE_ENABLED) != 0); // Weirdness to avoid compiler warnings
@@ -1306,6 +1309,8 @@ void SpD3D9OConsole::update_fonts_and_cursor()
 		win_cursor_tex = NULL;
 	}
 	init_win_cursor();
+
+	overlay->needs_update = true;
 }
 
 

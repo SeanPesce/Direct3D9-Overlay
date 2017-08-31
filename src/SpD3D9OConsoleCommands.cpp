@@ -85,6 +85,75 @@ void get_text_feed_pos_str(std::string *str)
 }
 
 
+void console_settings_to_string(std::string *output)
+{
+	if (gl_pSpD3D9Device->overlay->console->echo)
+	{
+		output->append("    echo = on\n");
+	}
+	else
+	{
+		output->append("    echo = off\n");
+	}
+	if (gl_pSpD3D9Device->overlay->console->output_stream)
+	{
+		output->append("    Output stream = enabled\n");
+	}
+	else
+	{
+		output->append("    Output stream = disabled\n");
+	}
+	output->append("    Font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->font_height)).append("\n");
+	output->append("    Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"\n");
+	output->append("    Caret character = '");
+	*output += gl_pSpD3D9Device->overlay->console->caret;
+	output->append("'\n");
+	if (gl_pSpD3D9Device->overlay->console->caret_blink_delay > 0)
+	{
+		output->append("    Caret blink delay = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->caret_blink_delay)).append(" milliseconds\n");
+	}
+	else
+	{
+		output->append("    Caret blinking disabled.\n");
+	}
+	if (gl_pSpD3D9Device->overlay->console->show_cursor)
+	{
+		output->append("    Console mouse cursor = enabled\n");
+	}
+	else
+	{
+		output->append("    Console mouse cursor = disabled\n");
+	}
+	output->append("    Console mouse cursor size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->cursor_size)).append("\n");
+	output->append("    Autocomplete suggestion limit = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->autocomplete_limit)).append("\n");
+	output->append("    Border width = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->border_width)).append(" pixels\n");
+	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_USER)
+	{
+		output->append("    Show user profile name in prompt = enabled\n");
+	}
+	else
+	{
+		output->append("    Show user profile name in prompt = disabled\n");
+	}
+	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_HOSTNAME)
+	{
+		output->append("    Show hostname in prompt = enabled\n");
+	}
+	else
+	{
+		output->append("    Show hostname in prompt = disabled\n");
+	}
+	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_CWD)
+	{
+		output->append("    Show working directory in prompt = enabled");
+	}
+	else
+	{
+		output->append("    Show working directory in prompt = disabled");
+	}
+}
+
+
 void args_to_string(std::vector<std::string> args, std::string *str)
 {
 	for (auto macro_arg : args)
@@ -1342,70 +1411,22 @@ int cc_console_restore_dev_defaults(std::vector<std::string> args, std::string *
 	}
 
 	output->append("Restored console developer default settings:\n");
-	if (gl_pSpD3D9Device->overlay->console->echo)
-	{
-		output->append("    echo = on\n");
-	}
-	else
-	{
-		output->append("    echo = off\n");
-	}
-	if (gl_pSpD3D9Device->overlay->console->output_stream)
-	{
-		output->append("    Output stream = enabled\n");
-	}
-	else
-	{
-		output->append("    Output stream = disabled\n");
-	}
-	output->append("    Font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->font_height)).append("\n");
-	output->append("    Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"\n");
-	output->append("    Caret character = '");
-	*output += gl_pSpD3D9Device->overlay->console->caret;
-	output->append("'\n");
-	if (gl_pSpD3D9Device->overlay->console->caret_blink_delay > 0)
-	{
-		output->append("    Caret blink delay = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->caret_blink_delay)).append(" milliseconds\n");
-	}
-	else
-	{
-		output->append("    Caret blinking disabled.\n");
-	}
-	if (gl_pSpD3D9Device->overlay->console->show_cursor)
-	{
-		output->append("    Console mouse cursor = enabled\n");
-	}
-	else
-	{
-		output->append("    Console mouse cursor = disabled\n");
-	}
-	output->append("    Console mouse cursor size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->cursor_size)).append("\n");
-	output->append("    Autocomplete suggestion limit = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->autocomplete_limit)).append("\n");
-	output->append("    Border width = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->border_width)).append(" pixels\n");
-	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_USER)
-	{
-		output->append("    Show user profile name in prompt = enabled\n");
-	}
-	else
-	{
-		output->append("    Show user profile name in prompt = disabled\n");
-	}
-	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_HOSTNAME)
-	{
-		output->append("    Show hostname in prompt = enabled\n");
-	}
-	else
-	{
-		output->append("    Show hostname in prompt = disabled\n");
-	}
-	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_CWD)
-	{
-		output->append("    Show working directory in prompt = enabled");
-	}
-	else
-	{
-		output->append("    Show working directory in prompt = disabled");
-	}
+	
+	console_settings_to_string(output);
+
+	return CONSOLE_COMMAND_SUCCESS;
+}
+
+
+// Re-loads user's console settings preferences from the config file
+int cc_console_restore_user_prefs(std::vector<std::string> args, std::string *output)
+{
+	gl_pSpD3D9Device->overlay->console->get_user_prefs();
+
+	output->append("Restored user-preferred console settings:\n");
+	
+	console_settings_to_string(output);
+
 	return CONSOLE_COMMAND_SUCCESS;
 }
 
@@ -2245,6 +2266,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("game_input", cc_game_input, "game_input [is_enabled]\n    Enables/disables game input. If input is disabled, mouse, keyboard, and other input will not affect the game state.");
 	SpD3D9OConsole::register_command("console", cc_console_enabled, "console [is_open]\n    Opens/closes the console (1 = open, 0 = hidden).");
 	SpD3D9OConsole::register_command("console_restore_developer_default_settings", cc_console_restore_dev_defaults, "console_restore_developer_default_settings\n    Restores all console settings to developer-preferred values.");
+	SpD3D9OConsole::register_command("console_restore_user_preferred_settings", cc_console_restore_user_prefs, std::string("console_restore_user_preferred_settings\n    Re-loads console settings from user preference configuration file (").append(_SP_D3D9O_C_PREF_FILE_).append(")").c_str());
 	SpD3D9OConsole::register_command("console_clear", cc_console_clear, "console_clear\n    Clears console output.");
 	SpD3D9OConsole::register_alias("clear", "console_clear");
 	SpD3D9OConsole::register_command("console_echo", cc_console_echo, "console_echo [is_enabled]\n    Enables/disables console input echo (1 = on, 0 = off).");

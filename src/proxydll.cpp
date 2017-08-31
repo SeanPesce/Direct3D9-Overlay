@@ -444,20 +444,12 @@ void get_user_preferences()
 		user_pref_show_text_feed_info_bar += SP_D3D9O_INFO_BAR_TIME;
 	}
 
-	// Overlay text size
+	// Overlay text feed font size
 	user_pref_overlay_text_size = (int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_SIZE_KEY_, _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_, _SP_D3D9_SETTINGS_FILE_);
 	if (user_pref_overlay_text_size < 1)
 	{
 		// Invalid font size specified; set to default
 		user_pref_overlay_text_size = _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_;
-	}
-
-	// Console text size
-	user_pref_console_text_size = (int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_CONSOLE_TXT_SIZE_KEY_, _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_, _SP_D3D9_SETTINGS_FILE_);
-	if (user_pref_overlay_text_size < 1)
-	{
-		// Invalid font size specified; set to default
-		user_pref_console_text_size = _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_;
 	}
 
 

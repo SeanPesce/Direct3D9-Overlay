@@ -72,7 +72,6 @@ int user_pref_overlay_text_size;
 DWORD user_pref_overlay_text_pos;
 SP_D3D9O_TEXT_FEED_STYLE_ENUM user_pref_overlay_text_style;
 int user_pref_show_text_feed_info_bar;
-int user_pref_console_text_size;
 unsigned int console_key;
 // Mod variables & data
 SHORT key_state[256];	// Buffer for async key states

@@ -17,8 +17,30 @@
 	#define hotkey_is_down(hotkey) (hotkey != 0 && (key_state[hotkey] & _SP_KEY_DOWN_))
 #endif
 
+
+// Config file values (where user preferences are stored)
+#define _SP_D3D9O_C_PREF_FILE_ _SP_D3D9_SETTINGS_FILE_	// Filename of config file
+#define _SP_D3D9O_C_PREF_STRING_BUFF_SIZE_ 256
+#define _SP_D3D9O_C_PREF_SECTION_ "Console"
+#define _SP_D3D9O_C_PREF_KEY_FONT_SIZE_ "FontSize"
+#define _SP_D3D9O_C_PREF_KEY_PROMPT__ "Prompt"
+#define _SP_D3D9O_C_PREF_KEY_PROMPT_USER_ "PromptElementUsername"
+#define _SP_D3D9O_C_PREF_KEY_PROMPT_HOSTNAME_ "PromptElementHostname"
+#define _SP_D3D9O_C_PREF_KEY_PROMPT_CWD_ "PromptElementWorkingDir"
+#define _SP_D3D9O_C_PREF_KEY_CARET__ "Caret"
+#define _SP_D3D9O_C_PREF_KEY_CARET_BLINK_ "CaretBlinkDelay"
+#define _SP_D3D9O_C_PREF_KEY_BORDER_WIDTH_ "BorderWidth"
+#define _SP_D3D9O_C_PREF_KEY_OUTPUT_LINES_ "OutputLines"
+#define _SP_D3D9O_C_PREF_KEY_AUTOCOMPLETE_LIMIT_ "AutoCompleteLimit"
+#define _SP_D3D9O_C_PREF_KEY_CURSOR_SHOW_ "ShowMouseCursor"
+#define _SP_D3D9O_C_PREF_KEY_CURSOR_SIZE_ "MouseCursorSize"
+#define _SP_D3D9O_C_PREF_KEY_INPUT_ECHO_ "InputEcho"
+#define _SP_D3D9O_C_PREF_KEY_OUTPUT_STREAM_ "OutputStream"
+
+
 #define _CLOSE_CONSOLE_KEY_ VK_ESCAPE // Escape key
 
+// Developer default settings values
 #define _SP_D3D9O_C_DEFAULT_OUTPUT_LOG_CAPACITY_ 100
 #define _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_ 20
 #define _SP_D3D9O_C_DEFAULT_ECHO_VALUE_ true
@@ -158,12 +180,7 @@ public:
 	unsigned int input_display_start = 0; // If current command is longer than the screen, these 2 indexes are the start/end of the displayed substring
 	unsigned int input_display_end = 0;
 
-	CONSOLE_TEXT_SELECTION selection;
-	SP_D3D9O_CONSOLE_SELECT_FOCUS_ENUM selection_focus = SP_D3D9O_SELECT_NONE; // Determines whether input or output is selected (or neither)
-	int selection_start_index = -1; // Starting index on starting line of selection
-	int selection_start_line = -1; // Starting line of selected chars
-	int selection_width = 0; // If single line, the number of chars to select. If multi-line, the index of the last selected char on the lower line
-	int selection_vertical_width = 0; // Number of lines that the selection spans
+	CONSOLE_TEXT_SELECTION selection; // Struct that holds cursor selection data
 
 	unsigned int command_log_position = 0; // Used to obtain previous commands with the up/down keys
 	unsigned int autocomplete_limit = _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_; // Maximum number of autocomplete suggestions to show
@@ -182,7 +199,8 @@ public:
 	void SpD3D9OConsole::clear(); // Clears console by pushing blank messages to output
 	DWORD SpD3D9OConsole::copy(std::string *str); // Copies string to clipboard
 	DWORD SpD3D9OConsole::paste(); // Paste clipboard data into console input
-	HRESULT SpD3D9OConsole::init_win_cursor();
+	HRESULT SpD3D9OConsole::init_win_cursor(); // Initializes the texture/sprite used to draw non-text mouse cursor
+	void SpD3D9OConsole::get_user_prefs(); // Loads user preferences from a config file and applies the preferred settings
 	#ifdef _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 		void SpD3D9OConsole::handle_key_event(DIDEVICEOBJECTDATA *event);
 	#else // !_SP_USE_DINPUT8_CREATE_DEVICE_INPUT_

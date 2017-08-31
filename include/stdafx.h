@@ -58,7 +58,6 @@
 #define _SP_D3D9_OL_TXT_ENABLE_FPS_KEY_ "DisplayFPS"
 #define _SP_D3D9_OL_TXT_ENABLE_TIME_KEY_ "DisplayTime"
 #define _SP_D3D9_OL_TXT_ENABLE_DATE_KEY_ "DisplayDate"
-#define _SP_D3D9_OL_CONSOLE_TXT_SIZE_KEY_ "ConsoleTextSize"
 //	Developer keybinds section key names
 #define _SP_D3D9_HOTKEY_PRINT_OL_TXT_TEST_MSG_KEY_ "PrintTestMessage"
 #define _SP_D3D9_HOTKEY_TOGGLE_AUDIO_FEEDBACK_KEY_ "ToggleAudioFeedback"

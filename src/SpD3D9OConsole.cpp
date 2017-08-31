@@ -22,9 +22,8 @@ SpD3D9OConsole::SpD3D9OConsole(SpD3D9Overlay *new_overlay)
 		// Handle error?
 	}
 
-	// Get user-preferred console font size
-	extern int user_pref_console_text_size;
-	font_height = user_pref_console_text_size;
+	// Load user preferences from config file
+	get_user_prefs();
 
 
 	// Initialize empty command log
@@ -1425,6 +1424,119 @@ HRESULT SpD3D9OConsole::init_win_cursor()
 	D3DXCreateSprite(gl_pSpD3D9Device->m_pIDirect3DDevice9, &win_cursor_sprite);
 
 	return hres;
+}
+
+
+// Loads user preferences from a config file and applies the preferred settings
+void SpD3D9OConsole::get_user_prefs()
+{
+	char buffer[_SP_D3D9O_C_PREF_STRING_BUFF_SIZE_];
+
+	// Close the console before changing settings
+	bool console_open = is_open();
+	if (console_open)
+	{
+		toggle();
+	}
+
+	// Font size
+	font_height = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_FONT_SIZE_, _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_, _SP_D3D9O_C_PREF_FILE_);
+	if (font_height < _SP_D3D9O_C_MIN_FONT_SIZE_)
+		font_height = _SP_D3D9O_C_MIN_FONT_SIZE_;
+	else if(font_height > _SP_D3D9O_C_MAX_FONT_SIZE_)
+		font_height = _SP_D3D9O_C_MAX_FONT_SIZE_;
+
+	// Prompt string
+	GetPrivateProfileString(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_PROMPT__, _SP_D3D9O_C_DEFAULT_PROMPT_, buffer, _SP_D3D9O_C_PREF_STRING_BUFF_SIZE_, _SP_D3D9O_C_PREF_FILE_);
+	prompt = buffer;
+
+	// Reset prompt elements before reading values
+	prompt_elements = _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_;
+
+	// Prompt username element
+	if ((int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_PROMPT_USER_, (_SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_ & SP_D3D9O_PROMPT_USER), _SP_D3D9O_C_PREF_FILE_) != 0)
+		prompt_elements |= SP_D3D9O_PROMPT_USER;
+	else
+		prompt_elements &= ~(SP_D3D9O_PROMPT_USER);
+
+	// Prompt hostname element
+	if ((int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_PROMPT_HOSTNAME_, (_SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_ & SP_D3D9O_PROMPT_HOSTNAME), _SP_D3D9O_C_PREF_FILE_) != 0)
+		prompt_elements |= SP_D3D9O_PROMPT_HOSTNAME;
+	else
+		prompt_elements &= ~(SP_D3D9O_PROMPT_HOSTNAME);
+
+	// Prompt working directory element
+	if ((int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_PROMPT_CWD_, (_SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_ & SP_D3D9O_PROMPT_CWD), _SP_D3D9O_C_PREF_FILE_) != 0)
+		prompt_elements |= SP_D3D9O_PROMPT_CWD;
+	else
+		prompt_elements &= ~(SP_D3D9O_PROMPT_CWD);
+
+	// Caret char
+	GetPrivateProfileString(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_CARET__, std::to_string(_SP_D3D9O_C_DEFAULT_CARET_).c_str(), buffer, 2, _SP_D3D9O_C_PREF_FILE_);
+	caret = buffer[0];
+
+	// Caret blink delay
+	caret_blink_delay = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_CARET_BLINK_, _SP_D3D9O_C_DEFAULT_BLINK_DELAY_, _SP_D3D9O_C_PREF_FILE_);
+	if (caret_blink_delay < 0)
+		caret_blink_delay = 0;
+
+	// Border width
+	border_width = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_BORDER_WIDTH_, _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_, _SP_D3D9O_C_PREF_FILE_);
+	if (border_width <= 0)
+	{
+		border_width = 0;
+		autocomplete_border_width = 0;
+	}
+	else
+		autocomplete_border_width = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_;
+
+	// Number of displayed lines of output
+	output_log_displayed_lines = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_OUTPUT_LINES_, _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_, _SP_D3D9O_C_PREF_FILE_);
+	if (output_log_displayed_lines < 1)
+		output_log_displayed_lines = 1;
+	
+	// Max allowed autocomplete suggestions
+	autocomplete_limit = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_AUTOCOMPLETE_LIMIT_, _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_, _SP_D3D9O_C_PREF_FILE_);
+	if (autocomplete_limit < 0)
+		autocomplete_limit = 0;
+
+	// Show mouse cursor
+	if ((int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_CURSOR_SHOW_, _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_, _SP_D3D9O_C_PREF_FILE_) != 0)
+		show_cursor = true;
+	else
+		show_cursor = false;
+
+	// Mouse cursor size
+	cursor_size = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_CURSOR_SIZE_, _SP_D3D9O_C_DEFAULT_CURSOR_SIZE_, _SP_D3D9O_C_PREF_FILE_);
+	if (cursor_size < _SP_D3D9O_C_MIN_FONT_SIZE_)
+		cursor_size = _SP_D3D9O_C_MIN_FONT_SIZE_;
+	else if (cursor_size > _SP_D3D9O_C_MAX_FONT_SIZE_)
+		cursor_size = _SP_D3D9O_C_MAX_FONT_SIZE_;
+
+	// Input echo
+	if ((int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_INPUT_ECHO_, _SP_D3D9O_C_DEFAULT_ECHO_VALUE_, _SP_D3D9O_C_PREF_FILE_) != 0)
+		echo = true;
+	else
+		echo = false;
+
+	// Output stream
+	if ((int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_OUTPUT_STREAM_, _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_, _SP_D3D9O_C_PREF_FILE_) != 0)
+		output_stream = true;
+	else
+		output_stream = false;
+
+
+	// Clear console output
+	for (int i = 0; i < (int)output_log_displayed_lines; i++)
+	{
+		output_log.push_back("");
+	}
+
+	// Re-open console if it was open before this function call
+	if (console_open)
+	{
+		toggle();
+	}
 }
 
 

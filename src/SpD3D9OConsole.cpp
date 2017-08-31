@@ -1473,7 +1473,10 @@ void SpD3D9OConsole::get_user_prefs()
 
 	// Caret char
 	GetPrivateProfileString(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_CARET__, std::to_string(_SP_D3D9O_C_DEFAULT_CARET_).c_str(), buffer, 2, _SP_D3D9O_C_PREF_FILE_);
-	caret = buffer[0];
+	if (buffer[0] != '\0')
+		caret = buffer[0];
+	else
+		caret = _SP_D3D9O_C_DEFAULT_CARET_;
 
 	// Caret blink delay
 	caret_blink_delay = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_CARET_BLINK_, _SP_D3D9O_C_DEFAULT_BLINK_DELAY_, _SP_D3D9O_C_PREF_FILE_);

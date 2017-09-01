@@ -101,7 +101,7 @@ __declspec(dllexport) bool set_text_feed_title(const char *new_title)
 }
 
 
-__declspec(dllexport) bool console_open()
+__declspec(dllexport) bool console_is_open()
 {
 	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->console != NULL)
 	{

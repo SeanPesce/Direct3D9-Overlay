@@ -212,13 +212,14 @@ HRESULT SpD3D9Device::Reset(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	D3DPRESENT_PARAMETERS present_params;
 	memcpy_s(&present_params, sizeof(present_params), pPresentationParameters, sizeof(*pPresentationParameters));
 
-	overlay->reset_tasks(pPresentationParameters);
+	bool console_is_open = overlay->console->is_open();
+	overlay->reset_tasks(pPresentationParameters, console_is_open);
 
 	// Call original Reset() method
 	hres = m_pIDirect3DDevice9->Reset(pPresentationParameters);
 	_SP_D3D9_CHECK_FAILED_(hres);
 
-	overlay->post_reset_tasks(&present_params);
+	overlay->post_reset_tasks(&present_params, console_is_open);
 
 	_SP_D3D9_LOG_EVENT_("Exiting %s (thread %d)", __FUNCTION__, GetCurrentThreadId());
 	return hres;

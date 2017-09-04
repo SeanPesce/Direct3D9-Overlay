@@ -302,7 +302,7 @@ void SpD3D9Overlay::force_release_tasks()
 
 
 
-void SpD3D9Overlay::reset_tasks(D3DPRESENT_PARAMETERS *present_params)
+void SpD3D9Overlay::reset_tasks(D3DPRESENT_PARAMETERS *present_params, bool console_is_open)
 {
 	// Release the previously-created overlay state block (if it exists)
 	if (overlay_state_block != NULL)
@@ -322,6 +322,13 @@ void SpD3D9Overlay::reset_tasks(D3DPRESENT_PARAMETERS *present_params)
 			text_feed->font = NULL;
 		#endif // _SP_D3D9O_TF_USE_ID3DX_FONT_
 	}
+
+	// Temporarily close console while resetting device
+	if (console_is_open && console->is_open())
+		console->toggle();
+	
+	// Remove any console text selection
+	console->clear_selection();
 
 	// Free video memory resources used by console
 	if (console->font != NULL)
@@ -349,7 +356,7 @@ void SpD3D9Overlay::reset_tasks(D3DPRESENT_PARAMETERS *present_params)
 
 
 
-void SpD3D9Overlay::post_reset_tasks(D3DPRESENT_PARAMETERS *present_params)
+void SpD3D9Overlay::post_reset_tasks(D3DPRESENT_PARAMETERS *present_params, bool console_is_open)
 {
 	// Re-acquire video memory resources for overlay text feed font
 	#ifdef _SP_D3D9O_TF_USE_ID3DX_FONT_
@@ -436,6 +443,10 @@ void SpD3D9Overlay::post_reset_tasks(D3DPRESENT_PARAMETERS *present_params)
 
 	update_back_buffer_parameters();
 	create_state_block();
+
+	// Re-open console if it was open before resetting the device
+	if (console_is_open && !console->is_open())
+		console->toggle();
 
 	needs_update = true;
 }

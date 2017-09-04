@@ -1,3 +1,5 @@
+; Author: Sean Pesce
+
 LIBRARY	"d3d9"
 
 EXPORTS

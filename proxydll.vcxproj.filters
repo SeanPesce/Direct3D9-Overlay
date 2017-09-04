@@ -15,11 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="proxydll.def">
-      <Filter>Source Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="include\proxydll.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -111,5 +106,10 @@
     <ResourceCompile Include="rsrc\Resource.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Exports.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -132,7 +132,7 @@
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.lib;dxguid.lib;SP_IO.lib;SP_AoBScan.lib;SP_SysUtils.lib;detours.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
-      <ModuleDefinitionFile>proxydll.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)proxydll.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -155,7 +155,7 @@
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.dll;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;SP_%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
-      <ModuleDefinitionFile>proxydll.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)proxydll.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -176,7 +176,7 @@
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.lib;dxguid.lib;SP_IO.lib;SP_AoBScan.lib;SP_SysUtils.lib;detours.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
-      <ModuleDefinitionFile>proxydll.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -200,7 +200,7 @@
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.dll;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;SP_legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
-      <ModuleDefinitionFile>proxydll.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -223,7 +223,7 @@
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.lib;dxguid.lib;SP_IO.lib;SP_AoBScan.lib;SP_SysUtils.lib;detours.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
-      <ModuleDefinitionFile>proxydll.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -247,7 +247,7 @@
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.dll;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;SP_legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
-      <ModuleDefinitionFile>proxydll.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -258,7 +258,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="proxydll.def" />
+    <None Include="Exports.def" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\D3DFont.h" />

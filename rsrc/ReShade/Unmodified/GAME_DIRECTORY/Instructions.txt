@@ -1,0 +1,1 @@
+DLL wrappers go in this directory, and should load ReShade if specified in the wrapper config file (*.ini).

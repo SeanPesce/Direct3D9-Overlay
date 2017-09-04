@@ -1,0 +1,1 @@
+DLL wrappers go in this directory, and are loaded by ReShade if specified in the ReShade config file (d3d9.ini).

@@ -85,71 +85,91 @@ void get_text_feed_pos_str(std::string *str)
 }
 
 
-void console_settings_to_string(std::string *output)
+void console_settings_to_string(std::string *output, const char* line_prefix = _SP_D3D9O_C_OUTPUT_INDENT_)
 {
+	if (gl_pSpD3D9Device == NULL || gl_pSpD3D9Device->overlay == NULL || gl_pSpD3D9Device->overlay->console == NULL)
+	{
+		SetLastError(PEERDIST_ERROR_NOT_INITIALIZED);
+		return;
+	}
+
+
+	if (output == NULL)
+	{
+		SetLastError(ERROR_INVALID_ADDRESS);
+		return;
+	}
+
+	const char *line_pref_backup = "";
+	if (line_prefix == NULL)
+	{
+		line_prefix = line_pref_backup;
+	}
+
 	if (gl_pSpD3D9Device->overlay->console->echo)
 	{
-		output->append("    echo = on\n");
+		output->append(line_prefix).append("echo = on\n");
 	}
 	else
 	{
-		output->append("    echo = off\n");
+		output->append(line_prefix).append("echo = off\n");
 	}
 	if (gl_pSpD3D9Device->overlay->console->output_stream)
 	{
-		output->append("    Output stream = enabled\n");
+		output->append(line_prefix).append("Output stream = enabled\n");
 	}
 	else
 	{
-		output->append("    Output stream = disabled\n");
+		output->append(line_prefix).append("Output stream = disabled\n");
 	}
-	output->append("    Font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->font_height)).append("\n");
-	output->append("    Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"\n");
-	output->append("    Caret character = '");
+	output->append(line_prefix).append("Output lines = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->output_log_displayed_lines)).append("\n");
+	output->append(line_prefix).append("Font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->font_height)).append("\n");
+	output->append(line_prefix).append("Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"\n");
+	output->append(line_prefix).append("Caret character = '");
 	*output += gl_pSpD3D9Device->overlay->console->caret;
 	output->append("'\n");
 	if (gl_pSpD3D9Device->overlay->console->caret_blink_delay > 0)
 	{
-		output->append("    Caret blink delay = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->caret_blink_delay)).append(" milliseconds\n");
+		output->append(line_prefix).append("Caret blink delay = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->caret_blink_delay)).append(" milliseconds\n");
 	}
 	else
 	{
-		output->append("    Caret blinking disabled.\n");
+		output->append(line_prefix).append("Caret blinking disabled.\n");
 	}
 	if (gl_pSpD3D9Device->overlay->console->show_cursor)
 	{
-		output->append("    Console mouse cursor = enabled\n");
+		output->append(line_prefix).append("Console mouse cursor = enabled\n");
 	}
 	else
 	{
-		output->append("    Console mouse cursor = disabled\n");
+		output->append(line_prefix).append("Console mouse cursor = disabled\n");
 	}
-	output->append("    Console mouse cursor size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->cursor_size)).append("\n");
-	output->append("    Autocomplete suggestion limit = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->autocomplete_limit)).append("\n");
-	output->append("    Border width = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->border_width)).append(" pixels\n");
+	output->append(line_prefix).append("Console mouse cursor size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->cursor_size)).append("\n");
+	output->append(line_prefix).append("Autocomplete suggestion limit = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->autocomplete_limit)).append("\n");
+	output->append(line_prefix).append("Border width = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->border_width)).append(" pixels\n");
 	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_USER)
 	{
-		output->append("    Show user profile name in prompt = enabled\n");
+		output->append(line_prefix).append("Show user profile name in prompt = enabled\n");
 	}
 	else
 	{
-		output->append("    Show user profile name in prompt = disabled\n");
+		output->append(line_prefix).append("Show user profile name in prompt = disabled\n");
 	}
 	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_HOSTNAME)
 	{
-		output->append("    Show hostname in prompt = enabled\n");
+		output->append(line_prefix).append("Show hostname in prompt = enabled\n");
 	}
 	else
 	{
-		output->append("    Show hostname in prompt = disabled\n");
+		output->append(line_prefix).append("Show hostname in prompt = disabled\n");
 	}
 	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_CWD)
 	{
-		output->append("    Show working directory in prompt = enabled");
+		output->append(line_prefix).append("Show working directory in prompt = enabled");
 	}
 	else
 	{
-		output->append("    Show working directory in prompt = disabled");
+		output->append(line_prefix).append("Show working directory in prompt = disabled");
 	}
 }
 
@@ -973,6 +993,57 @@ int cc_console_output(std::vector<std::string> args, std::string *output)
 }
 
 
+// Changes the number of displayed console output lines
+int cc_console_output_lines(std::vector<std::string> args, std::string *output)
+{
+	if (args.size() > 0)
+	{
+		long new_output_lines = strtol(args.at(0).c_str(), NULL, 10);
+		if (new_output_lines > 0 && new_output_lines != LONG_MAX && new_output_lines != LONG_MIN)
+		{
+			bool console_enabled = gl_pSpD3D9Device->overlay->console->is_open();
+			if (console_enabled)
+			{
+				gl_pSpD3D9Device->overlay->console->toggle();
+				//Sleep(200);
+			}
+
+			if (new_output_lines > _SP_D3D9O_C_MAX_OUTPUT_LINES_)
+			{
+				new_output_lines = _SP_D3D9O_C_MAX_OUTPUT_LINES_;
+			}
+			else if (new_output_lines < 1)
+			{
+				new_output_lines = 1;
+			}
+			for (int i = (gl_pSpD3D9Device->overlay->console->output_log.size() - 1); i <= new_output_lines; i++)
+			{
+				// Print extra blank lines if current output log is too small for new output display size
+				gl_pSpD3D9Device->overlay->console->print("");
+			}
+			gl_pSpD3D9Device->overlay->console->output_log_displayed_lines = new_output_lines;
+
+			if (console_enabled)
+			{
+				gl_pSpD3D9Device->overlay->console->toggle();
+			}
+			output->append("Console output lines = ").append(std::to_string(new_output_lines));
+		}
+		else
+		{
+			output->append("ERROR: Invalid argument (Number of output lines must be a positive integer value)\n");
+			output->append("Console output lines = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->output_log_displayed_lines));
+			return ERROR_INVALID_PARAMETER;
+		}
+	}
+	else
+	{
+		output->append("Console output lines = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->output_log_displayed_lines));
+	}
+	return CONSOLE_COMMAND_SUCCESS;
+}
+
+
 // Enables/disables console mouse cursor
 int cc_console_cursor(std::vector<std::string> args, std::string *output)
 {
@@ -1364,53 +1435,9 @@ int cc_console_font_size(std::vector<std::string> args, std::string *output)
 // Restores developer default settings for the console
 int cc_console_restore_dev_defaults(std::vector<std::string> args, std::string *output)
 {
-	bool console_open = gl_pSpD3D9Device->overlay->console->is_open();
-	if (console_open)
-	{
-		gl_pSpD3D9Device->overlay->console->toggle();
-	}
+	gl_pSpD3D9Device->overlay->console->restore_default_settings();
 
-	gl_pSpD3D9Device->overlay->console->echo = _SP_D3D9O_C_DEFAULT_ECHO_VALUE_;
-	gl_pSpD3D9Device->overlay->console->output_stream = _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_;
-	gl_pSpD3D9Device->overlay->console->prompt = _SP_D3D9O_C_DEFAULT_PROMPT_;
-	gl_pSpD3D9Device->overlay->console->prompt_elements = _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_;
-	gl_pSpD3D9Device->overlay->console->caret = _SP_D3D9O_C_DEFAULT_CARET_;
-	gl_pSpD3D9Device->overlay->console->caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
-	gl_pSpD3D9Device->overlay->console->font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;
-	gl_pSpD3D9Device->overlay->console->color.text = _SP_D3D9O_C_DEFAULT_FONT_COLOR_;
-	gl_pSpD3D9Device->overlay->console->color.text_highlighted = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_;
-	gl_pSpD3D9Device->overlay->console->color.text_highlighted_bg = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_;
-	gl_pSpD3D9Device->overlay->console->show_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_;
-	gl_pSpD3D9Device->overlay->console->cursor_size = _SP_D3D9O_C_DEFAULT_CURSOR_SIZE_;
-	gl_pSpD3D9Device->overlay->console->color.text_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_;
-	gl_pSpD3D9Device->overlay->console->color.background = _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_;
-	gl_pSpD3D9Device->overlay->console->color.border = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
-	gl_pSpD3D9Device->overlay->console->border_width = _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_;
-	gl_pSpD3D9Device->overlay->console->color.autocomplete_bg = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_;
-	gl_pSpD3D9Device->overlay->console->color.autocomplete_bg_hover = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_;
-	gl_pSpD3D9Device->overlay->console->color.autocomplete_bg_select = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_SELECT_COLOR_;
-	gl_pSpD3D9Device->overlay->console->color.autocomplete_bg = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_COLOR_;
-	gl_pSpD3D9Device->overlay->console->autocomplete_border_width = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_;
-	gl_pSpD3D9Device->overlay->console->output_log_displayed_lines = _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_; // Number of lines of previous output to display
-	gl_pSpD3D9Device->overlay->console->output_log_capacity = _SP_D3D9O_C_DEFAULT_OUTPUT_LOG_CAPACITY_; // Number of lines of output to keep in memory (oldest are deleted when max is hit)
-	gl_pSpD3D9Device->overlay->console->command_log_capacity = _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_; // Number of console commands to keep logged (oldest are deleted when max is hit)
-	gl_pSpD3D9Device->overlay->console->autocomplete_limit = _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_; // Maximum number of autocomplete suggestions to show
-
-	if (gl_pSpD3D9Device->overlay->console->output_log_capacity < gl_pSpD3D9Device->overlay->console->output_log_displayed_lines)
-	{
-		gl_pSpD3D9Device->overlay->console->output_log_capacity = gl_pSpD3D9Device->overlay->console->output_log_displayed_lines;
-	}
-	for (int i = 0; i < (int)gl_pSpD3D9Device->overlay->console->output_log_displayed_lines; i++)
-	{
-		gl_pSpD3D9Device->overlay->console->output_log.push_back("");
-	}
-
-	if (console_open)
-	{
-		gl_pSpD3D9Device->overlay->console->toggle();
-	}
-
-	output->append("Restored console developer default settings:\n");
+	output->append("Restored developer default console settings:\n");
 	
 	console_settings_to_string(output);
 
@@ -2271,6 +2298,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_alias("clear", "console_clear");
 	SpD3D9OConsole::register_command("console_echo", cc_console_echo, "console_echo [is_enabled]\n    Enables/disables console input echo (1 = on, 0 = off).");
 	SpD3D9OConsole::register_command("console_output", cc_console_output, "console_output [is_enabled]\n    Enables/disables console output stream (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("console_output_lines", cc_console_output_lines, "console_output_lines [line_count]\n    Sets the size of the console output window to the specified number of output lines.");
 	SpD3D9OConsole::register_command("console_execute", cc_console_execute, "console_execute <command> [command...]\n    Executes each argument as a separate console command.");
 	SpD3D9OConsole::register_command("console_script", cc_console_script, "console_script <file>\n    Opens a plain-text script file and executes each line as a separate console command.");
 	SpD3D9OConsole::register_alias("script", "console_script");

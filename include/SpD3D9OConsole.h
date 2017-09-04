@@ -72,7 +72,9 @@
 #define _SP_D3D9O_C_DEFAULT_OLD_OS_CURSOR_FONT_FAMILY_ "Courier New"
 
 #define _SP_D3D9O_C_INVALID_CONSOLE_COMMAND_CHARS_ " \t\n\r"
+#define _SP_D3D9O_C_OUTPUT_INDENT_ "    "
 
+#define _SP_D3D9O_C_MAX_OUTPUT_LINES_ 100
 #define _SP_D3D9O_C_MAX_FONT_SIZE_ 190
 #define _SP_D3D9O_C_MIN_FONT_SIZE_ 5
 
@@ -197,10 +199,12 @@ public:
 	void SpD3D9OConsole::print(const char *new_message); // Prints text to output log
 	int SpD3D9OConsole::execute_command(const char *new_command, int *return_code = NULL, std::string *output = NULL);
 	void SpD3D9OConsole::clear(); // Clears console by pushing blank messages to output
+	void SpD3D9OConsole::clear_selection(); // Clears text selection
 	DWORD SpD3D9OConsole::copy(std::string *str); // Copies string to clipboard
 	DWORD SpD3D9OConsole::paste(); // Paste clipboard data into console input
 	HRESULT SpD3D9OConsole::init_win_cursor(); // Initializes the texture/sprite used to draw non-text mouse cursor
 	void SpD3D9OConsole::get_user_prefs(); // Loads user preferences from a config file and applies the preferred settings
+	void SpD3D9OConsole::restore_default_settings(); // Sets console settings to developer defaults
 	#ifdef _SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
 		void SpD3D9OConsole::handle_key_event(DIDEVICEOBJECTDATA *event);
 	#else // !_SP_USE_DINPUT8_CREATE_DEVICE_INPUT_
@@ -224,7 +228,6 @@ private:
 	void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_chars);
 
 	void SpD3D9OConsole::format_output_line(std::string *str, int line, int max_chars);
-	void SpD3D9OConsole::clear_selection();
 	int SpD3D9OConsole::get_screenspace_values(RECT *window = NULL, SIZE *char_size = NULL, RECT *console_lims = NULL,
 														long *max_chars = NULL, long *row = NULL, long *column = NULL,
 														std::string *full_prompt = NULL, long *max_input_chars = NULL,

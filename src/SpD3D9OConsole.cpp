@@ -1543,6 +1543,57 @@ void SpD3D9OConsole::get_user_prefs()
 }
 
 
+// Sets console settings to developer defaults
+void SpD3D9OConsole::restore_default_settings()
+{
+	bool console_open = is_open();
+	if (console_open)
+	{
+		toggle();
+	}
+
+	echo = _SP_D3D9O_C_DEFAULT_ECHO_VALUE_;
+	output_stream = _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_;
+	prompt = _SP_D3D9O_C_DEFAULT_PROMPT_;
+	prompt_elements = _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_;
+	caret = _SP_D3D9O_C_DEFAULT_CARET_;
+	caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
+	font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;
+	color.text = _SP_D3D9O_C_DEFAULT_FONT_COLOR_;
+	color.text_highlighted = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_;
+	color.text_highlighted_bg = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_;
+	show_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_;
+	cursor_size = _SP_D3D9O_C_DEFAULT_CURSOR_SIZE_;
+	color.text_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_;
+	color.background = _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_;
+	color.border = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
+	border_width = _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_;
+	color.autocomplete_bg = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_;
+	color.autocomplete_bg_hover = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_;
+	color.autocomplete_bg_select = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_SELECT_COLOR_;
+	color.autocomplete_bg = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_COLOR_;
+	autocomplete_border_width = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_;
+	output_log_displayed_lines = _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_; // Number of lines of previous output to display
+	output_log_capacity = _SP_D3D9O_C_DEFAULT_OUTPUT_LOG_CAPACITY_; // Number of lines of output to keep in memory (oldest are deleted when max is hit)
+	command_log_capacity = _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_; // Number of console commands to keep logged (oldest are deleted when max is hit)
+	autocomplete_limit = _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_; // Maximum number of autocomplete suggestions to show
+
+	if (output_log_capacity < output_log_displayed_lines)
+	{
+		output_log_capacity = output_log_displayed_lines;
+	}
+	for (int i = 0; i < (int)output_log_displayed_lines; i++)
+	{
+		output_log.push_back("");
+	}
+
+	if (console_open)
+	{
+		toggle();
+	}
+}
+
+
 // Obtains the position (index) of a command, (Note: not the ID)
 int SpD3D9OConsole::get_console_command_index(const char *command)
 {

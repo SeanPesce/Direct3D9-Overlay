@@ -128,6 +128,10 @@ void console_settings_to_string(std::string *output, const char* line_prefix = _
 	output->append(line_prefix).append("Caret character = '");
 	*output += gl_pSpD3D9Device->overlay->console->caret;
 	output->append("'\n");
+	if (gl_pSpD3D9Device->overlay->console->square_caret)
+		output->append("Square caret mode = enabled");
+	else
+		output->append("Square caret mode = disabled");
 	if (gl_pSpD3D9Device->overlay->console->caret_blink_delay > 0)
 	{
 		output->append(line_prefix).append("Caret blink delay = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->caret_blink_delay)).append(" milliseconds\n");
@@ -1039,8 +1043,8 @@ int cc_console_output_lines(std::vector<std::string> args, std::string *output)
 			if (console_enabled)
 			{
 				gl_pSpD3D9Device->overlay->console->toggle();
-				//Sleep(200);
 			}
+			gl_pSpD3D9Device->overlay->console->clear_selection();
 
 			if (new_output_lines > _SP_D3D9O_C_MAX_OUTPUT_LINES_)
 			{
@@ -1246,6 +1250,7 @@ int cc_console_prompt(std::vector<std::string> args, std::string *output)
 {
 	if (args.size() > 0)
 	{
+		gl_pSpD3D9Device->overlay->console->clear_selection();
 		gl_pSpD3D9Device->overlay->console->prompt = args.at(0);
 	}
 	output->append("Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"");
@@ -1262,9 +1267,11 @@ int cc_console_prompt_user(std::vector<std::string> args, std::string *output)
 		switch (parse_toggle_arg(args.at(0).c_str()))
 		{
 			case 0:
+				gl_pSpD3D9Device->overlay->console->clear_selection();
 				gl_pSpD3D9Device->overlay->console->prompt_elements &= (~SP_D3D9O_PROMPT_USER);
 				break;
 			case 1:
+				gl_pSpD3D9Device->overlay->console->clear_selection();
 				gl_pSpD3D9Device->overlay->console->prompt_elements |= (SP_D3D9O_PROMPT_USER);
 				break;
 			default:
@@ -1295,9 +1302,11 @@ int cc_console_prompt_host(std::vector<std::string> args, std::string *output)
 		switch (parse_toggle_arg(args.at(0).c_str()))
 		{
 			case 0:
+				gl_pSpD3D9Device->overlay->console->clear_selection();
 				gl_pSpD3D9Device->overlay->console->prompt_elements &= (~SP_D3D9O_PROMPT_HOSTNAME);
 				break;
 			case 1:
+				gl_pSpD3D9Device->overlay->console->clear_selection();
 				gl_pSpD3D9Device->overlay->console->prompt_elements |= (SP_D3D9O_PROMPT_HOSTNAME);
 				break;
 			default:
@@ -1328,9 +1337,11 @@ int cc_console_prompt_cwd(std::vector<std::string> args, std::string *output)
 		switch (parse_toggle_arg(args.at(0).c_str()))
 		{
 			case 0:
+				gl_pSpD3D9Device->overlay->console->clear_selection();
 				gl_pSpD3D9Device->overlay->console->prompt_elements &= (~SP_D3D9O_PROMPT_CWD);
 				break;
 			case 1:
+				gl_pSpD3D9Device->overlay->console->clear_selection();
 				gl_pSpD3D9Device->overlay->console->prompt_elements |= (SP_D3D9O_PROMPT_CWD);
 				break;
 			default:
@@ -1375,6 +1386,38 @@ int cc_console_caret(std::vector<std::string> args, std::string *output)
 }
 
 
+// Enables/disables square caret mode
+int cc_console_square_caret(std::vector<std::string> args, std::string *output)
+{
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				gl_pSpD3D9Device->overlay->console->clear_selection();
+				gl_pSpD3D9Device->overlay->console->square_caret = false;
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->console->clear_selection();
+				gl_pSpD3D9Device->overlay->console->square_caret = true;
+				break;
+			default:
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
+				ret_val = ERROR_INVALID_PARAMETER;
+				break;
+		}
+	}
+
+	if (gl_pSpD3D9Device->overlay->console->square_caret)
+		output->append("Square caret mode = enabled");
+	else
+		output->append("Square caret mode = disabled");
+
+	return ret_val;
+}
+
+
 // Changes the console input caret blink delay
 int cc_console_caret_blink(std::vector<std::string> args, std::string *output)
 {
@@ -1414,6 +1457,7 @@ int cc_console_border_width(std::vector<std::string> args, std::string *output)
 		long new_width = strtol(args.at(0).c_str(), NULL, 10);
 		if ((new_width >= 0) && ((new_width == 0 && args.at(0).c_str()[0] == '0') || (new_width != 0 && new_width != LONG_MAX && new_width != LONG_MIN)))
 		{
+			gl_pSpD3D9Device->overlay->console->clear_selection();
 			gl_pSpD3D9Device->overlay->console->border_width = new_width;
 			if (new_width == 0)
 			{
@@ -2344,6 +2388,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("console_prompt_hostname", cc_console_prompt_host, "console_prompt_hostname [is_enabled]\n    Enables/disables the hostname element of the console input prompt.");
 	SpD3D9OConsole::register_command("console_prompt_cwd", cc_console_prompt_cwd, "console_prompt_cwd [is_enabled]\n    Enables/disables the working directory element of the console input prompt.");
 	SpD3D9OConsole::register_command("console_caret", cc_console_caret, "console_caret [caret]\n    Sets the console input caret character.");
+	SpD3D9OConsole::register_command("console_square_caret", cc_console_square_caret, "console_square_caret [is_enabled]\n    Enables/disables square caret mode. If square caret mode is enabled, caret character setting is ignored.");
 	SpD3D9OConsole::register_command("console_caret_blink", cc_console_caret_blink, "console_caret_blink [blink_delay]\n    Sets the console input caret blink delay time (in milliseconds).");
 	SpD3D9OConsole::register_command("console_border_width", cc_console_border_width, "console_border_width [width]\n    Sets the console border width.");
 	SpD3D9OConsole::register_command("console_cursor", cc_console_cursor, "console_cursor [is_enabled]\n    Enables/disables the console mouse cursor.");

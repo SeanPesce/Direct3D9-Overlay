@@ -190,7 +190,9 @@ void SpD3D9OConsole::draw()
 
 	// Build input line (prompt and current command)
 	std::string cur_cmd = command;
-	if (show_caret && (caret_position < command.length()))
+	std::string input_line;
+	std::string input_autocomplete_preview = cur_cmd; // Autocomplete preview text (appears after current input string, showing the remaining substring of the selected autocomplete suggestion)
+	if (!square_caret && show_caret && (caret_position < command.length()))
 	{
 		cur_cmd.erase(caret_position, 1);
 		cur_cmd.insert(caret_position, 1, caret);
@@ -198,15 +200,18 @@ void SpD3D9OConsole::draw()
 	if ((int)cur_cmd.length() > max_input_chars)
 	{
 		cur_cmd = cur_cmd.substr(input_display_start, max_input_chars);
+		input_autocomplete_preview = input_autocomplete_preview.substr(input_display_start, max_input_chars);
 	}
-	if (show_caret && (caret_position >= command.length()))
+	input_line = cur_cmd;
+	if (!square_caret && show_caret && (caret_position >= command.length()))
 	{
 		cur_cmd += caret;
 	}
 
 	cur_cmd.insert(0, full_prompt.c_str());
+	input_line.insert(0, full_prompt.c_str());
+	input_autocomplete_preview.insert(0, full_prompt.c_str());
 	output_string.append(cur_cmd);
-	std::string input_line = cur_cmd;
 
 	// Build autocomplete options
 	std::string prompt_alignment_spaces;
@@ -216,15 +221,13 @@ void SpD3D9OConsole::draw()
 	}
 	for (auto match : autocomplete_matches)
 	{
-		output_string.append("\n").append(prompt_alignment_spaces).append(match);
+		output_string.append("\n").append(prompt_alignment_spaces).append(match.substr(input_display_start));
 	}
 
 
 	// Draw console background & border
 	overlay->device->Clear(1, &border, D3DCLEAR_TARGET, color.border, 0, 0);
 	overlay->device->Clear(1, &background, D3DCLEAR_TARGET, color.background, 0, 0);
-
-	std::string input_autocomplete_preview = full_prompt; // Autocomplete preview text (appears after current input string, showing the remaining substring of the selected autocomplete suggestion)
 
 	// Draw background for autocomplete dropdown
 	if (autocomplete_matches.size() > 0)
@@ -247,19 +250,34 @@ void SpD3D9OConsole::draw()
 		}
 
 		// Build autocomplete preview line
-		input_autocomplete_preview.append(autocomplete_matches.at(selection.autocomplete_selection).substr(input_display_start));
-		input_autocomplete_preview = input_autocomplete_preview.substr(0, max_chars);
+		input_autocomplete_preview.append(autocomplete_matches.at(selection.autocomplete_selection).substr(input_display_end + 1));
 	}
 
 
 	// Render the console text
 	font->BeginDrawing();
+	if (square_caret && show_caret && ((int)command.length() == 0 || caret_position == (int)command.length()))
+		// Draw square caret at end of current input
+		font->DrawText((float)border_width + (char_size.cx * (full_prompt.length() + (caret_position - input_display_start))), (float)border_width + (char_size.cy * output_log_displayed_lines), D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f), " ", D3DFONT_BACKGROUND, D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f));
 	if(autocomplete_preview)
 		font->DrawText((float)border_width, (float)border_width + (char_size.cy * output_log_displayed_lines), color.autocomplete_preview, input_autocomplete_preview.c_str(), 0, 0); // Autocomplete preview
 	font->DrawText((float)border_width, (float)border_width, color.text, output_string.c_str(), 0, 0); // Output, prompt, and visible input text
 	if (selection.focus == SP_D3D9O_SELECT_TEXT)
 	{
 		draw_highlighted_text(selection, &input_line);
+	}
+	//if (square_caret && show_caret)
+	if (square_caret && show_caret && (int)command.length() > 0 && caret_position < (int)command.length())
+	{
+		// Draw square caret over one of the current input chars
+		int in_sel[2];
+		get_input_selection(&(in_sel[0]), &(in_sel[1]));
+		if(selection.focus != SP_D3D9O_SELECT_TEXT || (in_sel[0] < 0 && in_sel[1] < 0) || caret_position < in_sel[0] || caret_position > in_sel[1])
+			// Caret is not inside selection
+			font->DrawText((float)border_width + (char_size.cx * (full_prompt.length() + (caret_position - input_display_start))), (float)border_width + (char_size.cy * output_log_displayed_lines), color.square_caret, /*caret_char.c_str()*/command.substr(caret_position, 1).c_str(), D3DFONT_BACKGROUND, color.square_caret_bg);
+		else
+			// Caret is inside selection
+			font->DrawText((float)border_width + (char_size.cx * (full_prompt.length() + (caret_position - input_display_start))), (float)border_width + (char_size.cy * output_log_displayed_lines), color.square_caret_highlighted, /*caret_char.c_str()*/command.substr(caret_position, 1).c_str(), D3DFONT_BACKGROUND, color.square_caret_highlighted_bg);
 	}
 	font->EndDrawing();
 
@@ -348,6 +366,7 @@ void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt, int *max_char
 // Clears console by pushing blank messages to output
 void SpD3D9OConsole::clear()
 {
+	clear_selection();
 	for (int i = 0; i <= (int)output_log_displayed_lines; i++)
 	{
 		output_log.push_back("");
@@ -365,6 +384,8 @@ void SpD3D9OConsole::print(const char *new_message)
 		std::string line;
 
 		int newline_pos;
+
+		clear_selection();
 
 		if ((newline_pos = message.find('\n')) != std::string::npos)
 		{
@@ -675,8 +696,9 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				break;
 			case VK_UP:
 				get_autocomplete_options(command.c_str(), autocomplete_limit, &matches);
-				if (command.length() > 0 && (int)matches.size() > 0)
+				if (command.length() > 0 && (int)matches.size() > 0 && !SpD3D9OInputHandler::get()->shift)
 				{
+					// Cycle highlighted autocomplete option
 					if (selection.autocomplete_selection > 0)
 						selection.autocomplete_selection--;
 					else
@@ -684,6 +706,7 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				}
 				else
 				{
+					// Get previous console command
 					clear_selection();
 					if (command_log_position <= 1)
 						command_log_position = 0;
@@ -697,8 +720,9 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				break;
 			case VK_DOWN:
 				get_autocomplete_options(command.c_str(), autocomplete_limit, &matches);
-				if (command.length() > 0 && (int)matches.size() > 0)
+				if (command.length() > 0 && (int)matches.size() > 0 && !SpD3D9OInputHandler::get()->shift)
 				{
+					// Cycle highlighted autocomplete option
 					if (selection.autocomplete_selection < ((int)matches.size() - 1))
 						selection.autocomplete_selection++;
 					else
@@ -752,14 +776,23 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_TAB:
-				if (command.length() > 0)
+				if (command.length() > 0 && !SpD3D9OInputHandler::get()->shift)
 				{
-					// If input isn't blank, use autocomplete
+					// If input isn't blank, use autocomplete to fill input
 					get_autocomplete_options(command.c_str(), selection.autocomplete_selection+1, &matches);
 					if ((int)matches.size() > selection.autocomplete_selection)
 					{
 						command = matches.at(selection.autocomplete_selection);
 						caret_position = command.length();
+					}
+				}
+				else if (command.length() > 0 && autocomplete_limit > 0 && SpD3D9OInputHandler::get()->shift)
+				{
+					// Highlight first autocomplete option
+					get_autocomplete_options(command.c_str(), 1, &matches);
+					if ((int)matches.size() > 0)
+					{
+						selection.autocomplete_selection = 0;
 					}
 				}
 				else
@@ -848,7 +881,47 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 					switch (wParam)
 					{
 						case 0x41: // Ctrl+A
-							// @TODO
+							add_prompt_elements(&str);
+							get_input_selection(&input_sel_start, &input_sel_end);
+							if (selection.focus != SP_D3D9O_SELECT_TEXT || (input_sel_start > -1 && input_sel_end > -1))
+							{
+								// Select all input
+								clear_selection();
+								if ((int)command.length() > 0)
+								{
+									selection.line1 = SP_D3D9O_C_INPUT_LINE;
+									selection.i1 = str.length();
+									selection.line2 = SP_D3D9O_C_INPUT_LINE;
+									selection.i2 = str.length() + 1 + (input_display_end - input_display_start);
+									selection.start_line = &selection.line1;
+									selection.start_index = &selection.i1;
+									selection.end_line = &selection.line2;
+									selection.end_index = &selection.i2;
+									if (selection.i1 == selection.i2)
+										clear_selection(); // Nothing was selected
+									else
+										selection.focus = SP_D3D9O_SELECT_TEXT;
+								}
+							}
+							else
+							{
+								clear_selection();
+								selection.line1 = output_log.size() - output_log_displayed_lines;
+								selection.i1 = 0;
+								selection.line2 = SP_D3D9O_C_INPUT_LINE;
+								if ((int)command.length() > 0)
+									selection.i2 = str.length() + 1 + (input_display_end - input_display_start);
+								else
+									selection.i2 = str.length();
+								selection.start_line = &selection.line1;
+								selection.start_index = &selection.i1;
+								selection.end_line = &selection.line2;
+								selection.end_index = &selection.i2;
+								if (selection.line1 == selection.line2 && selection.i1 == selection.i2)
+									clear_selection(); // Nothing was selected
+								else
+									selection.focus = SP_D3D9O_SELECT_TEXT;
+							}
 							break;
 						case 0x43: // Ctrl+C
 							build_highlighted_text(selection, &str);
@@ -1306,6 +1379,7 @@ int SpD3D9OConsole::register_alias(const char *new_alias, const char *existing_c
 
 void SpD3D9OConsole::update_fonts_and_cursor()
 {
+	clear_selection();
 
 	if (font != NULL)
 	{
@@ -1465,6 +1539,8 @@ void SpD3D9OConsole::get_user_prefs()
 		toggle();
 	}
 
+	clear_selection();
+
 	// Font size
 	font_height = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_FONT_SIZE_, _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_, _SP_D3D9O_C_PREF_FILE_);
 	if (font_height < _SP_D3D9O_C_MIN_FONT_SIZE_)
@@ -1503,6 +1579,12 @@ void SpD3D9OConsole::get_user_prefs()
 		caret = buffer[0];
 	else
 		caret = _SP_D3D9O_C_DEFAULT_CARET_;
+
+	// Use square caret mode
+	if ((int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_SQUARE_CARET_, _SP_D3D9O_C_DEFAULT_USE_SQUARE_CARET_, _SP_D3D9O_C_PREF_FILE_) != 0)
+		square_caret = true;
+	else
+		square_caret = false;
 
 	// Caret blink delay
 	caret_blink_delay = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_CARET_BLINK_, _SP_D3D9O_C_DEFAULT_BLINK_DELAY_, _SP_D3D9O_C_PREF_FILE_);
@@ -1583,27 +1665,34 @@ void SpD3D9OConsole::restore_default_settings()
 	{
 		toggle();
 	}
+	clear_selection();
 
 	echo = _SP_D3D9O_C_DEFAULT_ECHO_VALUE_;
 	output_stream = _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_;
 	prompt = _SP_D3D9O_C_DEFAULT_PROMPT_;
 	prompt_elements = _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_;
+	square_caret = _SP_D3D9O_C_DEFAULT_USE_SQUARE_CARET_;
 	caret = _SP_D3D9O_C_DEFAULT_CARET_;
 	caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
 	font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;
 	color.text = _SP_D3D9O_C_DEFAULT_FONT_COLOR_;
 	color.text_highlighted = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_;
 	color.text_highlighted_bg = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_;
+	color.square_caret = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_COLOR_;
+	color.square_caret_bg = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_BG_COLOR_;
+	color.square_caret_highlighted = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_HL_COLOR_;
+	color.square_caret_highlighted_bg = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_BG_HL_COLOR_;
 	show_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_;
 	cursor_size = _SP_D3D9O_C_DEFAULT_CURSOR_SIZE_;
 	color.text_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_;
 	color.background = _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_;
 	color.border = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;
 	border_width = _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_;
+	color.autocomplete_preview = _SP_D3D9O_C_DEFAULT_AUTOCOMP_PREVIEW_COLOR_;
 	color.autocomplete_bg = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_;
 	color.autocomplete_bg_hover = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_;
 	color.autocomplete_bg_select = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_SELECT_COLOR_;
-	color.autocomplete_bg = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_COLOR_;
+	color.autocomplete_border = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_COLOR_;
 	autocomplete_border_width = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_;
 	output_log_displayed_lines = _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_; // Number of lines of previous output to display
 	output_log_capacity = _SP_D3D9O_C_DEFAULT_OUTPUT_LOG_CAPACITY_; // Number of lines of output to keep in memory (oldest are deleted when max is hit)

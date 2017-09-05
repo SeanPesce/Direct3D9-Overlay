@@ -208,7 +208,7 @@ void SpD3D9OConsole::draw()
 	output_string.append(cur_cmd);
 	std::string input_line = cur_cmd;
 
-	// Get autocomplete options
+	// Build autocomplete options
 	std::string prompt_alignment_spaces;
 	for (int i = 0; i < (int)full_prompt.length(); i++)
 	{
@@ -223,6 +223,8 @@ void SpD3D9OConsole::draw()
 	// Draw console background & border
 	overlay->device->Clear(1, &border, D3DCLEAR_TARGET, color.border, 0, 0);
 	overlay->device->Clear(1, &background, D3DCLEAR_TARGET, color.background, 0, 0);
+
+	std::string input_autocomplete_preview = full_prompt; // Autocomplete preview text (appears after current input string, showing the remaining substring of the selected autocomplete suggestion)
 
 	// Draw background for autocomplete dropdown
 	if (autocomplete_matches.size() > 0)
@@ -243,12 +245,18 @@ void SpD3D9OConsole::draw()
 		{
 			overlay->device->Clear(1, &background, D3DCLEAR_TARGET, color.autocomplete_bg_hover, 0, 0);
 		}
+
+		// Build autocomplete preview line
+		input_autocomplete_preview.append(autocomplete_matches.at(selection.autocomplete_selection).substr(input_display_start));
+		input_autocomplete_preview = input_autocomplete_preview.substr(0, max_chars);
 	}
 
 
 	// Render the console text
 	font->BeginDrawing();
-	font->DrawText((float)border_width, (float)border_width, color.text, output_string.c_str(), D3DFONT_COLORTABLE, 0);
+	if(autocomplete_preview)
+		font->DrawText((float)border_width, (float)border_width + (char_size.cy * output_log_displayed_lines), color.autocomplete_preview, input_autocomplete_preview.c_str(), 0, 0); // Autocomplete preview
+	font->DrawText((float)border_width, (float)border_width, color.text, output_string.c_str(), 0, 0); // Output, prompt, and visible input text
 	if (selection.focus == SP_D3D9O_SELECT_TEXT)
 	{
 		draw_highlighted_text(selection, &input_line);
@@ -633,8 +641,8 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 {
 	DWORD last_err;
 	std::string str; // Used when a temp string is needed
-	std::vector<std::string> matches; // Only used if tab key is pressed
-	int input_sel_start, input_sel_end; // Only used when obtaining selected input
+	std::vector<std::string> matches; // Used in cases that access autocomplete suggestions
+	int input_sel_start, input_sel_end; // Used in cases that need to obtain selected input
 
 	if (is_open() && !SpD3D9OInputHandler::get()->handled)        // If the console is visible, take input
 	{
@@ -666,34 +674,52 @@ void SpD3D9OConsole::handle_key_press(WPARAM wParam)
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
 			case VK_UP:
-				clear_selection();
-				if (command_log_position <= 1)
+				get_autocomplete_options(command.c_str(), autocomplete_limit, &matches);
+				if (command.length() > 0 && (int)matches.size() > 0)
 				{
-					command_log_position = 0;
+					if (selection.autocomplete_selection > 0)
+						selection.autocomplete_selection--;
+					else
+						selection.autocomplete_selection = ((int)matches.size() - 1);
 				}
 				else
 				{
-					command_log_position--;
-				}
-				caret_position = 0;
-				command = command_log.at(command_log_position);
-				caret_position = command.length();
-				SpD3D9OInputHandler::get()->handled = true;
-				break;
-			case VK_DOWN:
-				clear_selection();
-				if (command_log_position < (unsigned int)command_log.size() - 1)
-				{
+					clear_selection();
+					if (command_log_position <= 1)
+						command_log_position = 0;
+					else
+						command_log_position--;
 					caret_position = 0;
-					command_log_position++;
 					command = command_log.at(command_log_position);
 					caret_position = command.length();
 				}
-				else if (command_log_position != (unsigned int)command_log.size())
+				SpD3D9OInputHandler::get()->handled = true;
+				break;
+			case VK_DOWN:
+				get_autocomplete_options(command.c_str(), autocomplete_limit, &matches);
+				if (command.length() > 0 && (int)matches.size() > 0)
 				{
-					caret_position = 0;
-					command_log_position = (int)command_log.size();
-					command.clear();
+					if (selection.autocomplete_selection < ((int)matches.size() - 1))
+						selection.autocomplete_selection++;
+					else
+						selection.autocomplete_selection = 0;
+				}
+				else
+				{
+					clear_selection();
+					if (command_log_position < (unsigned int)command_log.size() - 1)
+					{
+						caret_position = 0;
+						command_log_position++;
+						command = command_log.at(command_log_position);
+						caret_position = command.length();
+					}
+					else if (command_log_position != (unsigned int)command_log.size())
+					{
+						caret_position = 0;
+						command_log_position = (int)command_log.size();
+						command.clear();
+					}
 				}
 				SpD3D9OInputHandler::get()->handled = true;
 				break;
@@ -1497,6 +1523,12 @@ void SpD3D9OConsole::get_user_prefs()
 	output_log_displayed_lines = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_OUTPUT_LINES_, _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_, _SP_D3D9O_C_PREF_FILE_);
 	if (output_log_displayed_lines < 1)
 		output_log_displayed_lines = 1;
+
+	// Show current autocomplete suggestion preview in input field
+	if ((int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_AUTOCOMPLETE_PREVIEW_, _SP_D3D9O_C_DEFAULT_SHOW_AUTOCOMP_PREVIEW_, _SP_D3D9O_C_PREF_FILE_) != 0)
+		autocomplete_preview = true;
+	else
+		autocomplete_preview = false;
 	
 	// Max allowed autocomplete suggestions
 	autocomplete_limit = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_AUTOCOMPLETE_LIMIT_, _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_, _SP_D3D9O_C_PREF_FILE_);
@@ -1576,6 +1608,7 @@ void SpD3D9OConsole::restore_default_settings()
 	output_log_displayed_lines = _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_; // Number of lines of previous output to display
 	output_log_capacity = _SP_D3D9O_C_DEFAULT_OUTPUT_LOG_CAPACITY_; // Number of lines of output to keep in memory (oldest are deleted when max is hit)
 	command_log_capacity = _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_; // Number of console commands to keep logged (oldest are deleted when max is hit)
+	autocomplete_preview = _SP_D3D9O_C_DEFAULT_SHOW_AUTOCOMP_PREVIEW_;
 	autocomplete_limit = _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_; // Maximum number of autocomplete suggestions to show
 
 	if (output_log_capacity < output_log_displayed_lines)

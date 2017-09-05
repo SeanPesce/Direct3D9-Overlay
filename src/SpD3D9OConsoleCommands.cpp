@@ -145,6 +145,10 @@ void console_settings_to_string(std::string *output, const char* line_prefix = _
 		output->append(line_prefix).append("Console mouse cursor = disabled\n");
 	}
 	output->append(line_prefix).append("Console mouse cursor size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->cursor_size)).append("\n");
+	if (gl_pSpD3D9Device->overlay->console->autocomplete_preview)
+		output->append(line_prefix).append("Preview current autocomplete suggestion = enabled\n");
+	else
+		output->append(line_prefix).append("Preview current autocomplete suggestion = disabled\n");
 	output->append(line_prefix).append("Autocomplete suggestion limit = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->autocomplete_limit)).append("\n");
 	output->append(line_prefix).append("Border width = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->border_width)).append(" pixels\n");
 	if (gl_pSpD3D9Device->overlay->console->prompt_elements & SP_D3D9O_PROMPT_USER)
@@ -751,6 +755,36 @@ int cc_search_command(std::vector<std::string> args, std::string *output)
 		}
 	}
 	return CONSOLE_COMMAND_SUCCESS;
+}
+
+
+// Shows/hides remaining characters for the currently-highlighted autocomplete suggestion in the console input field
+int cc_autocomplete_preview(std::vector<std::string> args, std::string *output)
+{
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				gl_pSpD3D9Device->overlay->console->autocomplete_preview = false;
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->console->autocomplete_preview = true;
+				break;
+			default:
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
+				ret_val = ERROR_INVALID_PARAMETER;
+				break;
+		}
+	}
+
+	if (gl_pSpD3D9Device->overlay->console->autocomplete_preview)
+		output->append("Preview current autocomplete suggestion = enabled");
+	else
+		output->append("Preview current autocomplete suggestion = disabled");
+
+	return ret_val;
 }
 
 
@@ -2303,7 +2337,8 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("console_script", cc_console_script, "console_script <file>\n    Opens a plain-text script file and executes each line as a separate console command.");
 	SpD3D9OConsole::register_alias("script", "console_script");
 	SpD3D9OConsole::register_command("console_font_size", cc_console_font_size, std::string("console_font_size [size]\n    Sets the console overlay font size. Font size ranges from ").append(std::to_string(_SP_D3D9O_C_MIN_FONT_SIZE_)).append(" to ").append(std::to_string(_SP_D3D9O_C_MAX_FONT_SIZE_)).append(".").c_str());
-	SpD3D9OConsole::register_command("console_autocomplete_limit", cc_autocomplete_limit, "autocomplete_limit [limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
+	SpD3D9OConsole::register_command("console_autocomplete_preview", cc_autocomplete_preview, "console_autocomplete_preview [is_enabled]\n    Shows/hides preview of remaining characters for the currently-highlighted autocomplete suggestion in the console input field (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("console_autocomplete_limit", cc_autocomplete_limit, "console_autocomplete_limit [limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
 	SpD3D9OConsole::register_command("console_prompt", cc_console_prompt, "console_prompt [prompt]\n    Sets the console input prompt string.");
 	SpD3D9OConsole::register_command("console_prompt_user", cc_console_prompt_user, "console_prompt_user [is_enabled]\n    Enables/disables the username element of the console input prompt.");
 	SpD3D9OConsole::register_command("console_prompt_hostname", cc_console_prompt_host, "console_prompt_hostname [is_enabled]\n    Enables/disables the hostname element of the console input prompt.");

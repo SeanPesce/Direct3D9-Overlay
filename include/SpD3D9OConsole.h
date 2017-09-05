@@ -31,6 +31,7 @@
 #define _SP_D3D9O_C_PREF_KEY_CARET_BLINK_ "CaretBlinkDelay"
 #define _SP_D3D9O_C_PREF_KEY_BORDER_WIDTH_ "BorderWidth"
 #define _SP_D3D9O_C_PREF_KEY_OUTPUT_LINES_ "OutputLines"
+#define _SP_D3D9O_C_PREF_KEY_AUTOCOMPLETE_PREVIEW_ "ShowAutoCompletePreview"
 #define _SP_D3D9O_C_PREF_KEY_AUTOCOMPLETE_LIMIT_ "AutoCompleteLimit"
 #define _SP_D3D9O_C_PREF_KEY_CURSOR_SHOW_ "ShowMouseCursor"
 #define _SP_D3D9O_C_PREF_KEY_CURSOR_SIZE_ "MouseCursorSize"
@@ -57,12 +58,14 @@
 #define _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f) // Black
 #define _SP_D3D9O_C_DEFAULT_BORDER_COLOR_ D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f) // Gray
 #define _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_ 3
+#define _SP_D3D9O_C_DEFAULT_AUTOCOMP_PREVIEW_COLOR_ D3DXCOLOR(0.65f, 0.65f, 0.65f, 0.5f) // Slightly lighter gray
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_ _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_ D3DXCOLOR(0xFF1C1C1C) // Very dark gray
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_SELECT_COLOR_ D3DXCOLOR(0xFF333333) // Dark gray
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_COLOR_ _SP_D3D9O_C_DEFAULT_BORDER_COLOR_
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_WIDTH_ 1
 #define _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_ 15
+#define _SP_D3D9O_C_DEFAULT_SHOW_AUTOCOMP_PREVIEW_ true
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_ 5
 #define _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_ (SP_D3D9O_PROMPT_ELEMENTS_DISABLED)
 #define _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_ true
@@ -90,6 +93,7 @@ typedef struct SP_D3D9O_CONSOLE_COLORS {
 	D3DXCOLOR text_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_;									// Color of the text-selection cursor
 	D3DXCOLOR background = _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_;								// Main console window background color
 	D3DXCOLOR border = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;										// Main console window border color
+	D3DXCOLOR autocomplete_preview = _SP_D3D9O_C_DEFAULT_AUTOCOMP_PREVIEW_COLOR_;				// Autocomplete preview text (appears after current input string, showing the remaining substring of the selected autocomplete suggestion)
 	D3DXCOLOR autocomplete_bg = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_;					// Normal background color for autocomplete box
 	D3DXCOLOR autocomplete_border = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BORDER_COLOR_;					// Autocomplete box border color
 	D3DXCOLOR autocomplete_bg_hover = _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_HOVER_COLOR_;		// Background color for autocomplete entry when mouse cursor is hovering, but right mouse button is not pressed
@@ -185,6 +189,7 @@ public:
 	CONSOLE_TEXT_SELECTION selection; // Struct that holds cursor selection data
 
 	unsigned int command_log_position = 0; // Used to obtain previous commands with the up/down keys
+	bool autocomplete_preview = _SP_D3D9O_C_DEFAULT_SHOW_AUTOCOMP_PREVIEW_;		// Enable/disable currently-selected autocomplete suggestion preview in input field
 	unsigned int autocomplete_limit = _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_; // Maximum number of autocomplete suggestions to show
 
 	// Constructor/destructor

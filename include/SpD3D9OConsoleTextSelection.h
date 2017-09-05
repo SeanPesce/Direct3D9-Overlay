@@ -23,7 +23,7 @@ void SpD3D9OConsole::clear_selection()
 	selection.start_index = &selection.i1;
 	selection.end_line = &selection.line2;
 	selection.end_index = &selection.i2;
-	selection.autocomplete_selection = 0;
+	selection.autocomplete_selection = SP_D3D9O_C_CLEARED_AUTOCOMP_SEL;
 }
 
 
@@ -427,8 +427,8 @@ void SpD3D9OConsole::continue_text_selection()
 
 	// Get screenspace limits
 	long max_chars, row, column;
-	std::string console_line;
-	get_screenspace_values(NULL, NULL, NULL, &max_chars, &row, &column, &console_line, NULL, NULL, NULL, NULL, NULL, 4);
+	std::string full_prompt;
+	get_screenspace_values(NULL, NULL, NULL, &max_chars, &row, &column, &full_prompt, NULL, NULL, NULL, NULL, NULL, 4);
 
 	// Check if mouse cursor is in an area with selectable text
 	cursor_pos_to_selection(row, column, max_chars, &selection.focus, &selection.line2, &selection.i2);
@@ -454,21 +454,21 @@ void SpD3D9OConsole::continue_text_selection()
 	}
 
 	// Move caret, if necessary
-	if (selection.line2 == SP_D3D9O_C_INPUT_LINE && selection.i2 >= (int)console_line.length() && !(selection.line1 == selection.line2 && selection.i1 == selection.i2))
+	if (selection.line2 == SP_D3D9O_C_INPUT_LINE && selection.i2 >= (int)full_prompt.length() && !(selection.line1 == selection.line2 && selection.i1 == selection.i2))
 	{
-		if (command.length() == 0 || ((int)(console_line.length() + command.length()) < max_chars && column >= (int)(console_line.length() + command.length())))
+		if (command.length() == 0 || ((int)(full_prompt.length() + command.length()) < max_chars && column >= (int)(full_prompt.length() + command.length())))
 		{
 			caret_position = command.length();
 		}
-		else if (column > (int)console_line.length())
+		else if (column > (int)full_prompt.length())
 		{
 			if (selection.line1 == SP_D3D9O_C_INPUT_LINE && selection.i1 < selection.i2)
 			{
-				caret_position = (column - console_line.length()) + input_display_start - 1;
+				caret_position = (column - full_prompt.length()) + input_display_start - 1;
 			}
 			else
 			{
-				caret_position = (column - console_line.length()) + input_display_start;
+				caret_position = (column - full_prompt.length()) + input_display_start;
 			}
 		}
 	}
@@ -484,7 +484,7 @@ void SpD3D9OConsole::get_input_selection(int *start, int *end)
 		return;
 	}
 
-	if (selection.focus == SP_D3D9O_SELECT_NONE)
+	if (selection.focus != SP_D3D9O_SELECT_TEXT)
 	{
 		(*start) = -1;
 		(*end) = -1;

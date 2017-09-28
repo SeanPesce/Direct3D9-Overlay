@@ -28,7 +28,7 @@
 #define _SP_D3D9O_C_PREF_KEY_PROMPT_HOSTNAME_ "PromptElementHostname"
 #define _SP_D3D9O_C_PREF_KEY_PROMPT_CWD_ "PromptElementWorkingDir"
 #define _SP_D3D9O_C_PREF_KEY_CARET__ "Caret"
-#define _SP_D3D9O_C_PREF_KEY_SQUARE_CARET_ "UseSquareCaret"
+#define _SP_D3D9O_C_PREF_KEY_BOX_CARET_ "UseBoxCaret"
 #define _SP_D3D9O_C_PREF_KEY_CARET_BLINK_ "CaretBlinkDelay"
 #define _SP_D3D9O_C_PREF_KEY_BORDER_WIDTH_ "BorderWidth"
 #define _SP_D3D9O_C_PREF_KEY_OUTPUT_LINES_ "OutputLines"
@@ -48,7 +48,7 @@
 #define _SP_D3D9O_C_DEFAULT_ECHO_VALUE_ true
 #define _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_ true
 #define _SP_D3D9O_C_DEFAULT_PROMPT_ ">"
-#define _SP_D3D9O_C_DEFAULT_USE_SQUARE_CARET_ true
+#define _SP_D3D9O_C_DEFAULT_USE_BOX_CARET_ true
 #define _SP_D3D9O_C_DEFAULT_CARET_ '_'
 #define _SP_D3D9O_C_DEFAULT_BLINK_DELAY_ 500
 #define _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_ _SP_D3D9O_TF_DEFAULT_FONT_HEIGHT_
@@ -59,10 +59,10 @@
 #define _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_ D3DXCOLOR(0xFF508CED) // Blue (#508CED)2f538c
 #define _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_ D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.5f) // Black
 #define _SP_D3D9O_C_DEFAULT_BORDER_COLOR_ D3DXCOLOR(0.5f, 0.5f, 0.5f, 0.5f) // Gray
-#define _SP_D3D9O_C_DEFAULT_SQUARE_CARET_COLOR_ _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_
-#define _SP_D3D9O_C_DEFAULT_SQUARE_CARET_BG_COLOR_ _SP_D3D9O_C_DEFAULT_FONT_COLOR_
-#define _SP_D3D9O_C_DEFAULT_SQUARE_CARET_HL_COLOR_ _SP_D3D9O_C_DEFAULT_FONT_COLOR_
-#define _SP_D3D9O_C_DEFAULT_SQUARE_CARET_BG_HL_COLOR_ D3DXCOLOR(0xFF2F538C) // Blue (#2F538C)
+#define _SP_D3D9O_C_DEFAULT_BOX_CARET_COLOR_ _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_
+#define _SP_D3D9O_C_DEFAULT_BOX_CARET_BG_COLOR_ _SP_D3D9O_C_DEFAULT_FONT_COLOR_
+#define _SP_D3D9O_C_DEFAULT_BOX_CARET_HL_COLOR_ _SP_D3D9O_C_DEFAULT_FONT_COLOR_
+#define _SP_D3D9O_C_DEFAULT_BOX_CARET_BG_HL_COLOR_ D3DXCOLOR(0xFF2F538C) // Blue (#2F538C)
 #define _SP_D3D9O_C_DEFAULT_BORDER_WIDTH_ 3
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_PREVIEW_COLOR_ D3DXCOLOR(0.65f, 0.65f, 0.65f, 0.5f) // Slightly lighter gray
 #define _SP_D3D9O_C_DEFAULT_AUTOCOMP_BACKGROUND_COLOR_ _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_
@@ -96,10 +96,10 @@ typedef struct SP_D3D9O_CONSOLE_COLORS {
 	D3DXCOLOR text = _SP_D3D9O_C_DEFAULT_FONT_COLOR_;											// Normal font color
 	D3DXCOLOR text_highlighted = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_;						// Font color for highlighted text
 	D3DXCOLOR text_highlighted_bg = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_;			// Background color for highlighted text
-	D3DXCOLOR square_caret = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_COLOR_;							// Color of the character that the caret is currently positioned on (if square/block caret is enabled)
-	D3DXCOLOR square_caret_bg = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_BG_COLOR_;						// Background color of the character that the caret is currently positioned on (if square/block caret is enabled)
-	D3DXCOLOR square_caret_highlighted = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_HL_COLOR_;
-	D3DXCOLOR square_caret_highlighted_bg = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_BG_HL_COLOR_;
+	D3DXCOLOR box_caret = _SP_D3D9O_C_DEFAULT_BOX_CARET_COLOR_;							// Color of the character that the caret is currently positioned on (if box/block caret is enabled)
+	D3DXCOLOR box_caret_bg = _SP_D3D9O_C_DEFAULT_BOX_CARET_BG_COLOR_;						// Background color of the character that the caret is currently positioned on (if box/block caret is enabled)
+	D3DXCOLOR box_caret_highlighted = _SP_D3D9O_C_DEFAULT_BOX_CARET_HL_COLOR_;
+	D3DXCOLOR box_caret_highlighted_bg = _SP_D3D9O_C_DEFAULT_BOX_CARET_BG_HL_COLOR_;
 	D3DXCOLOR text_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_;									// Color of the text-selection cursor
 	D3DXCOLOR background = _SP_D3D9O_C_DEFAULT_BACKGROUND_COLOR_;								// Main console window background color
 	D3DXCOLOR border = _SP_D3D9O_C_DEFAULT_BORDER_COLOR_;										// Main console window border color
@@ -166,7 +166,7 @@ public:
 	bool output_stream = _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_; // If disabled, printing to console does nothing
 	std::string prompt = _SP_D3D9O_C_DEFAULT_PROMPT_;
 	int prompt_elements = _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_;
-	bool square_caret = _SP_D3D9O_C_DEFAULT_USE_SQUARE_CARET_;
+	bool box_caret = _SP_D3D9O_C_DEFAULT_USE_BOX_CARET_;
 	char caret = _SP_D3D9O_C_DEFAULT_CARET_;
 	int caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
 	CONSOLE_COLORS color; // Struct containing colors of the different console elements
@@ -242,13 +242,13 @@ private:
 	DWORD next_caret_blink = 0; // Time of next caret toggle
 
 	void SpD3D9OConsole::update_fonts_and_cursor(); // Update text to new font family/size/flags/etc
-	void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_chars);
+	void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_chars, int command_length = -1);
 
 	void SpD3D9OConsole::format_output_line(std::string *str, int line, int max_chars);
 	int SpD3D9OConsole::get_screenspace_values(RECT *window = NULL, SIZE *char_size = NULL, RECT *console_lims = NULL,
 														long *max_chars = NULL, long *row = NULL, long *column = NULL,
-														std::string *full_prompt = NULL, long *max_input_chars = NULL,
-														std::vector<std::string> *autocomplete_opts = NULL,
+														std::string *full_prompt = NULL, std::string *current_command = NULL,
+														long *max_input_chars = NULL, std::vector<std::string> *autocomplete_opts = NULL,
 														int *longest_autocomplete = NULL, RECT *autocomplete_lims = NULL,
 														int *autocomplete_hover = NULL, int return_after_obtaining = -1);
 	void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_chars, SP_D3D9O_CONSOLE_SELECT_FOCUS_ENUM *focus, int *line, int *index, int *line2 = NULL, int *index2 = NULL);

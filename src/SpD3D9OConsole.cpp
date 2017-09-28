@@ -132,16 +132,27 @@ void SpD3D9OConsole::draw()
 		update_fonts_and_cursor();
 	}
 
+
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////// ALL VALUES THAT COULD BE CHANGED MID-RENDER SHOULD BE OBTAINED BEFORE RENDERING /////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	// Get screenspace values
 	RECT window_rect/*, autocomplete_lims*/; // Window dimensions
 	SIZE char_size;
 	long	max_chars, // Maximum characters per line
 			max_input_chars; // Maximum input characters per line
-	std::string full_prompt;
+	std::string full_prompt, current_command;
 	std::vector<std::string> autocomplete_matches;
 	int longest_autocomplete/*, autocomplete_hover*/;
-	get_screenspace_values(&window_rect, &char_size, NULL, &max_chars, NULL, NULL, &full_prompt, &max_input_chars, &autocomplete_matches, &longest_autocomplete, /*&autocomplete_lims*/NULL, /*&autocomplete_hover*/NULL, 7);
+	get_screenspace_values(&window_rect, &char_size, NULL, &max_chars, NULL, NULL, &full_prompt, &current_command, &max_input_chars, &autocomplete_matches, &longest_autocomplete, /*&autocomplete_lims*/NULL, /*&autocomplete_hover*/NULL, 8);
 
+	// Get cursor position
+	POINT cursor_pos = { SpD3D9OInputHandler::get()->cursor_position.x, SpD3D9OInputHandler::get()->cursor_position.y };
+
+	// Set the displayable substring of the current input
+	set_input_string_display_limits(max_input_chars, current_command.length());
 
 	// Create background/border rectangles
 	long console_height = (long)(char_size.cy  * (output_log_displayed_lines + 1));
@@ -153,16 +164,6 @@ void SpD3D9OConsole::draw()
 
 	// Calculate maximum number of characters & lines that can be displayed on-screen
 	//unsigned int max_lines = (unsigned int)((/*(float)*/console_height / 1.5f) / /*(float)*/char_size.cx);
-
-	
-	// Concatenate prompt if it's too long
-	if ((int)prompt.length() > (max_chars - 1))
-	{
-		prompt = prompt.substr(0, max_chars - 1);
-	}
-
-	// Set the displayable substring of the current input
-	set_input_string_display_limits(max_input_chars);
 	
 
 	// Build console output log string
@@ -189,10 +190,10 @@ void SpD3D9OConsole::draw()
 	}
 
 	// Build input line (prompt and current command)
-	std::string cur_cmd = command;
+	std::string cur_cmd = current_command;
 	std::string input_line;
 	std::string input_autocomplete_preview = cur_cmd; // Autocomplete preview text (appears after current input string, showing the remaining substring of the selected autocomplete suggestion)
-	if (!square_caret && show_caret && (caret_position < command.length()))
+	if (!box_caret && show_caret && (caret_position < current_command.length()))
 	{
 		cur_cmd.erase(caret_position, 1);
 		cur_cmd.insert(caret_position, 1, caret);
@@ -203,7 +204,7 @@ void SpD3D9OConsole::draw()
 		input_autocomplete_preview = input_autocomplete_preview.substr(input_display_start, max_input_chars);
 	}
 	input_line = cur_cmd;
-	if (!square_caret && show_caret && (caret_position >= command.length()))
+	if (!box_caret && show_caret && (caret_position >= current_command.length()))
 	{
 		cur_cmd += caret;
 	}
@@ -256,8 +257,8 @@ void SpD3D9OConsole::draw()
 
 	// Render the console text
 	font->BeginDrawing();
-	if (square_caret && show_caret && ((int)command.length() == 0 || caret_position == (int)command.length()))
-		// Draw square caret at end of current input
+	if (box_caret && show_caret && ((int)current_command.length() == 0 || caret_position == (int)current_command.length()))
+		// Draw box caret at end of current input
 		font->DrawText((float)border_width + (char_size.cx * (full_prompt.length() + (caret_position - input_display_start))), (float)border_width + (char_size.cy * output_log_displayed_lines), D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f), " ", D3DFONT_BACKGROUND, D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f));
 	if(autocomplete_preview)
 		font->DrawText((float)border_width, (float)border_width + (char_size.cy * output_log_displayed_lines), color.autocomplete_preview, input_autocomplete_preview.c_str(), 0, 0); // Autocomplete preview
@@ -266,18 +267,18 @@ void SpD3D9OConsole::draw()
 	{
 		draw_highlighted_text(selection, &input_line);
 	}
-	//if (square_caret && show_caret)
-	if (square_caret && show_caret && (int)command.length() > 0 && caret_position < (int)command.length())
+	//
+	if (box_caret && show_caret && (int)current_command.length() > 0 && caret_position < (int)current_command.length())
 	{
-		// Draw square caret over one of the current input chars
+		// Draw box caret over one of the current input chars
 		int in_sel[2];
 		get_input_selection(&(in_sel[0]), &(in_sel[1]));
-		if(selection.focus != SP_D3D9O_SELECT_TEXT || (in_sel[0] < 0 && in_sel[1] < 0) || caret_position < in_sel[0] || caret_position > in_sel[1])
+		if(selection.focus != SP_D3D9O_SELECT_TEXT || (in_sel[0] < 0 && in_sel[1] < 0) || (int)caret_position < in_sel[0] || (int)caret_position > in_sel[1])
 			// Caret is not inside selection
-			font->DrawText((float)border_width + (char_size.cx * (full_prompt.length() + (caret_position - input_display_start))), (float)border_width + (char_size.cy * output_log_displayed_lines), color.square_caret, /*caret_char.c_str()*/command.substr(caret_position, 1).c_str(), D3DFONT_BACKGROUND, color.square_caret_bg);
+			font->DrawText((float)border_width + (char_size.cx * (full_prompt.length() + (caret_position - input_display_start))), (float)border_width + (char_size.cy * output_log_displayed_lines), color.box_caret, /*caret_char.c_str()*/current_command.substr(caret_position, 1).c_str(), D3DFONT_BACKGROUND, color.box_caret_bg);
 		else
 			// Caret is inside selection
-			font->DrawText((float)border_width + (char_size.cx * (full_prompt.length() + (caret_position - input_display_start))), (float)border_width + (char_size.cy * output_log_displayed_lines), color.square_caret_highlighted, /*caret_char.c_str()*/command.substr(caret_position, 1).c_str(), D3DFONT_BACKGROUND, color.square_caret_highlighted_bg);
+			font->DrawText((float)border_width + (char_size.cx * (full_prompt.length() + (caret_position - input_display_start))), (float)border_width + (char_size.cy * output_log_displayed_lines), color.box_caret_highlighted, /*caret_char.c_str()*/current_command.substr(caret_position, 1).c_str(), D3DFONT_BACKGROUND, color.box_caret_highlighted_bg);
 	}
 	font->EndDrawing();
 
@@ -289,14 +290,14 @@ void SpD3D9OConsole::draw()
 	{
 		// Render the cursor
 		if (win_cursor_tex == NULL ||
-			((SpD3D9OInputHandler::get()->cursor_position.y <= (console_height + (int)border_width))
-				&& (SpD3D9OInputHandler::get()->cursor_position.y > (int)border_width)
-				&& (SpD3D9OInputHandler::get()->cursor_position.x > (int)border_width)
-				&& (SpD3D9OInputHandler::get()->cursor_position.x <= (window_rect.right - (int)border_width))))
+			((cursor_pos.y <= (console_height + (int)border_width))
+				&& (cursor_pos.y > (int)border_width)
+				&& (cursor_pos.x > (int)border_width)
+				&& (cursor_pos.x <= (window_rect.right - (int)border_width))))
 		{
 			// Render text cursor
 			cursor->BeginDrawing();
-			cursor->DrawText((float)(SpD3D9OInputHandler::get()->cursor_position.x - (char_size.cx / 2)), (float)(SpD3D9OInputHandler::get()->cursor_position.y - (char_size.cy / 2)), color.text_cursor, "I", 0, 0);
+			cursor->DrawText((float)(cursor_pos.x - (char_size.cx / 2)), (float)(cursor_pos.y - (char_size.cy / 2)), color.text_cursor, "I", 0, 0);
 			cursor->EndDrawing();
 		}
 		else
@@ -316,7 +317,7 @@ void SpD3D9OConsole::draw()
 				win_cursor_rect.top += 2;
 			}
 			win_cursor_sprite->Begin(D3DXSPRITE_ALPHABLEND);
-			win_cursor_sprite->Draw(win_cursor_tex, (const RECT*)&win_cursor_rect, NULL, &D3DXVECTOR3((FLOAT)SpD3D9OInputHandler::get()->cursor_position.x, (FLOAT)SpD3D9OInputHandler::get()->cursor_position.y, 0), 0xFFFFFFFF);
+			win_cursor_sprite->Draw(win_cursor_tex, (const RECT*)&win_cursor_rect, NULL, &D3DXVECTOR3((FLOAT)cursor_pos.x, (FLOAT)cursor_pos.y, 0), 0xFFFFFFFF);
 			win_cursor_sprite->End();
 		}
 	}
@@ -1580,11 +1581,11 @@ void SpD3D9OConsole::get_user_prefs()
 	else
 		caret = _SP_D3D9O_C_DEFAULT_CARET_;
 
-	// Use square caret mode
-	if ((int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_SQUARE_CARET_, _SP_D3D9O_C_DEFAULT_USE_SQUARE_CARET_, _SP_D3D9O_C_PREF_FILE_) != 0)
-		square_caret = true;
+	// Use box caret mode
+	if ((int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_BOX_CARET_, _SP_D3D9O_C_DEFAULT_USE_BOX_CARET_, _SP_D3D9O_C_PREF_FILE_) != 0)
+		box_caret = true;
 	else
-		square_caret = false;
+		box_caret = false;
 
 	// Caret blink delay
 	caret_blink_delay = (int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_CARET_BLINK_, _SP_D3D9O_C_DEFAULT_BLINK_DELAY_, _SP_D3D9O_C_PREF_FILE_);
@@ -1671,17 +1672,17 @@ void SpD3D9OConsole::restore_default_settings()
 	output_stream = _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_;
 	prompt = _SP_D3D9O_C_DEFAULT_PROMPT_;
 	prompt_elements = _SP_D3D9O_C_DEFAULT_PROMPT_ELEMENTS_;
-	square_caret = _SP_D3D9O_C_DEFAULT_USE_SQUARE_CARET_;
+	box_caret = _SP_D3D9O_C_DEFAULT_USE_BOX_CARET_;
 	caret = _SP_D3D9O_C_DEFAULT_CARET_;
 	caret_blink_delay = _SP_D3D9O_C_DEFAULT_BLINK_DELAY_;  // Speed at which the cursor blinks, in milliseconds
 	font_height = _SP_D3D9O_C_DEFAULT_FONT_HEIGHT_;
 	color.text = _SP_D3D9O_C_DEFAULT_FONT_COLOR_;
 	color.text_highlighted = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_FONT_COLOR_;
 	color.text_highlighted_bg = _SP_D3D9O_C_DEFAULT_HIGHLIGHT_BACKGROUND_COLOR_;
-	color.square_caret = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_COLOR_;
-	color.square_caret_bg = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_BG_COLOR_;
-	color.square_caret_highlighted = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_HL_COLOR_;
-	color.square_caret_highlighted_bg = _SP_D3D9O_C_DEFAULT_SQUARE_CARET_BG_HL_COLOR_;
+	color.box_caret = _SP_D3D9O_C_DEFAULT_BOX_CARET_COLOR_;
+	color.box_caret_bg = _SP_D3D9O_C_DEFAULT_BOX_CARET_BG_COLOR_;
+	color.box_caret_highlighted = _SP_D3D9O_C_DEFAULT_BOX_CARET_HL_COLOR_;
+	color.box_caret_highlighted_bg = _SP_D3D9O_C_DEFAULT_BOX_CARET_BG_HL_COLOR_;
 	show_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_SHOW_;
 	cursor_size = _SP_D3D9O_C_DEFAULT_CURSOR_SIZE_;
 	color.text_cursor = _SP_D3D9O_C_DEFAULT_CURSOR_COLOR_;
@@ -1782,15 +1783,19 @@ void SpD3D9OConsole::get_autocomplete_options(const char *str, unsigned int max_
 
 
 
-void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_input_chars)
+void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_input_chars, int command_length)
 {
-	if (command.length() > max_input_chars)
+	if (command_length < 0) {
+		command_length = command.length();
+	}
+
+	if (command_length > max_input_chars)
 	{
 		if (caret_position > input_display_end)
 		{
-			if (caret_position == command.length())
+			if ((int)caret_position == command_length)
 			{
-				input_display_end = command.length() - 1;
+				input_display_end = command_length - 1;
 				input_display_start = input_display_end - (max_input_chars - 1);
 			}
 			else
@@ -1805,22 +1810,22 @@ void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_input_char
 			input_display_start = caret_position;
 		}
 		
-		if ((caret_position == command.length()) || (((command.length() - 1) - input_display_start) < (max_input_chars - 1)))
+		if ((caret_position == command_length) || (((command_length - 1) - input_display_start) < (max_input_chars - 1)))
 		{
-			input_display_end = command.length() - 1;
+			input_display_end = command_length - 1;
 			input_display_start = input_display_end - (max_input_chars - 1);
 		}
 	}
 	else
 	{
 		input_display_start = 0;
-		if (command.length() == 0)
+		if (command_length == 0)
 		{
 			input_display_end = 0;
 		}
 		else
 		{
-			input_display_end = command.length() - 1;
+			input_display_end = command_length - 1;
 		}
 	}
 }

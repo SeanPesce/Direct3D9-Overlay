@@ -151,17 +151,18 @@ void SpD3D9OConsole::cursor_pos_to_selection(long row, long column, long max_cha
 
 
 // Obtains various screenspace measurements related to selecting on-screen text
-#define _GET_SS_S_AND_L_ARG_COUNT_ 12
+#define _GET_SS_V_ARG_COUNT_ 13
 int SpD3D9OConsole::get_screenspace_values(RECT *window, SIZE *char_size, RECT *console_lims, long *max_chars,
-													long *row, long *column, std::string *full_prompt, long *max_input_chars,
-													std::vector<std::string> *autocomplete_opts, int *longest_autocomplete,
-													RECT *autocomplete_lims,  int *autocomplete_hover, int return_after_obtaining)
+													long *row, long *column, std::string *full_prompt, std::string *current_command,
+													long *max_input_chars, std::vector<std::string> *autocomplete_opts,
+													int *longest_autocomplete, RECT *autocomplete_lims,  int *autocomplete_hover,
+													int return_after_obtaining)
 {
 	int ret_val = 0; // Number of values obtained
 	int ret_after; // Return after obtaining this many values (rather than doing additional calculations that won't be used)
 	if (return_after_obtaining < 0)
 	{
-		ret_after = _GET_SS_S_AND_L_ARG_COUNT_;
+		ret_after = _GET_SS_V_ARG_COUNT_;
 	}
 	else
 	{
@@ -256,9 +257,16 @@ int SpD3D9OConsole::get_screenspace_values(RECT *window, SIZE *char_size, RECT *
 	}
 
 
+	// Concatenate prompt if it's too long
+	if ((int)prompt.length() > (max_chars_tmp - 1))
+	{
+		prompt = prompt.substr(0, max_chars_tmp - 1);
+	}
+
+
 	// Get full prompt string
 	std::string full_prompt_tmp;
-	add_prompt_elements(&full_prompt_tmp);
+	add_prompt_elements(&full_prompt_tmp, (int*)(&max_chars_tmp));
 	if (full_prompt != NULL)
 	{
 		*full_prompt = full_prompt_tmp;
@@ -266,9 +274,16 @@ int SpD3D9OConsole::get_screenspace_values(RECT *window, SIZE *char_size, RECT *
 	}
 
 
+	// Get current command
+	std::string current_command_tmp = command;
+	if (current_command != NULL) {
+		*current_command = current_command_tmp;
+	}
+
+
 	// Get max displayable input chars
 	long max_input_chars_tmp = max_chars_tmp - full_prompt_tmp.length();
-	if (caret_position == command.length())
+	if (caret_position == current_command_tmp.length())
 	{
 		max_input_chars_tmp--;
 	}
@@ -282,7 +297,7 @@ int SpD3D9OConsole::get_screenspace_values(RECT *window, SIZE *char_size, RECT *
 	// Get autocomplete options
 	std::vector<std::string> autocomplete_opts_tmp;
 	int longest_autocomplete_tmp;
-	get_autocomplete_options(command.c_str(), autocomplete_limit, &autocomplete_opts_tmp, &longest_autocomplete_tmp);
+	get_autocomplete_options(current_command_tmp.c_str(), autocomplete_limit, &autocomplete_opts_tmp, &longest_autocomplete_tmp);
 	if (autocomplete_opts != NULL)
 	{
 		*autocomplete_opts = autocomplete_opts_tmp;
@@ -349,7 +364,7 @@ void SpD3D9OConsole::start_selection()
 	RECT console_lims;
 	long max_chars, row, column;
 	int autocomplete_hover;
-	get_screenspace_values(NULL, NULL, &console_lims,  &max_chars, &row, &column, NULL, NULL, NULL, NULL, NULL, &autocomplete_hover);
+	get_screenspace_values(NULL, NULL, &console_lims,  &max_chars, &row, &column, NULL, NULL, NULL, NULL, NULL, NULL, &autocomplete_hover);
 
 
 	// Stop the game from reading the click message if the user clicks in the bounds of the console
@@ -392,7 +407,7 @@ void SpD3D9OConsole::start_selection()
 void SpD3D9OConsole::continue_autocomplete_selection()
 {
 	int autocomplete_hover;
-	get_screenspace_values(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &autocomplete_hover);
+	get_screenspace_values(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &autocomplete_hover);
 
 	if (autocomplete_hover > -1)
 	{
@@ -428,7 +443,7 @@ void SpD3D9OConsole::continue_text_selection()
 	// Get screenspace limits
 	long max_chars, row, column;
 	std::string full_prompt;
-	get_screenspace_values(NULL, NULL, NULL, &max_chars, &row, &column, &full_prompt, NULL, NULL, NULL, NULL, NULL, 4);
+	get_screenspace_values(NULL, NULL, NULL, &max_chars, &row, &column, &full_prompt, NULL, NULL, NULL, NULL, NULL, NULL, 4);
 
 	// Check if mouse cursor is in an area with selectable text
 	cursor_pos_to_selection(row, column, max_chars, &selection.focus, &selection.line2, &selection.i2);
@@ -548,7 +563,7 @@ void SpD3D9OConsole::draw_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, s
 	// Get screenspace limits
 	SIZE char_size;
 	long max_chars;
-	get_screenspace_values(NULL, &char_size, NULL, &max_chars, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2);
+	get_screenspace_values(NULL, &char_size, NULL, &max_chars, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2);
 
 	std::string line;
 
@@ -618,7 +633,7 @@ void SpD3D9OConsole::build_highlighted_text(CONSOLE_TEXT_SELECTION p_selection, 
 
 	// Get screenspace limits
 	long max_chars;
-	get_screenspace_values(NULL, NULL, NULL, &max_chars, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1);
+	get_screenspace_values(NULL, NULL, NULL, &max_chars, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1);
 
 	std::string input_line;
 	add_prompt_elements(&input_line);

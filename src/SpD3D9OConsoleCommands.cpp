@@ -128,10 +128,10 @@ void console_settings_to_string(std::string *output, const char* line_prefix = _
 	output->append(line_prefix).append("Caret character = '");
 	*output += gl_pSpD3D9Device->overlay->console->caret;
 	output->append("'\n");
-	if (gl_pSpD3D9Device->overlay->console->square_caret)
-		output->append("Square caret mode = enabled");
+	if (gl_pSpD3D9Device->overlay->console->box_caret)
+		output->append("Box caret mode = enabled");
 	else
-		output->append("Square caret mode = disabled");
+		output->append("Box caret mode = disabled");
 	if (gl_pSpD3D9Device->overlay->console->caret_blink_delay > 0)
 	{
 		output->append(line_prefix).append("Caret blink delay = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->caret_blink_delay)).append(" milliseconds\n");
@@ -1386,8 +1386,8 @@ int cc_console_caret(std::vector<std::string> args, std::string *output)
 }
 
 
-// Enables/disables square caret mode
-int cc_console_square_caret(std::vector<std::string> args, std::string *output)
+// Enables/disables box caret mode
+int cc_console_box_caret(std::vector<std::string> args, std::string *output)
 {
 	int ret_val = CONSOLE_COMMAND_SUCCESS;
 	if (args.size() > 0)
@@ -1396,11 +1396,11 @@ int cc_console_square_caret(std::vector<std::string> args, std::string *output)
 		{
 			case 0:
 				gl_pSpD3D9Device->overlay->console->clear_selection();
-				gl_pSpD3D9Device->overlay->console->square_caret = false;
+				gl_pSpD3D9Device->overlay->console->box_caret = false;
 				break;
 			case 1:
 				gl_pSpD3D9Device->overlay->console->clear_selection();
-				gl_pSpD3D9Device->overlay->console->square_caret = true;
+				gl_pSpD3D9Device->overlay->console->box_caret = true;
 				break;
 			default:
 				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
@@ -1409,10 +1409,10 @@ int cc_console_square_caret(std::vector<std::string> args, std::string *output)
 		}
 	}
 
-	if (gl_pSpD3D9Device->overlay->console->square_caret)
-		output->append("Square caret mode = enabled");
+	if (gl_pSpD3D9Device->overlay->console->box_caret)
+		output->append("Box caret mode = enabled");
 	else
-		output->append("Square caret mode = disabled");
+		output->append("Box caret mode = disabled");
 
 	return ret_val;
 }
@@ -2388,7 +2388,7 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("console_prompt_hostname", cc_console_prompt_host, "console_prompt_hostname [is_enabled]\n    Enables/disables the hostname element of the console input prompt.");
 	SpD3D9OConsole::register_command("console_prompt_cwd", cc_console_prompt_cwd, "console_prompt_cwd [is_enabled]\n    Enables/disables the working directory element of the console input prompt.");
 	SpD3D9OConsole::register_command("console_caret", cc_console_caret, "console_caret [caret]\n    Sets the console input caret character.");
-	SpD3D9OConsole::register_command("console_square_caret", cc_console_square_caret, "console_square_caret [is_enabled]\n    Enables/disables square caret mode. If square caret mode is enabled, caret character setting is ignored.");
+	SpD3D9OConsole::register_command("console_box_caret", cc_console_box_caret, "console_box_caret [is_enabled]\n    Enables/disables box caret mode. If box caret mode is enabled, caret character setting is ignored.");
 	SpD3D9OConsole::register_command("console_caret_blink", cc_console_caret_blink, "console_caret_blink [blink_delay]\n    Sets the console input caret blink delay time (in milliseconds).");
 	SpD3D9OConsole::register_command("console_border_width", cc_console_border_width, "console_border_width [width]\n    Sets the console border width.");
 	SpD3D9OConsole::register_command("console_cursor", cc_console_cursor, "console_cursor [is_enabled]\n    Enables/disables the console mouse cursor.");

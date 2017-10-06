@@ -38,6 +38,7 @@
 #define _SP_D3D9O_C_PREF_KEY_CURSOR_SIZE_ "MouseCursorSize"
 #define _SP_D3D9O_C_PREF_KEY_INPUT_ECHO_ "InputEcho"
 #define _SP_D3D9O_C_PREF_KEY_OUTPUT_STREAM_ "OutputStream"
+#define _SP_D3D9O_C_PREF_KEY_EXTERNAL_CONSOLE_ "ShowOutputWindow"
 
 
 #define _CLOSE_CONSOLE_KEY_ VK_ESCAPE // Escape key
@@ -47,6 +48,7 @@
 #define _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_ 20
 #define _SP_D3D9O_C_DEFAULT_ECHO_VALUE_ true
 #define _SP_D3D9O_C_DEFAULT_OUTPUT_STREAM_VALUE_ true
+#define _SP_D3D9O_C_DEFAULT_EXT_OUTPUT_WINDOW_VALUE_ false		// Enable mirroring of console output in external cmd window
 #define _SP_D3D9O_C_DEFAULT_PROMPT_ ">"
 #define _SP_D3D9O_C_DEFAULT_USE_BOX_CARET_ true
 #define _SP_D3D9O_C_DEFAULT_CARET_ '_'
@@ -90,6 +92,22 @@
 #define CONSOLE_COMMAND_SUCCESS ERROR_SUCCESS  // Value that a console command should return if no errors occurred
 #define CONSOLE_COMMAND_NOT_FOUND_ERROR (-1)
 #define _SP_D3D9O_C_ERROR_UNKNOWN_COMMAND_ "ERROR: Unrecognized command"
+
+
+typedef struct SP_PROCESS_IO_HANDLES {
+	HANDLE stdin_read = NULL;
+	HANDLE stdin_write = NULL;
+	HANDLE stdout_read = NULL;
+	HANDLE stdout_write = NULL;
+} PROCESS_IO_HANDLES;
+
+
+typedef struct SP_CHILD_PROCESS {
+	STARTUPINFO startup_info;
+	SP_PROCESS_IO_HANDLES io;
+	PROCESS_INFORMATION info;
+	SECURITY_ATTRIBUTES security;
+} CHILD_PROCESS;
 
 
 typedef struct SP_D3D9O_CONSOLE_COLORS {
@@ -192,6 +210,8 @@ public:
 	unsigned int output_log_displayed_lines = _SP_D3D9O_C_DEFAULT_OUTPUT_LINES_; // Number of lines of previous output to display
 	unsigned int output_log_capacity = _SP_D3D9O_C_DEFAULT_OUTPUT_LOG_CAPACITY_; // Number of lines of output to keep in memory (oldest are deleted when max is hit)
 	unsigned int command_log_capacity = _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_; // Number of console commands to keep logged (oldest are deleted when max is hit)
+	bool show_output_window = _SP_D3D9O_C_DEFAULT_EXT_OUTPUT_WINDOW_VALUE_;
+	CHILD_PROCESS output_window;
 
 	unsigned int caret_position = 0; // Position of cursor in current command
 	
@@ -219,6 +239,9 @@ public:
 	void SpD3D9OConsole::clear_selection(); // Clears text selection
 	DWORD SpD3D9OConsole::copy(std::string *str); // Copies string to clipboard
 	DWORD SpD3D9OConsole::paste(); // Paste clipboard data into console input
+	void SpD3D9OConsole::init_output_window(); // Initializes input/output pipes for external output window
+	void SpD3D9OConsole::open_output_window();
+	void SpD3D9OConsole::close_output_window();
 	HRESULT SpD3D9OConsole::init_win_cursor(); // Initializes the texture/sprite used to draw non-text mouse cursor
 	void SpD3D9OConsole::get_user_prefs(); // Loads user preferences from a config file and applies the preferred settings
 	void SpD3D9OConsole::restore_default_settings(); // Sets console settings to developer defaults

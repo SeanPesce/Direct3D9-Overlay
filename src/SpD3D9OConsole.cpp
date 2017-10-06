@@ -52,12 +52,37 @@ SpD3D9OConsole::SpD3D9OConsole(SpD3D9Overlay *new_overlay)
 	cursor = new CD3DFont(cursor_font_family.c_str(), cursor_size, 0);
 	cursor->InitializeDeviceObjects(overlay->device->m_pIDirect3DDevice9);
 	cursor->RestoreDeviceObjects();
+
+	// Initialize external output log window
+	ZeroMemory(&output_window, sizeof(CHILD_PROCESS));
+	init_output_window();
 }
 
 
 
 SpD3D9OConsole::~SpD3D9OConsole()
 {
+	if (output_window.info.hProcess != NULL)
+	{
+		system(std::string("TASKKILL /PID ").append(std::to_string(output_window.info.dwProcessId)).append(" /F").c_str());
+
+		if (!CloseHandle(output_window.info.hThread))
+			; // Handle error
+
+		if (!CloseHandle(output_window.io.stdin_read))
+			; // Handle error
+
+		if (!CloseHandle(output_window.io.stdin_write))
+			; // Handle error
+
+		//if (!TerminateProcess(output_window.info.hProcess, EXIT_SUCCESS))
+		//	; // Handle error
+
+		if (!CloseHandle(output_window.info.hProcess))
+			; // Handle error
+	}
+	ZeroMemory(&output_window, sizeof(CHILD_PROCESS));
+
 	if (commands_index != NULL)
 	{
 		delete commands_index;
@@ -324,6 +349,88 @@ void SpD3D9OConsole::draw()
 }
 
 
+void SpD3D9OConsole::init_output_window()
+{
+
+	// Set pipe handles to be inherited
+	output_window.security.nLength = sizeof(SECURITY_ATTRIBUTES);
+	output_window.security.bInheritHandle = TRUE;
+	output_window.security.lpSecurityDescriptor = NULL;
+
+
+	// Create pipe for child process stdin
+	if (!CreatePipe(&output_window.io.stdin_read, &output_window.io.stdin_write, &output_window.security, 0))
+		; // Handle error
+
+	// Make sure the stdin pipe write handle is not inherited
+	if (!SetHandleInformation(output_window.io.stdin_write, HANDLE_FLAG_INHERIT, 0)) // Allows game to write child input
+		; // Handle error
+
+	if (show_output_window)
+	{
+		open_output_window();
+	}
+}
+
+
+void SpD3D9OConsole::open_output_window()
+{
+	extern std::string game_exe_dir;
+
+	// Command-line command to launch the external console output window
+	//char *start_command_parts[2] = { "cmd /V:ON /C \"@ECHO OFF&TITLE Console Log&CD /D\"", "\"&SET \"d3d9_output_line= \"&FOR /l %x IN (1, 0, 1) DO (SET /p d3d9_output_line=\"\" & ECHO:!d3d9_output_line! & SET \"d3d9_output_line= \")\"" };
+	//std::string start_command = std::string(start_command_parts[0]).append(game_exe_dir).append(start_command_parts[1]);
+	char *start_command_parts[2] = { "cmd /V:ON /C \"@ECHO OFF&TITLE Console Log", "&SET \"d3d9_output_line= \"&FOR /l %x IN (1, 0, 1) DO (SET /p d3d9_output_line=\"\" & ECHO:!d3d9_output_line! & SET \"d3d9_output_line= \")\"" };
+	std::string start_command = std::string(start_command_parts[0]).append(start_command_parts[1]);
+
+	// Initialize the startup information for the child process
+	output_window.startup_info.cb = sizeof(STARTUPINFO);
+	output_window.startup_info.hStdInput = output_window.io.stdin_read;
+	output_window.startup_info.dwFlags |= STARTF_USESTDHANDLES;
+
+	if(!CreateProcess(NULL,
+				(char*)start_command.c_str(),
+				NULL,          // Process security attributes
+				NULL,          // Primary thread security attributes
+				TRUE,          // Handles are inherited
+				0,             // Creation flags
+				NULL,          // Use parent environment
+				NULL,          // Use parent current directory
+				&output_window.startup_info,
+				&output_window.info) )
+		; // Handle error
+}
+
+
+void SpD3D9OConsole::close_output_window()
+{
+	if (output_window.info.hProcess != NULL)
+	{
+		system(std::string("TASKKILL /PID ").append(std::to_string(output_window.info.dwProcessId)).append(" /F").c_str());
+
+		if (!CloseHandle(output_window.info.hThread))
+			; // Handle error
+
+		if (!CloseHandle(output_window.io.stdin_read))
+			; // Handle error
+
+		if (!CloseHandle(output_window.io.stdin_write))
+			; // Handle error
+
+		//if (!TerminateProcess(output_window.info.hProcess, EXIT_SUCCESS))
+		//	; // Handle error
+
+		if (!CloseHandle(output_window.info.hProcess))
+			; // Handle error
+	}
+
+	ZeroMemory(&output_window, sizeof(CHILD_PROCESS));
+
+	init_output_window();
+}
+
+
+
 void SpD3D9OConsole::add_prompt_elements(std::string *full_prompt, int *max_chars)
 {
 	if (prompt_elements & SP_D3D9O_PROMPT_USER)
@@ -381,6 +488,7 @@ void SpD3D9OConsole::print(const char *new_message)
 {
 	if (output_stream)
 	{
+		DWORD bytes_written; // Stores number of bytes written to output window stdout
 		std::string message = new_message;
 		std::string line;
 
@@ -388,21 +496,39 @@ void SpD3D9OConsole::print(const char *new_message)
 
 		clear_selection();
 
+		// Write each line to the output log separately
 		if ((newline_pos = message.find('\n')) != std::string::npos)
 		{
 			do
 			{
 				line = message.substr(0, newline_pos);
+				// Add line to output log
 				output_log.push_back(line.c_str());
+				// Write line to parent stdout
+				std::cout << line.c_str() << std::endl;
+				// Write to child stdin
+				if (!WriteFile(output_window.io.stdin_write, std::string(line).append("\n").c_str(), line.length() + 1, &bytes_written, NULL))
+					; // Handle error
 				message.erase(0, newline_pos + 1);
 			} while ((newline_pos = message.find('\n')) != std::string::npos);
 			output_log.push_back(message.c_str());
+			std::cout << message.c_str() << std::endl;
+				if (!WriteFile(output_window.io.stdin_write, std::string(message).append("\n").c_str(), message.length() + 1, &bytes_written, NULL))
+					; // Handle error
 		}
 		else
 		{
 			// No newlines appear in the string
 			output_log.push_back(message.c_str());
+			std::cout << message.c_str() << std::endl;
+			if (!WriteFile(output_window.io.stdin_write, std::string(message).append("\n").c_str(), message.length() + 1, &bytes_written, NULL))
+				; // Handle error
 		}
+
+		// Flush external console window input buffer
+		if (output_window.info.hProcess != NULL)
+			if (!FlushFileBuffers(output_window.io.stdin_write))
+				; // Handle error
 	}
 }
 
@@ -1643,6 +1769,17 @@ void SpD3D9OConsole::get_user_prefs()
 	else
 		output_stream = false;
 
+	// Mirror output to external window
+	if ((int)GetPrivateProfileInt(_SP_D3D9O_C_PREF_SECTION_, _SP_D3D9O_C_PREF_KEY_EXTERNAL_CONSOLE_, _SP_D3D9O_C_DEFAULT_EXT_OUTPUT_WINDOW_VALUE_, _SP_D3D9O_C_PREF_FILE_) != 0)
+		show_output_window = true;
+	else
+	{
+		show_output_window = false;
+		if (output_window.info.hProcess != NULL)
+			close_output_window();
+	}
+		
+
 
 	// Clear console output
 	for (int i = 0; i < (int)output_log_displayed_lines; i++)
@@ -1700,6 +1837,7 @@ void SpD3D9OConsole::restore_default_settings()
 	command_log_capacity = _SP_D3D9O_C_DEFAULT_COMMAND_LOG_CAPACITY_; // Number of console commands to keep logged (oldest are deleted when max is hit)
 	autocomplete_preview = _SP_D3D9O_C_DEFAULT_SHOW_AUTOCOMP_PREVIEW_;
 	autocomplete_limit = _SP_D3D9O_C_DEFAULT_AUTOCOMPLETE_LIMIT_; // Maximum number of autocomplete suggestions to show
+	show_output_window = _SP_D3D9O_C_DEFAULT_EXT_OUTPUT_WINDOW_VALUE_;
 
 	if (output_log_capacity < output_log_displayed_lines)
 	{
@@ -1709,6 +1847,11 @@ void SpD3D9OConsole::restore_default_settings()
 	{
 		output_log.push_back("");
 	}
+
+	if (!show_output_window && output_window.info.hProcess != NULL)
+		close_output_window();
+	else if (show_output_window && output_window.info.hProcess == NULL)
+		open_output_window();
 
 	if (console_open)
 	{

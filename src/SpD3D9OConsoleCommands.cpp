@@ -123,6 +123,14 @@ void console_settings_to_string(std::string *output, const char* line_prefix = _
 		output->append(line_prefix).append("Output stream = disabled\n");
 	}
 	output->append(line_prefix).append("Output lines = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->output_log_displayed_lines)).append("\n");
+	if (gl_pSpD3D9Device->overlay->console->show_output_window)
+	{
+		output->append(line_prefix).append("External output window = enabled\n");
+	}
+	else
+	{
+		output->append(line_prefix).append("External output window = disabled\n");
+	}
 	output->append(line_prefix).append("Font size = ").append(std::to_string(gl_pSpD3D9Device->overlay->console->font_height)).append("\n");
 	output->append(line_prefix).append("Input prompt = \"").append(gl_pSpD3D9Device->overlay->console->prompt).append("\"\n");
 	output->append(line_prefix).append("Caret character = '");
@@ -1418,6 +1426,40 @@ int cc_console_box_caret(std::vector<std::string> args, std::string *output)
 }
 
 
+// Enables/disables external console output window
+int cc_console_output_window(std::vector<std::string> args, std::string *output)
+{
+	int ret_val = CONSOLE_COMMAND_SUCCESS;
+	if (args.size() > 0)
+	{
+		switch (parse_toggle_arg(args.at(0).c_str()))
+		{
+			case 0:
+				gl_pSpD3D9Device->overlay->console->show_output_window = false;
+				if (gl_pSpD3D9Device->overlay->console->output_window.info.hProcess != NULL)
+					gl_pSpD3D9Device->overlay->console->close_output_window();
+				break;
+			case 1:
+				gl_pSpD3D9Device->overlay->console->show_output_window = true;
+				if (gl_pSpD3D9Device->overlay->console->output_window.info.hProcess == NULL)
+					gl_pSpD3D9Device->overlay->console->open_output_window();
+				break;
+			default:
+				output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
+				ret_val = ERROR_INVALID_PARAMETER;
+				break;
+		}
+	}
+
+	if (gl_pSpD3D9Device->overlay->console->show_output_window)
+		output->append("External output window = enabled");
+	else
+		output->append("External output window = disabled");
+
+	return ret_val;
+}
+
+
 // Changes the console input caret blink delay
 int cc_console_caret_blink(std::vector<std::string> args, std::string *output)
 {
@@ -1527,6 +1569,9 @@ int cc_console_restore_dev_defaults(std::vector<std::string> args, std::string *
 int cc_console_restore_user_prefs(std::vector<std::string> args, std::string *output)
 {
 	gl_pSpD3D9Device->overlay->console->get_user_prefs();
+
+	if (gl_pSpD3D9Device->overlay->console->show_output_window && gl_pSpD3D9Device->overlay->console->output_window.info.hProcess == NULL)
+		gl_pSpD3D9Device->overlay->console->open_output_window();
 
 	output->append("Restored user-preferred console settings:\n");
 	
@@ -2376,7 +2421,8 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_alias("clear", "console_clear");
 	SpD3D9OConsole::register_command("console_echo", cc_console_echo, "console_echo [is_enabled]\n    Enables/disables console input echo (1 = on, 0 = off).");
 	SpD3D9OConsole::register_command("console_output", cc_console_output, "console_output [is_enabled]\n    Enables/disables console output stream (1 = enabled, 0 = disabled).");
-	SpD3D9OConsole::register_command("console_output_lines", cc_console_output_lines, "console_output_lines [line_count]\n    Sets the size of the console output window to the specified number of output lines.");
+	SpD3D9OConsole::register_command("console_output_lines", cc_console_output_lines, "console_output_lines [line_count]\n    Enables/disables external console output window.");
+	SpD3D9OConsole::register_command("console_external_output_window", cc_console_output_window, "console_external_output_window [boolean]\n    Sets the size of the console output window to the specified number of output lines.");
 	SpD3D9OConsole::register_command("console_execute", cc_console_execute, "console_execute <command> [command...]\n    Executes each argument as a separate console command.");
 	SpD3D9OConsole::register_command("console_script", cc_console_script, "console_script <file>\n    Opens a plain-text script file and executes each line as a separate console command.");
 	SpD3D9OConsole::register_alias("script", "console_script");

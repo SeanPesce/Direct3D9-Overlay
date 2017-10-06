@@ -13,6 +13,11 @@ SpD3D9Device::SpD3D9Device(SpD3D9Interface *d3d_interface, IDirect3DDevice9* pOr
 
 SpD3D9Device::~SpD3D9Device(void)
 {
+	if (overlay != NULL)
+	{
+		delete overlay;
+		overlay = NULL;
+	}
 }
 
 HRESULT SpD3D9Device::QueryInterface(REFIID riid, void** ppvObj)

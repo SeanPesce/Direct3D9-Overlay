@@ -38,7 +38,7 @@
 #define _SP_D3D9O_C_PREF_KEY_CURSOR_SIZE_ "MouseCursorSize"
 #define _SP_D3D9O_C_PREF_KEY_INPUT_ECHO_ "InputEcho"
 #define _SP_D3D9O_C_PREF_KEY_OUTPUT_STREAM_ "OutputStream"
-#define _SP_D3D9O_C_PREF_KEY_EXTERNAL_CONSOLE_ "ShowOutputWindow"
+#define _SP_D3D9O_C_PREF_KEY_EXTERNAL_CONSOLE_ "ExternalOutputWindow"
 
 
 #define _CLOSE_CONSOLE_KEY_ VK_ESCAPE // Escape key

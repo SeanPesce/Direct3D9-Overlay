@@ -65,7 +65,9 @@ __declspec(dllexport) int register_console_command(const char *command, int(*fun
 __declspec(dllexport) int register_console_alias(const char *new_alias, const char *existing_command, std::vector<std::string> args = {});
 __declspec(dllexport) int execute_console_command(const char *command, int *return_code = NULL, std::string *output = NULL);
 __declspec(dllexport) bool print(const char *message, unsigned long long duration = 2000, bool include_timestamp = true, SP_D3D9O_TEXT_COLOR_ENUM text_color = SP_D3D9O_TEXT_COLOR_WHITE); // Prints to text feed and console
+__declspec(dllexport) bool print(std::string &message, unsigned long long duration = 2000, bool include_timestamp = true, SP_D3D9O_TEXT_COLOR_ENUM text_color = SP_D3D9O_TEXT_COLOR_WHITE); // Prints to text feed and console
 __declspec(dllexport) bool print_console(const char *message); // Prints only to console
+__declspec(dllexport) bool print_console(std::string &message); // Prints only to console
 __declspec(dllexport) bool set_text_feed_title(const char *new_title);
 __declspec(dllexport) bool console_is_open();
 __declspec(dllexport) HWND get_game_window();

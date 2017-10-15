@@ -77,6 +77,12 @@ __declspec(dllexport) bool print(const char *message, unsigned long long duratio
 }
 
 
+__declspec(dllexport) bool print(std::string &message, unsigned long long duration, bool include_timestamp, SP_D3D9O_TEXT_COLOR_ENUM text_color)
+{
+	return print(message.c_str(), duration, include_timestamp, text_color);
+}
+
+
 __declspec(dllexport) bool print_console(const char *message)
 {
 	if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL && gl_pSpD3D9Device->overlay->console != NULL)
@@ -86,6 +92,12 @@ __declspec(dllexport) bool print_console(const char *message)
 	}
 
 	return false;
+}
+
+
+__declspec(dllexport) bool print_console(std::string &message)
+{
+	return print_console(message.c_str());
 }
 
 

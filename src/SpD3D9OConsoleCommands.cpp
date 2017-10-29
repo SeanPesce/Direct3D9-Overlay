@@ -2171,7 +2171,7 @@ int cc_aob_scan(std::vector<std::string> args, std::string *output)
 	// Search for AoB
 	output->append("Scanning for byte pattern: ").append(aob).append("\nResults:");
 	std::vector<uint8_t*> results;
-	void *result = aob_scan(&aob, NULL, &results);
+	void *result = aob_scan(aob, NULL, &results);
 	if (result != NULL)
 	{
 		for(int i = 0; i < (int)results.size(); i++)

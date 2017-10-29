@@ -128,6 +128,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <AdditionalIncludeDirectories>include;lib;lib\SP;lib\Detours;lib\DirectX;lib\DirectX\Include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4503</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.lib;dxguid.lib;SP_IO.lib;SP_AoBScan.lib;SP_SysUtils.lib;detours.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -151,6 +152,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>include;lib;lib\SP;lib\Detours;lib\DirectX;lib\DirectX\Include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4503</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.dll;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;SP_%(AdditionalDependencies)</AdditionalDependencies>
@@ -172,6 +174,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>include;lib;lib\SP;lib\Detours;lib\DirectX;lib\DirectX\Include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
+      <DisableSpecificWarnings>4503</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.lib;dxguid.lib;SP_IO.lib;SP_AoBScan.lib;SP_SysUtils.lib;detours.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -196,6 +199,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>include;lib;lib\SP;lib\Detours;lib\DirectX;lib\DirectX\Include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
+      <DisableSpecificWarnings>4503</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.dll;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;SP_legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -219,6 +223,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>include;lib;lib\SP;lib\Detours;lib\DirectX;lib\DirectX\Include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
+      <DisableSpecificWarnings>4503</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.lib;dxguid.lib;SP_IO.lib;SP_AoBScan.lib;SP_SysUtils.lib;detours.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -243,6 +248,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>include;lib;lib\SP;lib\Detours;lib\DirectX;lib\DirectX\Include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
+      <DisableSpecificWarnings>4503</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3dx9.lib;dinput8.dll;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;SP_legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>

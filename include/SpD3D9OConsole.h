@@ -10,7 +10,13 @@
 #include "SpD3D9.h"
 
 #include "D3DFont.h"
-#include "seqan/index.h" // String, StringSet, Index, and Finder classes
+
+
+
+#pragma warning( push )
+#pragma warning( disable : 4521 4800 4244 4503) // Disable "multiple copy constructors", "data loss", and "name truncated" warnings
+	#include "seqan/index.h" // String, StringSet, Index, Finder
+#pragma warning( pop )
 
 
 #ifndef hotkey_is_down

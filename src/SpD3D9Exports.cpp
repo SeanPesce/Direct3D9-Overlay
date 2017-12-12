@@ -143,3 +143,19 @@ __declspec(dllexport) HWND get_game_window()
 
 	return NULL;
 }
+
+
+// Returns the current global frame count (total number of frames rendered since the game was launched) on success, or zero on failure
+__declspec(dllexport) unsigned long long get_global_frame_count()
+{
+    if (gl_pSpD3D9Device != NULL && gl_pSpD3D9Device->overlay != NULL)
+    {
+        return gl_pSpD3D9Device->overlay->frame_count;
+    }
+    else
+    {
+        // If overlay is not initialized, set last error
+        SetLastError(ERROR_INVALID_ADDRESS);
+    }
+    return 0;
+}

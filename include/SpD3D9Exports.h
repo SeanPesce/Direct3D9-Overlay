@@ -71,6 +71,7 @@ __declspec(dllexport) bool print_console(std::string &message); // Prints only t
 __declspec(dllexport) bool set_text_feed_title(const char *new_title);
 __declspec(dllexport) bool console_is_open();
 __declspec(dllexport) HWND get_game_window();
+__declspec(dllexport) unsigned long long get_global_frame_count();
 
 
 

@@ -435,6 +435,13 @@ void get_user_preferences()
 		user_pref_show_text_feed_info_bar = 0;
 	}
 
+    // Gloval frame counter enabled/disabled
+    if ((int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_ENABLE_FRAME_COUNT_KEY_, OL_TXT_DISABLED, _SP_D3D9_SETTINGS_FILE_) != OL_TXT_DISABLED)
+    {
+        user_pref_show_text_feed_info_bar |= SP_D3D9O_INFO_BAR_TITLE;
+        user_pref_show_text_feed_info_bar += SP_D3D9O_INFO_BAR_FRAME_COUNT;
+    }
+
 	// Display date enabled/disabled
 	if ((int)GetPrivateProfileInt(_SP_D3D9_SETTINGS_SECTION_PREFS_, _SP_D3D9_OL_TXT_ENABLE_DATE_KEY_, OL_TXT_ENABLED, _SP_D3D9_SETTINGS_FILE_) != OL_TXT_DISABLED)
 	{

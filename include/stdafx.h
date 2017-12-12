@@ -56,6 +56,7 @@
 #define _SP_D3D9_OL_TXT_STYLE_KEY_ "OverlayTextStyle"
 #define _SP_D3D9_OL_TXT_AUDIO_ENABLED_KEY_ "EnableAudioFeedback"
 #define _SP_D3D9_OL_TXT_ENABLE_FPS_KEY_ "DisplayFPS"
+#define _SP_D3D9_OL_TXT_ENABLE_FRAME_COUNT_KEY_ "DisplayFrameCount"
 #define _SP_D3D9_OL_TXT_ENABLE_TIME_KEY_ "DisplayTime"
 #define _SP_D3D9_OL_TXT_ENABLE_DATE_KEY_ "DisplayDate"
 //	Developer keybinds section key names

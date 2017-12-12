@@ -1810,6 +1810,46 @@ int cc_text_feed_info_fps(std::vector<std::string> args, std::string *output)
 }
 
 
+// Enables/disables overlay text feed info bar global frame counter element
+int cc_text_feed_info_frame_count(std::vector<std::string> args, std::string *output)
+{
+    int ret_val = CONSOLE_COMMAND_SUCCESS;
+    if (gl_pSpD3D9Device->overlay->text_feed->is_enabled())
+    {
+        if (args.size() > 0)
+        {
+            switch (parse_toggle_arg(args.at(0).c_str()))
+            {
+                case 0:
+                    gl_pSpD3D9Device->overlay->text_feed->show_info_bar &= (~SP_D3D9O_INFO_BAR_FRAME_COUNT);
+                    break;
+                case 1:
+                    gl_pSpD3D9Device->overlay->text_feed->show_info_bar |= SP_D3D9O_INFO_BAR_FRAME_COUNT;
+                    break;
+                default:
+                    output->append(ERROR_INVALID_TOGGLE_ARGUMENT);
+                    ret_val = ERROR_INVALID_PARAMETER;
+                    break;
+            }
+        }
+
+        if (gl_pSpD3D9Device->overlay->text_feed->show_info_bar & SP_D3D9O_INFO_BAR_FRAME_COUNT)
+        {
+            output->append("Display global frame count = enabled");
+        }
+        else
+        {
+            output->append("Display global frame count = disabled");
+        }
+    }
+    else
+    {
+        output->append(ERROR_TXT_FEED_DISABLED);
+    }
+    return ret_val;
+}
+
+
 // Changes the text feed title
 int cc_text_feed_title(std::vector<std::string> args, std::string *output)
 {
@@ -1907,6 +1947,22 @@ int cc_text_feed_style(std::vector<std::string> args, std::string *output)
 		return ERROR_BAD_ENVIRONMENT;
 	}
 	return CONSOLE_COMMAND_SUCCESS;
+}
+
+
+// Prints the current FPS count
+int cc_fps(std::vector<std::string> args, std::string *output)
+{
+    output->append("\nCurrent FPS: " + std::to_string(gl_pSpD3D9Device->overlay->fps_count) + "\n");
+    return CONSOLE_COMMAND_SUCCESS;
+}
+
+
+// Prints the current global frame count (number of frames rendered since game started)
+int cc_frame_count(std::vector<std::string> args, std::string *output)
+{
+    output->append("\nGlobal frame count: " + std::to_string(gl_pSpD3D9Device->overlay->frame_count) + "\n");
+    return CONSOLE_COMMAND_SUCCESS;
 }
 
 
@@ -2237,24 +2293,24 @@ int cc_open_web_page(std::vector<std::string> args, std::string *output)
 	{
 		std::string arg0 = args.at(0);
 		to_lower((char *)arg0.c_str());
-		std::string http_prefix = "http://";
-		std::string https_prefix = "https://";
+		static std::string http_prefix = "http://";
+        static std::string https_prefix = "https://";
 		std::string url = "";
 
 		// Make sure URL is a valid https url
 		if (arg0.length() < http_prefix.length())
 		{
-			url.append(https_prefix).append(arg0);
+			url.append(http_prefix).append(arg0);
 		}
 		else if (strcmp(std::string(arg0).substr(0, http_prefix.length()).c_str(), http_prefix.c_str()) == 0)
 		{
-			// Change http to https prefix
-			url.append(arg0);
-			url.insert(4, "s");
+			// Change http to https prefix // UPDATE: JK don't, not all websites support it (duh)
+			//url.append(arg0);
+			//url.insert(4, "s");
 		}
-		else if (strcmp(std::string(arg0).substr(0, https_prefix.length()).c_str(), https_prefix.c_str()) != 0)
+		else if (strcmp(std::string(arg0).substr(0, http_prefix.length()).c_str(), http_prefix.c_str()) != 0)
 		{
-			url.append(https_prefix).append(arg0);
+			url.append(http_prefix).append(arg0);
 		}
 		else
 		{
@@ -2388,6 +2444,7 @@ int cc_run(std::vector<std::string> args, std::string *output)
 	return CONSOLE_COMMAND_SUCCESS;
 }
 
+
 void register_default_console_commands()
 {
 	SpD3D9OConsole::register_command("help", cc_help, "help [command]\n    Prints the help message for the given command.");
@@ -2399,55 +2456,59 @@ void register_default_console_commands()
 	SpD3D9OConsole::register_command("close", cc_close, "close\n    Closes the console overlay.");
 	SpD3D9OConsole::register_command("sleep", cc_sleep, "sleep <duration>\n    Pauses execution for the specified duration (in milliseconds).");
 	SpD3D9OConsole::register_alias("wait", "sleep");
-	//SpD3D9OConsole::register_command("windows_cursor", cc_windows_cursor, "windows_cursor [is_enabled]\n    Sets whether the Windows cursor is visible (1 = showing, 0 = hidden).");
-	//SpD3D9OConsole::register_command("directx_cursor", cc_d3d9_cursor, "directx_cursor [is_enabled]\n    Sets whether the DirectX cursor is visible (1 = showing, 0 = hidden).");
+	//SpD3D9OConsole::register_command("windows_cursor", cc_windows_cursor, "windows_cursor [BOOLEAN]\n    Sets whether the Windows cursor is visible (1 = showing, 0 = hidden).");
+	//SpD3D9OConsole::register_command("directx_cursor", cc_d3d9_cursor, "directx_cursor [BOOLEAN]\n    Sets whether the DirectX cursor is visible (1 = showing, 0 = hidden).");
 	SpD3D9OConsole::register_command("date", cc_date, "date\n    Prints the current date (in MM/DD/YYYY format).");
 	SpD3D9OConsole::register_command("date_time", cc_date_time, "date_time\n    Prints the current date (in MM/DD/YYYY format) and 24-hour time.");
-	SpD3D9OConsole::register_command("time", cc_time, "time\n    Prints the current 24-hour time.");
+    SpD3D9OConsole::register_command("time", cc_time, "time\n    Prints the current 24-hour time.");
+    SpD3D9OConsole::register_command("fps", cc_fps, "fps\n    Prints the current frames per second (FPS).");
+    SpD3D9OConsole::register_command("frame_count", cc_frame_count, "frame_count\n    Prints the current global frame count (total number of frames rendered since the game was launched).");
+    SpD3D9OConsole::register_alias("global_frame_count", "frame_count");
 	SpD3D9OConsole::register_command("alias", cc_alias, "alias <alias> <existing command> [arguments...]\n    Creates an alias for an existing console command/alias.\n    When the alias is called, the existing command is executed with the given arguments (if any).\n    If the alias is called with additional arguments, the extra arguments are added to the end of the argument list provided when the alias was created.");
 	SpD3D9OConsole::register_command("paste", cc_paste, "paste\n    Copies ANSI text data from the clipboard to the console input");
 	SpD3D9OConsole::register_command("beep", cc_beep, "beep <frequency> <duration>\n    Generates a beeping sound at the given frequency (hz) for the given duration (milliseconds).\n    Execution is halted until the beep is completed.");
-	SpD3D9OConsole::register_command("load_library", cc_load_library, "load_library <filename>\n    Loads the specified dynamic link library (DLL) file.");
-	SpD3D9OConsole::register_command("free_library", cc_free_library, "free_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).");
+	SpD3D9OConsole::register_command("load_library", cc_load_library, "load_library <filename>\n    Loads the specified dynamic link library (DLL) file.\n\n    WARNING: Loading libraries can allow malicious code to run, which can jeopardize your entire system (not just this game).\n             Only load libraries from trusted sources, and use this command at your own risk. The creator of this DirectX9\n             console is not responsible for any poor decisions made with this command.");
+	SpD3D9OConsole::register_command("free_library", cc_free_library, "free_library <filename|HMODULE>\n    Unloads the specified dynamic link library (DLL) module.\n    The module can be specified through the .dll file name or its starting address in memory (HMODULE).\n\n    WARNING: Unloading libraries can lead to instability, crashing, and other undesired behavior.\n             Use this command at your own risk.");
 	SpD3D9OConsole::register_alias("unload_library", "free_library");
 	SpD3D9OConsole::register_command("aob_scan", cc_aob_scan, "aob_scan <byte> [byte...]\n    Scans process memory for the given byte array (AoB = \"Array of Bytes\"). Each byte in the byte pattern should be passed as a separate argument.\n    Wildcard bytes (bytes that can be any value) can be passed as \"??\" or \"**\".");
 	//SpD3D9OConsole::register_command("shell", cc_shell, "shell <URL>\n    Executes a shell command in the system default shell.");
 	SpD3D9OConsole::register_command("web", cc_open_web_page, "web <URL>\n    Opens a web page in the system default web browser.");
-	SpD3D9OConsole::register_command("game_input", cc_game_input, "game_input [is_enabled]\n    Enables/disables game input. If input is disabled, mouse, keyboard, and other input will not affect the game state.");
+	SpD3D9OConsole::register_command("game_input", cc_game_input, "game_input [BOOLEAN]\n    Enables/disables game input. If input is disabled, mouse, keyboard, and other input will not affect the game state.");
 	SpD3D9OConsole::register_command("console", cc_console_enabled, "console [is_open]\n    Opens/closes the console (1 = open, 0 = hidden).");
 	SpD3D9OConsole::register_command("console_restore_developer_default_settings", cc_console_restore_dev_defaults, "console_restore_developer_default_settings\n    Restores all console settings to developer-preferred values.");
 	SpD3D9OConsole::register_command("console_restore_user_preferred_settings", cc_console_restore_user_prefs, std::string("console_restore_user_preferred_settings\n    Re-loads console settings from user preference configuration file (").append(_SP_D3D9O_C_PREF_FILE_).append(")").c_str());
 	SpD3D9OConsole::register_command("console_clear", cc_console_clear, "console_clear\n    Clears console output.");
 	SpD3D9OConsole::register_alias("clear", "console_clear");
-	SpD3D9OConsole::register_command("console_echo", cc_console_echo, "console_echo [is_enabled]\n    Enables/disables console input echo (1 = on, 0 = off).");
-	SpD3D9OConsole::register_command("console_output", cc_console_output, "console_output [is_enabled]\n    Enables/disables console output stream (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("console_echo", cc_console_echo, "console_echo [BOOLEAN]\n    Enables/disables console input echo (1 = on, 0 = off).");
+	SpD3D9OConsole::register_command("console_output", cc_console_output, "console_output [BOOLEAN]\n    Enables/disables console output stream (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("console_output_lines", cc_console_output_lines, "console_output_lines [line_count]\n    Enables/disables external console output window.");
 	SpD3D9OConsole::register_command("console_external_output_window", cc_console_output_window, "console_external_output_window [boolean]\n    Sets the size of the console output window to the specified number of output lines.");
 	SpD3D9OConsole::register_command("console_execute", cc_console_execute, "console_execute <command> [command...]\n    Executes each argument as a separate console command.");
 	SpD3D9OConsole::register_command("console_script", cc_console_script, "console_script <file>\n    Opens a plain-text script file and executes each line as a separate console command.");
 	SpD3D9OConsole::register_alias("script", "console_script");
 	SpD3D9OConsole::register_command("console_font_size", cc_console_font_size, std::string("console_font_size [size]\n    Sets the console overlay font size. Font size ranges from ").append(std::to_string(_SP_D3D9O_C_MIN_FONT_SIZE_)).append(" to ").append(std::to_string(_SP_D3D9O_C_MAX_FONT_SIZE_)).append(".").c_str());
-	SpD3D9OConsole::register_command("console_autocomplete_preview", cc_autocomplete_preview, "console_autocomplete_preview [is_enabled]\n    Shows/hides preview of remaining characters for the currently-highlighted autocomplete suggestion in the console input field (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("console_autocomplete_preview", cc_autocomplete_preview, "console_autocomplete_preview [BOOLEAN]\n    Shows/hides preview of remaining characters for the currently-highlighted autocomplete suggestion in the console input field (1 = enabled, 0 = disabled).");
 	SpD3D9OConsole::register_command("console_autocomplete_limit", cc_autocomplete_limit, "console_autocomplete_limit [limit]\n    Sets the maximum number of autocomplete suggestions to be shown (0 = off).");
 	SpD3D9OConsole::register_command("console_prompt", cc_console_prompt, "console_prompt [prompt]\n    Sets the console input prompt string.");
-	SpD3D9OConsole::register_command("console_prompt_user", cc_console_prompt_user, "console_prompt_user [is_enabled]\n    Enables/disables the username element of the console input prompt.");
-	SpD3D9OConsole::register_command("console_prompt_hostname", cc_console_prompt_host, "console_prompt_hostname [is_enabled]\n    Enables/disables the hostname element of the console input prompt.");
-	SpD3D9OConsole::register_command("console_prompt_cwd", cc_console_prompt_cwd, "console_prompt_cwd [is_enabled]\n    Enables/disables the working directory element of the console input prompt.");
+	SpD3D9OConsole::register_command("console_prompt_user", cc_console_prompt_user, "console_prompt_user [BOOLEAN]\n    Enables/disables the username element of the console input prompt.");
+	SpD3D9OConsole::register_command("console_prompt_hostname", cc_console_prompt_host, "console_prompt_hostname [BOOLEAN]\n    Enables/disables the hostname element of the console input prompt.");
+	SpD3D9OConsole::register_command("console_prompt_cwd", cc_console_prompt_cwd, "console_prompt_cwd [BOOLEAN]\n    Enables/disables the working directory element of the console input prompt.");
 	SpD3D9OConsole::register_command("console_caret", cc_console_caret, "console_caret [caret]\n    Sets the console input caret character.");
-	SpD3D9OConsole::register_command("console_box_caret", cc_console_box_caret, "console_box_caret [is_enabled]\n    Enables/disables box caret mode. If box caret mode is enabled, caret character setting is ignored.");
+	SpD3D9OConsole::register_command("console_box_caret", cc_console_box_caret, "console_box_caret [BOOLEAN]\n    Enables/disables box caret mode. If box caret mode is enabled, caret character setting is ignored.");
 	SpD3D9OConsole::register_command("console_caret_blink", cc_console_caret_blink, "console_caret_blink [blink_delay]\n    Sets the console input caret blink delay time (in milliseconds).");
 	SpD3D9OConsole::register_command("console_border_width", cc_console_border_width, "console_border_width [width]\n    Sets the console border width.");
-	SpD3D9OConsole::register_command("console_cursor", cc_console_cursor, "console_cursor [is_enabled]\n    Enables/disables the console mouse cursor.");
+	SpD3D9OConsole::register_command("console_cursor", cc_console_cursor, "console_cursor [BOOLEAN]\n    Enables/disables the console mouse cursor.");
 	SpD3D9OConsole::register_command("console_cursor_size", cc_console_cursor_size, std::string("console_cursor_size [size]\n    Sets the size of the console mouse cursor. Mouse cursor size ranges from ").append(std::to_string(_SP_D3D9O_C_MIN_FONT_SIZE_)).append(" to ").append(std::to_string(_SP_D3D9O_C_MAX_FONT_SIZE_)).append(".").c_str());
 	SpD3D9OConsole::register_command("echo", cc_echo, "echo [args]\n    Prints each argument on a separate line.");
 	SpD3D9OConsole::register_command("open", cc_run, "open <file>\n    Opens or runs a file using the system resolver.");
 	//SpD3D9OConsole::register_alias("run", "open");
-	SpD3D9OConsole::register_command("text_feed", cc_text_feed_enabled, "text_feed [is_enabled]\n    Enables/disables the overlay text feed (1 = enabled, 0 = disabled).");
-	SpD3D9OConsole::register_command("text_feed_info_bar", cc_text_feed_info_bar, "text_feed_info_bar [is_enabled]\n    Enables/disables the overlay text feed info bar (1 = enabled, 0 = disabled).");
-	SpD3D9OConsole::register_command("text_feed_date", cc_text_feed_info_date, "text_feed_date [is_enabled]\n    Enables/disables the date element of the overlay text feed info bar (1 = enabled, 0 = disabled).");
-	SpD3D9OConsole::register_command("text_feed_time", cc_text_feed_info_time, "text_feed_time [is_enabled]\n    Enables/disables the time element of the overlay text feed info bar (1 = enabled, 0 = disabled).");
-	SpD3D9OConsole::register_command("text_feed_fps", cc_text_feed_info_fps, "text_feed_fps [is_enabled]\n    Enables/disables the FPS counter element of the overlay text feed info bar (1 = enabled, 0 = disabled).");
-	SpD3D9OConsole::register_command("text_feed_print", cc_text_feed_print, "text_feed_print <message>\n    Prints a message to the overlay text feed.");
+	SpD3D9OConsole::register_command("text_feed", cc_text_feed_enabled, "text_feed [BOOLEAN]\n    Enables/disables the overlay text feed (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("text_feed_info_bar", cc_text_feed_info_bar, "text_feed_info_bar [BOOLEAN]\n    Enables/disables the overlay text feed info bar (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("text_feed_date", cc_text_feed_info_date, "text_feed_date [BOOLEAN]\n    Enables/disables the date element of the overlay text feed info bar (1 = enabled, 0 = disabled).");
+	SpD3D9OConsole::register_command("text_feed_time", cc_text_feed_info_time, "text_feed_time [BOOLEAN]\n    Enables/disables the time element of the overlay text feed info bar (1 = enabled, 0 = disabled).");
+    SpD3D9OConsole::register_command("text_feed_fps", cc_text_feed_info_fps, "text_feed_fps [BOOLEAN]\n    Enables/disables the FPS counter element of the overlay text feed info bar (1 = enabled, 0 = disabled).");
+    SpD3D9OConsole::register_command("text_feed_frame_count", cc_text_feed_info_frame_count, "text_feed_frame_count [BOOLEAN]\n    Enables/disables the global frame count element of the overlay text feed info bar (1 = enabled, 0 = disabled).");
+    SpD3D9OConsole::register_command("text_feed_print", cc_text_feed_print, "text_feed_print <message>\n    Prints a message to the overlay text feed.");
 	SpD3D9OConsole::register_command("text_feed_font_size", cc_text_feed_font_size, std::string("text_feed_font_size [size]\n    Sets the overlay text feed font size. Font size ranges from 1 to ").append(std::to_string(_SP_D3D9O_TF_MAX_FONT_SIZE_)).append(".").c_str());
 	SpD3D9OConsole::register_command("text_feed_title", cc_text_feed_title, "text_feed_title [title]\n    Sets the overlay text feed title message (only shown if text feed info bar is enabled).");
 	SpD3D9OConsole::register_command("text_feed_position", cc_text_feed_position, "text_feed_position\n    Returns the current overlay text feed position.");

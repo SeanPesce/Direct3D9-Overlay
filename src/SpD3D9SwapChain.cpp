@@ -122,6 +122,7 @@ HRESULT SpD3D9SwapChain::Present(const RECT *pSourceRect, const RECT *pDestRect,
 	}
 
 	(*present_calls)++;
+    SpD3D9Overlay::frame_count++; // Increment global frame count
 	HRESULT hres = m_pD3D9_swap_chain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
 	return hres;
 }

@@ -433,6 +433,15 @@ void SpD3D9OTextFeed::update_info_header()
 		info_string.append(" FPS]  ");
 	}
 
+    if (show_info_bar & SP_D3D9O_INFO_BAR_FRAME_COUNT)
+    {
+        // Insert global frame count into text feed info string
+        info_string.append("[Frame count: ");
+        unsigned long long current_frame_count = overlay->frame_count; // Get FPS count
+        info_string.append(std::to_string(current_frame_count));
+        info_string.append("]  ");
+    }
+
 
 	// Add live info bar elements from plugins
 	info_string.append(info_bar_plugin_elements);

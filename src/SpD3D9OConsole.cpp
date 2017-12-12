@@ -380,7 +380,7 @@ void SpD3D9OConsole::open_output_window()
 	// Command-line command to launch the external console output window
 	//char *start_command_parts[2] = { "cmd /V:ON /C \"@ECHO OFF&TITLE Console Log&CD /D\"", "\"&SET \"d3d9_output_line= \"&FOR /l %x IN (1, 0, 1) DO (SET /p d3d9_output_line=\"\" & ECHO:!d3d9_output_line! & SET \"d3d9_output_line= \")\"" };
 	//std::string start_command = std::string(start_command_parts[0]).append(game_exe_dir).append(start_command_parts[1]);
-	char *start_command_parts[2] = { "cmd /V:ON /C \"@ECHO OFF&TITLE Console Log", "&SET \"d3d9_output_line= \"&FOR /l %x IN (1, 0, 1) DO (SET /p d3d9_output_line=\"\" & ECHO:!d3d9_output_line! & SET \"d3d9_output_line= \")\"" };
+	char *start_command_parts[2] = { "cmd /V:ON /C \"@ECHO OFF&TITLE Console Output", "&SET \"d3d9_output_line= \"&FOR /l %x IN (1, 0, 1) DO (SET /p d3d9_output_line=\"\" & ECHO:!d3d9_output_line! & SET \"d3d9_output_line= \")\"" };
 	std::string start_command = std::string(start_command_parts[0]).append(start_command_parts[1]);
 
 	// Initialize the startup information for the child process
@@ -1932,7 +1932,7 @@ void SpD3D9OConsole::set_input_string_display_limits(unsigned int max_input_char
 		command_length = command.length();
 	}
 
-	if (command_length > max_input_chars)
+	if (command_length > (int)max_input_chars)
 	{
 		if (caret_position > input_display_end)
 		{

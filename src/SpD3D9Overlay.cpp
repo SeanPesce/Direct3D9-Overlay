@@ -8,6 +8,9 @@
 bool SpD3D9Overlay::run_plugin_funcs = true;
 std::list<SP_D3D9_PLUGIN> SpD3D9Overlay::loaded_libraries;
 
+// Global frame count
+unsigned long long SpD3D9Overlay::frame_count = 0;
+
 
 SpD3D9Overlay::SpD3D9Overlay(SpD3D9Interface *new_interface, SpD3D9Device *new_device, HWND new_focus_window, D3DPRESENT_PARAMETERS *present_params)
 {

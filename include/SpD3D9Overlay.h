@@ -138,6 +138,9 @@ public:
 	SpD3D9Interface *d3d_interface = NULL;
 	SpD3D9Device *device = NULL;
 
+    // Global frame count
+    static unsigned long long frame_count;
+
 	// Overlay member data
 	SpD3D9OTextFeed *text_feed = NULL;
 	SpD3D9OConsole *console = NULL;
@@ -151,6 +154,7 @@ public:
 	IDirect3DStateBlock9 *overlay_state_block = NULL; // State block applied before drawing overlay
 	unsigned int fps_count = 0;
 	unsigned int fps_timer_id = 0; // ID of timer used to update FPS count once per second
+    
 
 	static bool run_plugin_funcs;
 	static std::list<SP_D3D9_PLUGIN> loaded_libraries;

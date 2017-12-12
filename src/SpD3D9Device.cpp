@@ -250,7 +250,7 @@ HRESULT SpD3D9Device::Present(CONST RECT* pSourceRect, CONST RECT* pDestRect, HW
 
 
 	present_calls++; // Increment Present() call counter for the current second
-
+    SpD3D9Overlay::frame_count++; // Increment global frame count
 	// Call original routine
 	_SP_D3D9_CHECK_AND_RETURN_FAILED_(m_pIDirect3DDevice9->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion));
 }

@@ -3,7 +3,7 @@
 #pragma once
 
 #ifndef _SP_D3D9_MOD_TEMPLATE_H_
-	#define _SP_D3D9_MOD_TEMPLATE_H_
+    #define _SP_D3D9_MOD_TEMPLATE_H_
 
 #include <Windows.h>
 #include "SP_IO.hpp"

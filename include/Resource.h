@@ -4,12 +4,12 @@
 #pragma once
 
 #ifndef _SP_D3D9O_RESOURCE_H_
-	#define _SP_D3D9O_RESOURCE_H_
+    #define _SP_D3D9O_RESOURCE_H_
 
 
 
 #ifndef IDC_STATIC
-	#define IDC_STATIC (-1)
+    #define IDC_STATIC (-1)
 #endif // IDC_STATIC
 
 

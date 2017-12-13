@@ -3,6 +3,8 @@
 
 #pragma once
 
+#ifndef _SP_D3D9_STDAFX_H_
+    #define _SP_D3D9_STDAFX_H_
 
 #define WIN32_LEAN_AND_MEAN		
 
@@ -13,10 +15,10 @@
 
 // Fixes for compatibility issues between SeQan and Windows API
 #ifdef min
-	#undef min
+    #undef min
 #endif // min
 #ifdef max
-	#undef max
+    #undef max
 #endif // max
 
 #include <algorithm>
@@ -40,7 +42,7 @@
 #define _SP_D3D9_DLL_CHAIN_KEY_ "d3d9Chain"
 #define _SP_D3D9_DLL_GENERIC_KEY_ "GenericDLL"
 #ifdef _SP_DARK_SOULS_1_
-#define _SP_D3D9_DSPW_ADJUSTMENT_KEY_ "DspwOverlayAdjustment"
+    #define _SP_D3D9_DSPW_ADJUSTMENT_KEY_ "DspwOverlayAdjustment"
 #endif // _SP_DARK_SOULS_1_
 //	Keybinds section key names
 #define _SP_D3D9_HOTKEY_TOGGLE_OL_TXT_KEY_ "ToggleOverlay"
@@ -82,13 +84,15 @@
 #define _SP_D3D9_LOG_SPEC_EVENT_(file, msg, ...) {std::string str_tmp_="";append_current_timestamp_string(&str_tmp_,true);char c_str_tmp_[_SP_D3D9_LOG_EV_MSG_BUFF_SIZE_];snprintf(c_str_tmp_,_SP_D3D9_LOG_EV_MSG_BUFF_SIZE_,msg, ##__VA_ARGS__);file_append_text(file,str_tmp_.append(" ").append(c_str_tmp_).c_str());}
 
 #ifdef D3D_DEBUG_INFO
-	#include <DxErr.h>
-	#pragma comment(lib, "dxerr.lib")
-	#define _SP_D3D9_CHECK_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("%s (%s) - Occurred in:  thread %d;  %s (line %d)",DXGetErrorString(hres_tmp_),DXGetErrorDescription(hres_tmp_),GetCurrentThreadId(),__FUNCTION__,__LINE__);}}
-	#define _SP_D3D9_CHECK_AND_RETURN_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("%s (%s) - Occurred in:  thread %d;  %s (line %d)",DXGetErrorString(hres_tmp_),DXGetErrorDescription(hres_tmp_),GetCurrentThreadId(),__FUNCTION__,__LINE__);}return hres_tmp_;}
+    #include <DxErr.h>
+    #pragma comment(lib, "dxerr.lib")
+    #define _SP_D3D9_CHECK_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("%s (%s) - Occurred in:  thread %d;  %s (line %d)",DXGetErrorString(hres_tmp_),DXGetErrorDescription(hres_tmp_),GetCurrentThreadId(),__FUNCTION__,__LINE__);}}
+    #define _SP_D3D9_CHECK_AND_RETURN_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("%s (%s) - Occurred in:  thread %d;  %s (line %d)",DXGetErrorString(hres_tmp_),DXGetErrorDescription(hres_tmp_),GetCurrentThreadId(),__FUNCTION__,__LINE__);}return hres_tmp_;}
 #else
-	//#define _SP_D3D9_CHECK_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("D3D9 ERROR - Occurred in:  thread %d;  %s (line %d)",GetCurrentThreadId(),__FUNCTION__,__LINE__);}}
-	//#define _SP_D3D9_CHECK_AND_RETURN_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("D3D9 ERROR - Occurred in:  thread %d;  %s (line %d)",GetCurrentThreadId(),__FUNCTION__,__LINE__);}return hres_tmp_;}
-	#define _SP_D3D9_CHECK_FAILED_(f) FAILED(f)
-	#define _SP_D3D9_CHECK_AND_RETURN_FAILED_(f) return f;
+    //#define _SP_D3D9_CHECK_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("D3D9 ERROR - Occurred in:  thread %d;  %s (line %d)",GetCurrentThreadId(),__FUNCTION__,__LINE__);}}
+    //#define _SP_D3D9_CHECK_AND_RETURN_FAILED_(f) {HRESULT hres_tmp_;if(FAILED(hres_tmp_ = f)){_SP_D3D9_LOG_EVENT_("D3D9 ERROR - Occurred in:  thread %d;  %s (line %d)",GetCurrentThreadId(),__FUNCTION__,__LINE__);}return hres_tmp_;}
+    #define _SP_D3D9_CHECK_FAILED_(f) FAILED(f)
+    #define _SP_D3D9_CHECK_AND_RETURN_FAILED_(f) return f;
 #endif // D3D_DEBUG_INFO
+
+#endif // _SP_D3D9_STDAFX_H_

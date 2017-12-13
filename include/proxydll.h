@@ -4,16 +4,16 @@
 #pragma once
 
 #ifndef _SP_D3D9_OVERLAY_TEMPLATE_H_
-	#define _SP_D3D9_OVERLAY_TEMPLATE_H_
+    #define _SP_D3D9_OVERLAY_TEMPLATE_H_
 
 #ifdef _SP_DARK_SOULS_1_
-	//#include "SpModDarkSouls1.h"
+    //#include "SpModDarkSouls1.h"
 #endif // _SP_DARK_SOULS_1_
 
 
 //////////////////////// WRAPPER DLL FUNCTIONS ////////////////////////
 // Exported function
-IDirect3D9* WINAPI Direct3DCreate9 (UINT SDKVersion);
+IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion);
 // Regular functions
 void InitInstance(HANDLE hModule);
 void InitSettings(); // Parses settings file (.ini) for intialization settings
@@ -25,17 +25,17 @@ void LoadOriginalDll(void); // Loads the original d3d9.dll from the system direc
 
 // Enumerator whose values specify whether a toggleable setting is enabled or disabled:
 enum SP_OL_TXT_ENABLED_ENUM {
-	OL_TXT_DISABLED,
-	OL_TXT_ENABLED
+    OL_TXT_DISABLED,
+    OL_TXT_ENABLED
 };
 // Enumerator whose values specify horizontal and vertical positions of overlay feed text:
 enum SP_OL_TXT_POS_ENUM {
-	OL_TXT_POS_LEFT,
-	OL_TXT_POS_HCENTER,
-	OL_TXT_POS_RIGHT,
-	OL_TXT_POS_TOP,
-	OL_TXT_POS_VCENTER,
-	OL_TXT_POS_BOTTOM
+    OL_TXT_POS_LEFT,
+    OL_TXT_POS_HCENTER,
+    OL_TXT_POS_RIGHT,
+    OL_TXT_POS_TOP,
+    OL_TXT_POS_VCENTER,
+    OL_TXT_POS_BOTTOM
 };
 
 // Acceptable values that a user can specify for text position in the settings file:

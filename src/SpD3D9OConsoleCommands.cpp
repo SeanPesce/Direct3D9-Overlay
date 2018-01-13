@@ -507,6 +507,35 @@ int cc_help(std::vector<std::string> args, std::string *output)
 }
 
 
+// Prints build title and compile time for current build of the DirectX 9 overlay
+int cc_build(std::vector<std::string> args, std::string *output)
+{
+    // +-------------------------------------+
+    // | DirectX 9 Overlay & In-game Console |
+    // |                                     |
+    // |        Created by Sean Pesce        |
+    // +-------------------------------------+
+    gl_pSpD3D9Device->overlay->console->print("\n +-------------------------------------+\n | DirectX 9 Overlay & In-game Console |\n |                                     |\n |        Created by Sean Pesce        |\n +-------------------------------------+\n Compiled:  " __DATE__ "   " __TIME__);
+    gl_pSpD3D9Device->overlay->console->print("");
+    return CONSOLE_COMMAND_SUCCESS;
+}
+
+
+// Prints build title and author info for current build of the DirectX 9 overlay
+int cc_author(std::vector<std::string> args, std::string *output)
+{
+    // +-------------------------------------+
+    // | DirectX 9 Overlay & In-game Console |
+    // |                                     |
+    // |        Created by Sean Pesce        |
+    // +-------------------------------------+
+    gl_pSpD3D9Device->overlay->console->print("\n +-------------------------------------+\n | DirectX 9 Overlay & In-game Console |\n |                                     |\n |        Created by Sean Pesce        |\n +-------------------------------------+\n"
+                                              " Contact:\n   pesce.sean""@""gmail.com""\n   https://reddit.com/u/SeanPesce \n   https://twitter.com/SeanPesce \n   https://github.com/SeanPesce \n   https://www.youtube.com/channel/UCgsMpXiR3PawqKM7MWLJGzQ \n   Discord: @SeanP#5604 \n   ");
+    gl_pSpD3D9Device->overlay->console->print("");
+    return CONSOLE_COMMAND_SUCCESS;
+}
+
+
 // Sets whether the Windows cursor is visible
 /*int cc_windows_cursor(std::vector<std::string> args, std::string *output)
 {
@@ -2449,6 +2478,10 @@ void register_default_console_commands()
 {
     SpD3D9OConsole::register_command("help", cc_help, "help [command]\n    Prints the help message for the given command.");
     SpD3D9OConsole::register_alias("h", "help");
+    SpD3D9OConsole::register_command("d3d9_build", cc_build, "d3d9_build\n    Prints build title and compile time for the current build of this DirectX 9 overlay & console.");
+    SpD3D9OConsole::register_alias("overlay_build", "d3d9_build");
+    SpD3D9OConsole::register_command("d3d9_author", cc_author, "d3d9_author\n    Prints contact info for the creator of this DirectX 9 overlay & console (SeanP).");
+    SpD3D9OConsole::register_alias("overlay_author", "d3d9_author");
     SpD3D9OConsole::register_command("exit", cc_exit, "exit [exit code]\n    Exits the game.");
     SpD3D9OConsole::register_alias("quit", "exit");
     SpD3D9OConsole::register_command("commands", cc_all_commands, "commands\n    Lists all available console commands");

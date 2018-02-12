@@ -10,6 +10,8 @@
     //#include "SpModDarkSouls1.h"
 #endif // _SP_DARK_SOULS_1_
 
+#define SP_D3D9_EXPORT_COUNT_ 15
+
 
 //////////////////////// WRAPPER DLL FUNCTIONS ////////////////////////
 // Exported function
@@ -50,6 +52,23 @@ const char *SP_OL_TXT_STYLE_VALS[3] = { "OUTLINE", "SHADOW", "PLAIN" }; // If sp
 #define _SP_D3D9_DEFAULT_VAL_OL_TXT_HORIZONTAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_HCENTER]
 #define _SP_D3D9_DEFAULT_VAL_OL_TXT_VERTICAL_POS_ SP_OL_TXT_POS_VALS[OL_TXT_POS_BOTTOM]
 #define _SP_D3D9_DEFAULT_VAL_OL_TXT_STYLE_ SP_OL_TXT_STYLE_VALS[SP_D3D9O_OUTLINED_TEXT]
+
+
+extern "C" void __stdcall D3DPERF_BeginEvent_jmp();
+extern "C" void __stdcall D3DPERF_EndEvent_jmp();
+extern "C" void __stdcall D3DPERF_GetStatus_jmp();
+extern "C" void __stdcall D3DPERF_QueryRepeatFrame_jmp();
+extern "C" void __stdcall D3DPERF_SetMarker_jmp();
+extern "C" void __stdcall D3DPERF_SetOptions_jmp();
+extern "C" void __stdcall D3DPERF_SetRegion_jmp();
+extern "C" void __stdcall DebugSetLevel_jmp();
+extern "C" void __stdcall DebugSetMute_jmp();
+extern "C" void __stdcall Direct3D9EnableMaximizedWindowedModeShim_jmp();
+extern "C" void __stdcall Direct3DCreate9_jmp();
+extern "C" void __stdcall Direct3DCreate9Ex_jmp();
+extern "C" void __stdcall Direct3DShaderValidatorCreate9_jmp();
+extern "C" void __stdcall PSGPError_jmp();
+extern "C" void __stdcall PSGPSampleTexture_jmp();
 
 
 //////////////////////// VARIABLES & DATA ////////////////////////

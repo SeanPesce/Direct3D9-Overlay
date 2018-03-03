@@ -38,7 +38,7 @@ A Direct3D9 Wrapper DLL/classes with a built-in overlay framework that implement
  * [Visual Studio 2015](https://www.visualstudio.com/vs/older-downloads/)  
  * [June 2010 DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=8109)  
  * [MS Detours](https://www.microsoft.com/en-us/research/project/detours/)  
- * [SeQan](https://www.seqan.de/)  
+ * [SeqAn](https://www.seqan.de/)  
 
 
 ## Disclaimer  

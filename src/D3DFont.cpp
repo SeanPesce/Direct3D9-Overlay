@@ -1,4 +1,3 @@
-
 //-----------------------------------------------------------------------------
 // File: D3DFont.cpp
 //
@@ -28,11 +27,18 @@
  *          https://www.unknowncheats.me/forum/d3d-tutorials-and-source/74839-modified-cd3dfont-d3d9-shadows-light-effect.html
  */
 
+/*
+ * Final modifications by Sean Pesce
+ *
+ */
+
 #include "stdafx.h"
 #include "D3DFont.h"
 
-__inline BOOL IsCharNumeric(char tszChar) {
-    if ((!IsCharAlpha(tszChar)) && (IsCharAlphaNumeric(tszChar))) {
+__inline BOOL IsCharNumeric(char tszChar)
+{
+    if ((!IsCharAlpha(tszChar)) && (IsCharAlphaNumeric(tszChar)))
+    {
         return TRUE;
     }
     return FALSE;
@@ -46,8 +52,10 @@ __inline BOOL IsCharNumeric(char tszChar) {
 //
 // ^# where # is one of the numbers below.
 //
-DWORD GetCustomColor(char tszColor, BYTE bAlpha) {
-    switch (tszColor) {
+DWORD GetCustomColor(char tszColor, BYTE bAlpha)
+{
+    switch (tszColor)
+    {
         case ('0'): // White
             return D3DCOLOR_ARGB(bAlpha, 0xFF, 0xFF, 0xFF);
             break;
@@ -79,7 +87,6 @@ DWORD GetCustomColor(char tszColor, BYTE bAlpha) {
             return D3DCOLOR_ARGB(bAlpha, 0x00, 0x00, 0x00);
             break;
     }
-
     return D3DCOLOR_ARGB(bAlpha, 0xFF, 0xFF, 0xFF);
 }
 
@@ -88,14 +95,12 @@ DWORD GetCustomColor(char tszColor, BYTE bAlpha) {
 #define colorG(col) (BYTE( ( col >> 8  ) &0xFF ) )
 #define colorB(col) (BYTE( ( col       ) &0xFF ) )
 
-inline DWORD CD3DFont::LightColor(DWORD  color)
+inline DWORD CD3DFont::LightColor(DWORD color)
 {
-
     BYTE a = colorA(color);
     BYTE r = colorR(color);
     BYTE g = colorG(color);
     BYTE b = colorB(color);
-
 
     if (r <= 0x60)
         r += 0x20;
@@ -133,12 +138,10 @@ inline DWORD CD3DFont::LightColor(DWORD  color)
         b += 0x1F;
 
     return ((D3DCOLOR)(((((a)) & 0xff) << 24) | ((((r)) & 0xff) << 16) | ((((g)) & 0xff) << 8) | (((b)) & 0xff)));
-
 }
 
-inline DWORD CD3DFont::DarkColor(DWORD   color)
+inline DWORD CD3DFont::DarkColor(DWORD color)
 {
-
     BYTE a = colorA(color);
     BYTE r = colorR(color);
     BYTE g = colorG(color);
@@ -179,7 +182,8 @@ inline DWORD CD3DFont::DarkColor(DWORD   color)
 // Name: CD3DFont()
 // Desc: Font class constructor
 //-----------------------------------------------------------------------------
-CD3DFont::CD3DFont(const char* strFontName, DWORD dwHeight, DWORD dwFlags) {
+CD3DFont::CD3DFont(const char* strFontName, DWORD dwHeight, DWORD dwFlags)
+{
     strcpy_s(m_strFontName, 80 * sizeof(char), strFontName);
     m_fFontHeight = static_cast<float>(dwHeight);
     m_dwFontFlags = dwFlags;
@@ -206,7 +210,8 @@ CD3DFont::CD3DFont(const char* strFontName, DWORD dwHeight, DWORD dwFlags) {
 // Name: ~CD3DFont()
 // Desc: Font class destructor
 //-----------------------------------------------------------------------------
-CD3DFont::~CD3DFont(void) {
+CD3DFont::~CD3DFont(void)
+{
     InvalidateDeviceObjects();
     DeleteDeviceObjects();
 }
@@ -258,7 +263,7 @@ HRESULT CD3DFont::InitializeDeviceObjects(LPDIRECT3DDEVICE9 pd3dDevice)
         return hr;
 
     // Prepare to create a bitmap
-    DWORD*      pBitmapBits;
+    DWORD* pBitmapBits;
     BITMAPINFO bmi;
     ZeroMemory(&bmi.bmiHeader, sizeof(BITMAPINFOHEADER));
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -269,16 +274,17 @@ HRESULT CD3DFont::InitializeDeviceObjects(LPDIRECT3DDEVICE9 pd3dDevice)
     bmi.bmiHeader.biBitCount = 32;
 
     // Create a DC and a bitmap for the font
-    HDC     hDC = CreateCompatibleDC(NULL);
+    HDC hDC = CreateCompatibleDC(NULL);
     HBITMAP hbmBitmap = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS,
-        (void**)&pBitmapBits, NULL, 0);
+                                         (void**)&pBitmapBits, NULL, 0);
     SetMapMode(hDC, MM_TEXT);
 
     // Create a font.  By specifying ANTIALIASED_QUALITY, we might get an
     // antialiased font, but this is not guaranteed.
     INT nHeight = -MulDiv((int)m_fFontHeight,
-        (INT)(GetDeviceCaps(hDC, LOGPIXELSY) * (m_fTextScale)), 72);
-    DWORD dwBold = (m_dwFontFlags&D3DFONT_BOLD) ? FW_BOLD : FW_NORMAL;
+                          (INT)(GetDeviceCaps(hDC, LOGPIXELSY) * (m_fTextScale)),
+                          72);
+    DWORD dwBold   = (m_dwFontFlags&D3DFONT_BOLD) ? FW_BOLD : FW_NORMAL;
     DWORD dwItalic = (m_dwFontFlags&D3DFONT_ITALIC) ? TRUE : FALSE;
     HFONT hFont = CreateFontA(nHeight, 0, 0, 0, dwBold, dwItalic,
                               FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
@@ -366,30 +372,38 @@ HRESULT CD3DFont::InitializeDeviceObjects(LPDIRECT3DDEVICE9 pd3dDevice)
 // Name: RestoreDeviceObjects()
 // Desc:
 //-----------------------------------------------------------------------------
-HRESULT CD3DFont::RestoreDeviceObjects(void) {
+HRESULT CD3DFont::RestoreDeviceObjects(void)
+{
     HRESULT hResult = E_FAIL;
 
     // Create vertex buffer for the letters
-    //if( m_pVB ) {
-    //	SAFE_RELEASE( m_pVB );
+    //if( m_pVB )
+    //{
+    //    SAFE_RELEASE( m_pVB );
     //}
     if (FAILED(hResult = m_pD3DDevice->CreateVertexBuffer(MAX_NUM_VERTICES * sizeof(FONT2DVERTEX),
-                                                          D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, 0,
-                                                          D3DPOOL_DEFAULT, &m_pVB, NULL)))
+                                                          D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC,
+                                                          0,
+                                                          D3DPOOL_DEFAULT,
+                                                          &m_pVB, NULL)))
     {
         return hResult;
     }
     // Create vertex buffer for the effects
-    //if( m_pEffectVertices ) {
-    //	SAFE_RELEASE( m_pEffectVB );
+    //if( m_pEffectVertices )
+    //{
+    //    SAFE_RELEASE( m_pEffectVB );
     //}
     if (FAILED(hResult = m_pD3DDevice->CreateVertexBuffer(MAX_NUM_VERTICES * sizeof(FONTEFFECTVERTEX),
-                                                          D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, 0,
-                                                          D3DPOOL_DEFAULT, &m_pEffectVB, NULL)))
+                                                          D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC,
+                                                          0,
+                                                          D3DPOOL_DEFAULT,
+                                                          &m_pEffectVB, NULL)))
         return hResult;
 
     // Create the state blocks for rendering text
-    for (int nIndex = 0; nIndex < 2; nIndex++) {
+    for (int nIndex = 0; nIndex < 2; nIndex++)
+    {
         m_pD3DDevice->BeginStateBlock();
         m_pD3DDevice->SetTexture(0, m_pTexture);
 
@@ -402,7 +416,7 @@ HRESULT CD3DFont::RestoreDeviceObjects(void) {
         m_pD3DDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
         m_pD3DDevice->SetRenderState(D3DRS_STENCILENABLE, FALSE);
         m_pD3DDevice->SetRenderState(D3DRS_CLIPPING, TRUE);
-        //        m_pD3DDevice->SetRenderState( D3DRS_EDGEANTIALIAS,	  FALSE );
+        //m_pD3DDevice->SetRenderState( D3DRS_EDGEANTIALIAS, FALSE );
         m_pD3DDevice->SetRenderState(D3DRS_CLIPPLANEENABLE, FALSE);
         m_pD3DDevice->SetRenderState(D3DRS_VERTEXBLEND, FALSE);
         m_pD3DDevice->SetRenderState(D3DRS_FOGENABLE, FALSE);
@@ -431,9 +445,7 @@ HRESULT CD3DFont::RestoreDeviceObjects(void) {
             m_pD3DDevice->EndStateBlock(&m_pStateBlockSaved);
         else
             m_pD3DDevice->EndStateBlock(&m_pStateBlockDrawText);
-
     }
-
     return S_OK;
 }
 
@@ -443,19 +455,23 @@ HRESULT CD3DFont::RestoreDeviceObjects(void) {
 // Name: InvalidateDeviceObjects()
 // Desc: Destroys all device-dependent objects
 //-----------------------------------------------------------------------------
-HRESULT CD3DFont::InvalidateDeviceObjects(void) {
-    if (m_pVB) {
+HRESULT CD3DFont::InvalidateDeviceObjects(void)
+{
+    if (m_pVB)
+    {
         //m_pVB->Release();
         SAFE_RELEASE(m_pVB);
     }
 
-    if (m_pEffectVB) {
+    if (m_pEffectVB)
+    {
         //m_pEffectVB->Release();
         SAFE_RELEASE(m_pEffectVB);
     }
 
     // Delete the state blocks
-    if (m_pD3DDevice) {
+    if (m_pD3DDevice)
+    {
         SAFE_RELEASE(m_pStateBlockSaved);
         SAFE_RELEASE(m_pStateBlockDrawText);
     }
@@ -471,11 +487,11 @@ HRESULT CD3DFont::InvalidateDeviceObjects(void) {
 // Name: DeleteDeviceObjects()
 // Desc: Destroys all device-dependent objects
 //-----------------------------------------------------------------------------
-HRESULT CD3DFont::DeleteDeviceObjects(void) {
+HRESULT CD3DFont::DeleteDeviceObjects(void)
+{
     //m_pTexture->Release();
     SAFE_RELEASE(m_pTexture);
     m_pD3DDevice = NULL;
-
     return S_OK;
 }
 
@@ -485,7 +501,8 @@ HRESULT CD3DFont::DeleteDeviceObjects(void) {
 // Name: GetTextExtent()
 // Desc: Get the dimensions of a text string
 //-----------------------------------------------------------------------------
-HRESULT CD3DFont::GetTextExtent(const char* strText, SIZE* pSize) {
+HRESULT CD3DFont::GetTextExtent(const char* strText, SIZE* pSize)
+{
     if ((strText == NULL) || (pSize == NULL))
         return E_FAIL;
 
@@ -496,22 +513,27 @@ HRESULT CD3DFont::GetTextExtent(const char* strText, SIZE* pSize) {
 
     BOOL bSkipNext = FALSE;
 
-    while (*strText) {
+    while (*strText)
+    {
         char tchLetter = *strText++;
 
-        if (bSkipNext) {
+        if (bSkipNext)
+        {
             bSkipNext = FALSE;
             continue;
         }
 
-        if (tchLetter == ('^')) {
-            if (IsCharNumeric(*strText)) {
+        if (tchLetter == ('^'))
+        {
+            if (IsCharNumeric(*strText))
+            {
                 bSkipNext = TRUE;
                 continue;
             }
         }
 
-        if (tchLetter == ('\n')) {
+        if (tchLetter == ('\n'))
+        {
             fRowWidth = 0.0f;
             fHeight += fRowHeight;
         }
@@ -534,7 +556,8 @@ HRESULT CD3DFont::GetTextExtent(const char* strText, SIZE* pSize) {
     return S_OK;
 }
 
-HRESULT CD3DFont::BeginDrawing(void) {
+HRESULT CD3DFont::BeginDrawing(void)
+{
     if (m_pD3DDevice == NULL)
         return E_FAIL;
 
@@ -555,17 +578,20 @@ HRESULT CD3DFont::BeginDrawing(void) {
 // Name: DrawText()
 // Desc: Draws 2D text
 //-----------------------------------------------------------------------------
-HRESULT CD3DFont::DrawText(float fXPos, float fYPos, DWORD dwColor, const char* strText, DWORD dwFlags, DWORD dwBackgroundColor) {
+HRESULT CD3DFont::DrawText(float fXPos, float fYPos, DWORD dwColor, const char* strText, DWORD dwFlags, DWORD dwBackgroundColor)
+{
     if ((m_pD3DDevice == NULL) || (strText == NULL) || (m_pEffectVertices == NULL) || (m_pFontVertices == NULL))
         return E_FAIL;
 
     HRESULT hResult = E_FAIL;
 
-    if (dwFlags & D3DFONT_BACKGROUND) {
+    if (dwFlags & D3DFONT_BACKGROUND)
+    {
         SIZE szFontBox = { 0 };
 
         if (FAILED(GetTextExtent(strText, &szFontBox)))
             return E_FAIL;
+
         // Set filter states
 
         szFontBox.cx += static_cast<LONG>(fXPos);
@@ -585,7 +611,8 @@ HRESULT CD3DFont::DrawText(float fXPos, float fYPos, DWORD dwColor, const char* 
 
         m_dwUsedEffectVerts += 6;
 
-        if (m_dwUsedEffectVerts > (MAX_NUM_VERTICES - 6)) {
+        if (m_dwUsedEffectVerts > (MAX_NUM_VERTICES - 6))
+        {
             if (FAILED(hResult = m_pStateBlockSaved->Capture()))
                 return hResult;
 
@@ -634,12 +661,14 @@ HRESULT CD3DFont::DrawText(float fXPos, float fYPos, DWORD dwColor, const char* 
         }
     }
 
-    if (dwFlags & D3DFONT_RIGHT) {
+    if (dwFlags & D3DFONT_RIGHT)
+    {
         SIZE sz;
         GetTextExtent(strText, &sz);
         fXPos -= (FLOAT)sz.cx;
     }
-    else if (dwFlags & D3DFONT_CENTERED) {
+    else if (dwFlags & D3DFONT_CENTERED)
+    {
         SIZE sz;
         GetTextExtent(strText, &sz);
         fXPos -= (FLOAT)sz.cx / 2.0f;
@@ -655,19 +684,22 @@ HRESULT CD3DFont::DrawText(float fXPos, float fYPos, DWORD dwColor, const char* 
     float fStartX = fXPos;
     DWORD dwCustomColor = 0xFFFFFFFF;
 
-    while (*strText) {
+    while (*strText)
+    {
         char tszChr = *strText++;
         DWORD strCur = (DWORD)strText;
-        if (tszChr == ('^')) {
-            if (IsCharNumeric(*strText)) {
+        if (tszChr == ('^'))
+        {
+            if (IsCharNumeric(*strText))
+            {
                 char tszValue = *strText++;
                 dwCustomColor = GetCustomColor(tszValue, (dwColor >> 24));
-
                 continue;
             }
         }
 
-        if (tszChr == ('\n')) {
+        if (tszChr == ('\n'))
+        {
             fXPos = fStartX;
             fYPos += (m_fTexCoords[0][3] - m_fTexCoords[0][1]) * m_dwTexHeight;
         }
@@ -683,7 +715,8 @@ HRESULT CD3DFont::DrawText(float fXPos, float fYPos, DWORD dwColor, const char* 
         float fWidth = (tx2 - tx1) *  m_dwTexWidth / m_fTextScale;
         float fHeight = (ty2 - ty1) * m_dwTexHeight / m_fTextScale;
 
-        if (tszChr != (' ')) {
+        if (tszChr != (' '))
+        {
             if (dwFlags & D3DFONT_COLORTABLE)
                 dwColor = dwCustomColor;
 
@@ -733,7 +766,8 @@ HRESULT CD3DFont::DrawText(float fXPos, float fYPos, DWORD dwColor, const char* 
 
             m_dwUsedFontVerts += 2;
 
-            if (m_dwUsedFontVerts * 3 > (MAX_NUM_VERTICES - 6)) {
+            if (m_dwUsedFontVerts * 3 > (MAX_NUM_VERTICES - 6))
+            {
                 // Unlock, render, and relock the vertex buffer
 
                 if (FAILED(hResult = m_pStateBlockSaved->Capture()))
@@ -772,16 +806,15 @@ HRESULT CD3DFont::DrawText(float fXPos, float fYPos, DWORD dwColor, const char* 
                     return hResult;
             }
         }
-
         fXPos += fWidth;
     }
-
     return S_OK;
 }
 
 
 
-HRESULT CD3DFont::EndDrawing(void) {
+HRESULT CD3DFont::EndDrawing(void)
+{
     if (m_pD3DDevice == NULL)
         return E_FAIL;
 
@@ -800,7 +833,8 @@ HRESULT CD3DFont::EndDrawing(void) {
     if (FAILED(hResult = m_pEffectVB->Unlock()))
         return hResult;
 
-    if (m_dwUsedEffectVerts) {
+    if (m_dwUsedEffectVerts)
+    {
         if (FAILED(hResult = m_pD3DDevice->SetFVF(D3DFVF_FONTEFFECTVERTEX)))
             return hResult;
 
@@ -849,7 +883,8 @@ HRESULT CD3DFont::EndDrawing(void) {
     return S_OK;
 }
 
-HRESULT CD3DFont::BeginStatic(void) {
+HRESULT CD3DFont::BeginStatic(void)
+{
     if ((m_pD3DDevice == NULL) || (m_pEffectVB == NULL) || (m_pVB == NULL))
         return E_FAIL;
 
@@ -864,11 +899,13 @@ HRESULT CD3DFont::BeginStatic(void) {
     return S_OK;
 }
 
-HRESULT CD3DFont::AddStaticText(float fXPos, float fYPos, DWORD dwColor, const char* strText, DWORD dwFlags, DWORD dwBackgroundColor) {
+HRESULT CD3DFont::AddStaticText(float fXPos, float fYPos, DWORD dwColor, const char* strText, DWORD dwFlags, DWORD dwBackgroundColor)
+{
     if ((m_pD3DDevice == NULL) || (strText == NULL) || (m_pEffectVertices == NULL) || (m_pFontVertices == NULL))
         return E_FAIL;
 
-    if (dwFlags & D3DFONT_BACKGROUND) {
+    if (dwFlags & D3DFONT_BACKGROUND)
+    {
         if (m_dwUsedEffectVerts > (MAX_NUM_VERTICES - 6))
             return E_FAIL;
 
@@ -893,12 +930,14 @@ HRESULT CD3DFont::AddStaticText(float fXPos, float fYPos, DWORD dwColor, const c
         m_dwUsedEffectVerts += 6;
     }
 
-    if (dwFlags & D3DFONT_RIGHT) {
+    if (dwFlags & D3DFONT_RIGHT)
+    {
         SIZE sz;
         GetTextExtent(strText, &sz);
         fXPos -= (FLOAT)sz.cx;
     }
-    else if (dwFlags & D3DFONT_CENTERED) {
+    else if (dwFlags & D3DFONT_CENTERED)
+    {
         SIZE sz;
         GetTextExtent(strText, &sz);
         fXPos -= (FLOAT)sz.cx / 2.0f;
@@ -906,7 +945,8 @@ HRESULT CD3DFont::AddStaticText(float fXPos, float fYPos, DWORD dwColor, const c
     int len = strlen(strText);
     DWORD strStart = (DWORD)strText;
     // Set filter states
-    if (dwFlags & D3DFONT_FILTERED) {
+    if (dwFlags & D3DFONT_FILTERED)
+    {
         m_pD3DDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
         m_pD3DDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
     }
@@ -914,22 +954,25 @@ HRESULT CD3DFont::AddStaticText(float fXPos, float fYPos, DWORD dwColor, const c
     float fStartX = fXPos;
     DWORD dwCustomColor = 0xFFFFFFFF;
 
-    while (*strText) {
+    while (*strText)
+    {
         if (m_dwUsedFontVerts * 3 > (MAX_NUM_VERTICES - 6))
             return E_FAIL;
 
         char tszChr = *strText++;
         DWORD strCur = (DWORD)strText;
-        if (tszChr == ('^')) {
-            if (IsCharNumeric(*strText)) {
+        if (tszChr == ('^'))
+        {
+            if (IsCharNumeric(*strText))
+            {
                 char tszValue = *strText++;
                 dwCustomColor = GetCustomColor(tszValue, (dwColor >> 24));
-
                 continue;
             }
         }
 
-        if (tszChr == ('\n')) {
+        if (tszChr == ('\n'))
+        {
             fXPos = fStartX;
             fYPos += (m_fTexCoords[0][3] - m_fTexCoords[0][1]) * m_dwTexHeight;
         }
@@ -945,7 +988,8 @@ HRESULT CD3DFont::AddStaticText(float fXPos, float fYPos, DWORD dwColor, const c
         float fWidth = (tx2 - tx1) *  m_dwTexWidth / m_fTextScale;
         float fHeight = (ty2 - ty1) * m_dwTexHeight / m_fTextScale;
 
-        if (tszChr != (' ')) {
+        if (tszChr != (' '))
+        {
             if (dwFlags & D3DFONT_COLORTABLE)
                 dwColor = dwCustomColor;
             if (dwFlags & D3DFONT_SHADOW)
@@ -1001,7 +1045,8 @@ HRESULT CD3DFont::AddStaticText(float fXPos, float fYPos, DWORD dwColor, const c
     return S_OK;
 }
 
-HRESULT CD3DFont::EndStatic(void) {
+HRESULT CD3DFont::EndStatic(void)
+{
     if ((m_pD3DDevice == NULL) || (m_pEffectVB == NULL) || (m_pVB))
         return E_FAIL;
 
@@ -1016,7 +1061,8 @@ HRESULT CD3DFont::EndStatic(void) {
     return S_OK;
 }
 
-HRESULT CD3DFont::RenderStaticPrimitives(void) {
+HRESULT CD3DFont::RenderStaticPrimitives(void)
+{
     if ((m_pD3DDevice == NULL) || (m_pEffectVB == NULL) || (m_pVB == NULL) || (m_dwUsedFontVerts == 0))
         return E_FAIL;
 
@@ -1032,7 +1078,8 @@ HRESULT CD3DFont::RenderStaticPrimitives(void) {
         return hResult;
 
 
-    if (m_dwUsedEffectVerts) {
+    if (m_dwUsedEffectVerts)
+    {
 
         if (FAILED(hResult = m_pD3DDevice->SetFVF(D3DFVF_FONTEFFECTVERTEX)))
             return hResult;
@@ -1062,17 +1109,18 @@ HRESULT CD3DFont::RenderStaticPrimitives(void) {
 
     if (FAILED(hResult = m_pStateBlockDrawText->Apply()))
         return hResult;
-    /*
-    if ( FAILED( hResult = m_pStateBlockSaved->Apply() ) )
-        return hResult;
-    */
+    
+    //if (FAILED(hResult = m_pStateBlockSaved->Apply()))
+    //    return hResult;
+    
     if (FAILED(hResult = m_pD3DDevice->SetTexture(0, NULL)))
         return hResult;
 
     return S_OK;
 }
 
-HRESULT CD3DFont::ClearStaticBuffer(void) {
+HRESULT CD3DFont::ClearStaticBuffer(void)
+{
     if ((m_pD3DDevice == NULL) || (m_pEffectVB == NULL) || (m_pVB == NULL))
         return E_FAIL;
 
@@ -1099,7 +1147,7 @@ HRESULT CD3DFont::ClearStaticBuffer(void) {
     return S_OK;
 }
 
-float CD3DFont::GetFontHeight()
+float CD3DFont::GetFontHeight(void)
 {
     return m_fFontHeight;
 }

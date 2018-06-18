@@ -1,4 +1,3 @@
-
 //-----------------------------------------------------------------------------
 // File: D3DFont.h
 //
@@ -37,6 +36,11 @@
  *        https://www.unknowncheats.me/forum/d3d-tutorials-and-source/74839-modified-cd3dfont-d3d9-shadows-light-effect.html
  */
 
+/*
+ * Final modifications by Sean Pesce
+ *
+ */
+
 #pragma once
 
 #ifndef __D3DFONT_HEADER__
@@ -69,7 +73,8 @@ struct FONTEFFECTVERTEX {
     DWORD dwColor;
 };
 
-inline FONT2DVERTEX InitFont2DVertex(const D3DXVECTOR4& pVertex, D3DCOLOR dwColor, FLOAT TU, FLOAT TV) {
+inline FONT2DVERTEX InitFont2DVertex(const D3DXVECTOR4& pVertex, D3DCOLOR dwColor, FLOAT TU, FLOAT TV)
+{
     FONT2DVERTEX textVertex;
 
     textVertex.vXYZRHW = pVertex;
@@ -80,7 +85,8 @@ inline FONT2DVERTEX InitFont2DVertex(const D3DXVECTOR4& pVertex, D3DCOLOR dwColo
     return textVertex;
 }
 
-inline FONTEFFECTVERTEX InitFontEffectVertex(const D3DXVECTOR4& pVertex, D3DCOLOR dwColor) {
+inline FONTEFFECTVERTEX InitFontEffectVertex(const D3DXVECTOR4& pVertex, D3DCOLOR dwColor)
+{
     FONTEFFECTVERTEX fxVertex;
 
     fxVertex.vXYZRHW = pVertex;
@@ -116,10 +122,10 @@ public:
 
     // Constructor / destructor
     CD3DFont(const char* strFontName, DWORD dwHeight, DWORD dwFlags = 0L);
-    ~CD3DFont();
+    ~CD3DFont(void);
 
     // Getter
-    float CD3DFont::GetFontHeight(); // Added by Sean Pesce; returns font height
+    float CD3DFont::GetFontHeight(void); // Added by Sean Pesce
 
     // Begin/End batch drawing
     HRESULT BeginDrawing(void);
@@ -140,16 +146,16 @@ public:
 
     // Initializing and destroying device-dependent objects
     HRESULT InitializeDeviceObjects(LPDIRECT3DDEVICE9 pD3DDevice);
-    HRESULT RestoreDeviceObjects();
-    HRESULT InvalidateDeviceObjects();
-    HRESULT DeleteDeviceObjects();
+    HRESULT RestoreDeviceObjects(void);
+    HRESULT InvalidateDeviceObjects(void);
+    HRESULT DeleteDeviceObjects(void);
 
     // Stateblocks for setting and restoring render states
     LPDIRECT3DSTATEBLOCK9 m_pStateBlockSaved;
     LPDIRECT3DSTATEBLOCK9 m_pStateBlockDrawText;
 
-    inline DWORD LightColor(DWORD  color);
-    inline DWORD DarkColor(DWORD   color);
+    inline DWORD LightColor(DWORD color);
+    inline DWORD DarkColor(DWORD  color);
 
 protected:
 

@@ -4,19 +4,4 @@ LIBRARY	"d3d9"
 
 EXPORTS
     Direct3DCreate9 @1
-    D3DPERF_BeginEvent                       = D3DPERF_BeginEvent_jmp
-    D3DPERF_EndEvent                         = D3DPERF_EndEvent_jmp
-    D3DPERF_GetStatus                        = D3DPERF_GetStatus_jmp
-    D3DPERF_QueryRepeatFrame                 = D3DPERF_QueryRepeatFrame_jmp
-    D3DPERF_SetMarker                        = D3DPERF_SetMarker_jmp
-    D3DPERF_SetOptions                       = D3DPERF_SetOptions_jmp
-    D3DPERF_SetRegion                        = D3DPERF_SetRegion_jmp
-    DebugSetLevel                            = DebugSetLevel_jmp
-    DebugSetMute                             = DebugSetMute_jmp
-    Direct3D9EnableMaximizedWindowedModeShim = Direct3D9EnableMaximizedWindowedModeShim_jmp
-;    Direct3DCreate9                          = Direct3DCreate9_jmp
-    Direct3DCreate9Ex                        = Direct3DCreate9Ex_jmp
-    Direct3DShaderValidatorCreate9           = Direct3DShaderValidatorCreate9_jmp
-    PSGPError                                = PSGPError_jmp
-    PSGPSampleTexture                        = PSGPSampleTexture_jmp
     

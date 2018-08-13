@@ -14,8 +14,8 @@ HINSTANCE			gl_hOriginalDll;
 HINSTANCE			gl_hThisInstance;
 #pragma data_seg ()
 
-char* const export_names[SP_D3D9_EXPORT_COUNT_] = { "D3DPERF_BeginEvent", "D3DPERF_EndEvent", "D3DPERF_GetStatus", "D3DPERF_QueryRepeatFrame", "D3DPERF_SetMarker", "D3DPERF_SetOptions", "D3DPERF_SetRegion", "DebugSetLevel", "DebugSetMute", "Direct3D9EnableMaximizedWindowedModeShim", "Direct3DCreate9", "Direct3DCreate9Ex", "Direct3DShaderValidatorCreate9", "PSGPError", "PSGPSampleTexture" };
-extern "C" UINT_PTR d3d9_original_procs[SP_D3D9_EXPORT_COUNT_] = { 0 };
+//char* const export_names[SP_D3D9_EXPORT_COUNT_] = { "D3DPERF_BeginEvent", "D3DPERF_EndEvent", "D3DPERF_GetStatus", "D3DPERF_QueryRepeatFrame", "D3DPERF_SetMarker", "D3DPERF_SetOptions", "D3DPERF_SetRegion", "DebugSetLevel", "DebugSetMute", "Direct3D9EnableMaximizedWindowedModeShim", "Direct3DCreate9", "Direct3DCreate9Ex", "Direct3DShaderValidatorCreate9", "PSGPError", "PSGPSampleTexture" };
+//extern "C" UINT_PTR d3d9_original_procs[SP_D3D9_EXPORT_COUNT_] = { 0 };
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -76,10 +76,10 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
         d3d9_dll_chain_failed = true;
     }
 
-    for (int i = 0; i < SP_D3D9_EXPORT_COUNT_; i++)
-    {
-        d3d9_original_procs[i] = (UINT_PTR)GetProcAddress(gl_hOriginalDll, (LPCSTR)export_names[i]);
-    }
+    //for (int i = 0; i < SP_D3D9_EXPORT_COUNT_; i++)
+    //{
+    //    d3d9_original_procs[i] = (UINT_PTR)GetProcAddress(gl_hOriginalDll, (LPCSTR)export_names[i]);
+    //}
 
     // Hooking IDirect3D Object from Original Library
     typedef IDirect3D9 *(WINAPI* D3D9_Type)(UINT SDKVersion);
@@ -104,21 +104,21 @@ IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
 }
 
 
-extern "C" __declspec(naked) void __stdcall D3DPERF_BeginEvent_jmp() { __asm {jmp d3d9_original_procs[0 * 4]} }
-extern "C" __declspec(naked) void __stdcall D3DPERF_EndEvent_jmp() { __asm {jmp d3d9_original_procs[1 * 4]} }
-extern "C" __declspec(naked) void __stdcall D3DPERF_GetStatus_jmp() { __asm {jmp d3d9_original_procs[2 * 4]} }
-extern "C" __declspec(naked) void __stdcall D3DPERF_QueryRepeatFrame_jmp() { __asm {jmp d3d9_original_procs[3 * 4]} }
-extern "C" __declspec(naked) void __stdcall D3DPERF_SetMarker_jmp() { __asm {jmp d3d9_original_procs[4 * 4]} }
-extern "C" __declspec(naked) void __stdcall D3DPERF_SetOptions_jmp() { __asm {jmp d3d9_original_procs[5 * 4]} }
-extern "C" __declspec(naked) void __stdcall D3DPERF_SetRegion_jmp() { __asm {jmp d3d9_original_procs[6 * 4]} }
-extern "C" __declspec(naked) void __stdcall DebugSetLevel_jmp() { __asm {jmp d3d9_original_procs[7 * 4]} }
-extern "C" __declspec(naked) void __stdcall DebugSetMute_jmp() { __asm {jmp d3d9_original_procs[8 * 4]} }
-extern "C" __declspec(naked) void __stdcall Direct3D9EnableMaximizedWindowedModeShim_jmp() { __asm {jmp d3d9_original_procs[9 * 4]} }
-extern "C" __declspec(naked) void __stdcall Direct3DCreate9_jmp() { __asm {jmp d3d9_original_procs[10 * 4]} }
-extern "C" __declspec(naked) void __stdcall Direct3DCreate9Ex_jmp() { __asm {jmp d3d9_original_procs[11 * 4]} }
-extern "C" __declspec(naked) void __stdcall Direct3DShaderValidatorCreate9_jmp() { __asm {jmp d3d9_original_procs[12 * 4]} }
-extern "C" __declspec(naked) void __stdcall PSGPError_jmp() { __asm {jmp d3d9_original_procs[13 * 4]} }
-extern "C" __declspec(naked) void __stdcall PSGPSampleTexture_jmp() { __asm {jmp d3d9_original_procs[14 * 4]} }
+//extern "C" __declspec(naked) void __stdcall D3DPERF_BeginEvent_jmp() { __asm {jmp d3d9_original_procs[0 * 4]} }
+//extern "C" __declspec(naked) void __stdcall D3DPERF_EndEvent_jmp() { __asm {jmp d3d9_original_procs[1 * 4]} }
+//extern "C" __declspec(naked) void __stdcall D3DPERF_GetStatus_jmp() { __asm {jmp d3d9_original_procs[2 * 4]} }
+//extern "C" __declspec(naked) void __stdcall D3DPERF_QueryRepeatFrame_jmp() { __asm {jmp d3d9_original_procs[3 * 4]} }
+//extern "C" __declspec(naked) void __stdcall D3DPERF_SetMarker_jmp() { __asm {jmp d3d9_original_procs[4 * 4]} }
+//extern "C" __declspec(naked) void __stdcall D3DPERF_SetOptions_jmp() { __asm {jmp d3d9_original_procs[5 * 4]} }
+//extern "C" __declspec(naked) void __stdcall D3DPERF_SetRegion_jmp() { __asm {jmp d3d9_original_procs[6 * 4]} }
+//extern "C" __declspec(naked) void __stdcall DebugSetLevel_jmp() { __asm {jmp d3d9_original_procs[7 * 4]} }
+//extern "C" __declspec(naked) void __stdcall DebugSetMute_jmp() { __asm {jmp d3d9_original_procs[8 * 4]} }
+//extern "C" __declspec(naked) void __stdcall Direct3D9EnableMaximizedWindowedModeShim_jmp() { __asm {jmp d3d9_original_procs[9 * 4]} }
+//extern "C" __declspec(naked) void __stdcall Direct3DCreate9_jmp() { __asm {jmp d3d9_original_procs[10 * 4]} }
+//extern "C" __declspec(naked) void __stdcall Direct3DCreate9Ex_jmp() { __asm {jmp d3d9_original_procs[11 * 4]} }
+//extern "C" __declspec(naked) void __stdcall Direct3DShaderValidatorCreate9_jmp() { __asm {jmp d3d9_original_procs[12 * 4]} }
+//extern "C" __declspec(naked) void __stdcall PSGPError_jmp() { __asm {jmp d3d9_original_procs[13 * 4]} }
+//extern "C" __declspec(naked) void __stdcall PSGPSampleTexture_jmp() { __asm {jmp d3d9_original_procs[14 * 4]} }
 
 
 void InitInstance(HANDLE hModule)

@@ -155,7 +155,7 @@
       <DisableSpecificWarnings>4503</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>d3dx9.lib;dinput8.dll;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;SP_%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3dx9.lib;dinput8.lib;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;SP_%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -202,7 +202,7 @@
       <DisableSpecificWarnings>4503</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>d3dx9.lib;dinput8.dll;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;SP_legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3dx9.lib;dinput8.lib;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -251,7 +251,7 @@
       <DisableSpecificWarnings>4503</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>d3dx9.lib;dinput8.dll;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;SP_legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3dx9.lib;dinput8.lib;dxguid.lib;detoursx64.lib;SP_IOx64.lib;SP_AoBScanx64.lib;SP_SysUtilsx64.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
       <ModuleDefinitionFile>Exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>

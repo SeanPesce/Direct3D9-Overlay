@@ -5,7 +5,7 @@
 
 ## Overview  
 
-A Direct3D9 Wrapper DLL/classes with a built-in overlay framework that implements an in-game CLI and text feed for printing on-screen messages in DirectX 9 programs. ~~[Plugins](https://github.com/SeanPesce/Direct3D9-Overlay#plugins) are also supported for extending the features/functionality of the overlay~~ (**Update:** Plugins are still supported, but [see below](https://github.com/SeanPesce/Direct3D9-Overlay#plugins)).  
+A Direct3D9 Wrapper DLL/classes with a built-in overlay framework that implements an in-game CLI and text feed for printing on-screen messages in DirectX 9 programs. [Plugins](https://github.com/SeanPesce/Direct3D9-Overlay#plugins) are also supported for extending the features/functionality of the overlay.  
 
 ## Media  
 
@@ -24,7 +24,7 @@ A Direct3D9 Wrapper DLL/classes with a built-in overlay framework that implement
 
 ## Plugins  
 
-~~To utilize various features of the overlay from an external DLL, the external DLL must be a plugin for this project which imports/exports various functions. See the [ExampleOverlayPlugin](https://github.com/SeanPesce/Direct3D9-Overlay/tree/master/ExampleOverlayPlugin) subproject for reference.~~ **EDIT:** Plugin support has been vastly improved (most importantly much easier to implement), but the files in that subproject are extremely outdated. I'll update them eventually, but I'm not sure when I'll have the time to do it just yet. For an example of a working plugin, see the [Dark Souls Overhaul repository](https://github.com/metal-crow/Dark-Souls-1-Overhaul/tree/PtDE).  
+To utilize various features of the overlay from an external DLL, the external DLL must be a plugin for this project which imports/exports various functions. See the [ExampleOverlayPlugin](https://github.com/SeanPesce/Direct3D9-Overlay/tree/master/ExampleOverlayPlugin) subproject for reference. For another example, see the [Dark Souls Overhaul repository](https://github.com/metal-crow/Dark-Souls-1-Overhaul/tree/PtDE).  
 
 ## Acknowledgments  
 
